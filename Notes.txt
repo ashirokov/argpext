@@ -1,6 +1,9 @@
 #> 
-./help.sh
+
+./docxml.py doc.xml 
+
 make html
+
 
 
 #> Creating dist 

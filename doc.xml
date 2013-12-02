@@ -1,0 +1,198 @@
+<xml outputdir="examples">
+
+<copy output="sheepgraze0.py"/>
+
+<copy output="sheepgraze.py"/>
+
+<script output="sheepgraze_help.tmp"
+	command="sheepgraze.py -h"
+	/>
+
+<script output="sheepgraze.tmp"
+	command="sheepgraze.py"
+	/>
+
+
+
+<script output="sheepgraze_daisies.tmp"
+	command="sheepgraze.py -f daisies"
+	/>
+
+<interp output="sheepgraze_cmd.tmp">
+import sheepgraze
+sheepgraze.SheepGraze()()
+</interp>
+
+<interp output="sheepgraze_daisies_cmd.tmp">
+import sheepgraze
+sheepgraze.SheepGraze()(feed='daisies')
+</interp>
+
+
+
+<copy output="sheepactions.py"/>
+
+<copy output="sheepgame.py"/>
+<copy output="sheepgraze2.py"/>
+<copy output="sheepgraze_hook.py"/>
+<copy output="sheepgraze3.py"/>
+
+
+<script output="sheepactions_help.tmp"
+	command="sheepactions.py -h" 
+	/>
+
+<script output="sheepactions_graze_help.tmp"
+	command="sheepactions.py graze -h" 
+	/>
+
+<interp output="sheepactions_jump_j5_cmd.tmp">
+from sheepactions import *
+SheepJump()(n=5)
+</interp>
+
+
+
+
+
+
+
+<interp output="sheepgame_sheep_jump5_cmd.tmp">
+from sheepgame import sheepactions
+sheepactions.SheepJump()(n=5)
+</interp>
+
+<interp output="sheepactions_graze_daisies_cmd.tmp">
+from sheepactions import *
+SheepGraze()(feed='daisies')
+</interp>
+
+<interp output="sheepgame_sheep_graze_cmd.tmp">
+from sheepgame import sheepactions
+sheepactions.SheepGraze()()
+</interp>
+
+<interp output="sheepgame_sheep_graze_daisies_cmd.tmp">
+from sheepgame import sheepactions
+sheepactions.SheepGraze()(feed='daisies')
+</interp>
+
+<interp output="sheepgame_wolf_feed_cmd.tmp">
+import sheepgame
+sheepgame.FeedWolf()()
+</interp>
+
+<interp output="sheepgraze2_exe1_cmd.tmp">
+import sheepgraze2
+sheepgraze2.SheepGraze()('dosen')
+</interp>
+
+<interp output="sheepgraze2_exe2_cmd.tmp">
+import sheepgraze2
+sheepgraze2.SheepGraze()('herd',hours=5)
+</interp>
+
+<interp output="sheepgraze2_exe3_cmd.tmp">
+import sheepgraze2
+sheepgraze2.SheepGraze()('herd',feed='hay')
+</interp>
+
+<interp output="categdate.tmp" 
+	source="categdate.py"
+	/>
+
+<script output="sheepgraze_money.tmp"
+	command="sheepgraze.py -f money"
+	/>
+
+<script output="sheepgraze3_help.tmp"
+	command="sheepgraze3.py -h" 
+	/>
+
+<script output="sheepgraze3_hay.tmp"
+	command="sheepgraze3.py -f hay" 
+	/>
+
+<script output="sheepgraze3_daisies.tmp"
+	command="sheepgraze3.py -f daisies" 
+	/>
+
+<script output="sheepgraze3_money.tmp"
+	command="sheepgraze3.py -f money" 
+	/>
+
+
+<script output="sheepactions_jump_help.tmp"
+	command="sheepactions.py jump -h" 
+	/>
+
+<script output="sheepactions_graze_daisies.tmp"
+	command="sheepactions.py graze -f daisies" 
+	/>
+
+<script output="sheepactions_jump_j5.tmp"
+	command="sheepactions.py jump -n 5" 
+	/>
+
+<script output="sheepgame_help.tmp"
+	command="sheepgame.py -h" 
+	/>
+
+<script output="sheepgame_sheep_help.tmp"
+	command="sheepgame.py sheep -h" 
+	/>
+
+<script output="sheepgame_sheep_jump_help.tmp"
+	command="sheepgame.py sheep jump -h" 
+	/>
+
+<script output="sheepgame_sheep_graze_help.tmp"
+	command="sheepgame.py sheep graze -h" 
+	/>
+
+<script output="sheepgame_wolf_help.tmp"
+	command="sheepgame.py feed-wolf -h" 
+	/>
+
+<script output="sheepgame_sheep_jump5.tmp"
+	command="sheepgame.py sheep jump -n 5" 
+	/>
+
+<script output="sheepgame_sheep_graze.tmp"
+	command="sheepgame.py sheep graze" 
+	/>
+
+<interp output="retval.tmp" 
+	source="retval.py"
+	/>
+
+<script output="sheepgame_sheep_graze_daisies.tmp"
+	command="sheepgame.py sheep graze -f daisies" 
+	/>
+
+<script output="sheepgame_wolf_feed.tmp"
+	command="sheepgame.py feed-wolf" 
+	/>
+
+<script output="sheepgraze2_help.tmp"
+	command="sheepgraze2.py -h" 
+	/>
+
+<script output="sheepgraze2_exe1.tmp"
+	command="sheepgraze2.py dosen" 
+	/>
+
+<script output="sheepgraze2_exe2.tmp"
+	command="sheepgraze2.py herd -t 5" 
+	/>
+
+<script output="sheepgraze2_exe3.tmp"
+	command="sheepgraze2.py herd -f hay" 
+	/>
+
+<script output="argpext_help.tmp"
+	interpreter_flags="-m"
+	command="argpext -h" 
+	/>
+
+</xml>

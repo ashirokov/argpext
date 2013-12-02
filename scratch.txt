@@ -1,10 +1,22 @@
 
-class ArgumentError(Exception):
-    def __init__(self, message):
-        self._message = message
-    def __str__(self):
-        return self._message
 
+def display(function):
+    DB('entered display')
+    def wrapper(*args,**kwargs):
+        slf = args[0]
+        dspl = slf._display
+        r = function(*args,**kwargs)
+        if inspect.isgenerator(r):
+            #def w():
+            #    for rr in r:
+            #        display_element(dspl,rr)
+            #        yield rr
+            #return w
 
-from gettext import gettext as _, ngettext
-
+            for rr in r:
+                display_element(dspl,rr)
+                yield rr
+        else:
+            display_element(dspl,r)
+            return r
+    return wrapper

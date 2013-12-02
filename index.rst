@@ -59,7 +59,7 @@ called :func:`sheep_graze` that lets the sheep graze.  Here
 is how we can use the standard :mod:`argparse` module in
 order to connect this function to the command line:
 
-.. literalinclude:: sheepgraze0.py
+.. literalinclude:: examples/sheepgraze0.py
    :language: python3
    :lines: 3-
 
@@ -68,12 +68,12 @@ The identical functionality is now achieved with our Argpext as follows:
 
 .. _sheepgraze:
 
-.. literalinclude:: sheepgraze.py
+.. literalinclude:: examples/sheepgraze.py
    :language: python3
    :lines: 3-
 
 Class :class:`SheepGraze`, constructed by inheritance from
-:class:`argpext.Function`, establishes the interface between
+:class:`argpext.Task`, establishes the interface between
 command line and function :func:`sheep_graze`.
 
 Command line is processed during the call to the
@@ -86,22 +86,22 @@ switches, we have:
 
 .. _sheepgraze_usage:
 
-.. literalinclude:: sheepgraze_help.tmp
+.. literalinclude:: examples/sheepgraze_help.tmp
 
 ..
   
   Examples of execution
 
-  Function :func:`sheep_graze` can be executed from the
+  Task :func:`sheep_graze` can be executed from the
   command line as follows:
   
-  .. literalinclude:: sheepgraze.tmp
-  .. literalinclude:: sheepgraze_daisies.tmp
+  .. literalinclude:: examples/sheepgraze.tmp
+  .. literalinclude:: examples/sheepgraze_daisies.tmp
 
   Equivalently, in Python interpreter:
 
-  .. literalinclude:: sheepgraze_cmd.tmp
-  .. literalinclude:: sheepgraze_daisies_cmd.tmp
+  .. literalinclude:: examples/sheepgraze_cmd.tmp
+  .. literalinclude:: examples/sheepgraze_daisies_cmd.tmp
 
 
 
@@ -124,7 +124,7 @@ To provide the mapping between sub-commands ``graze`` and
 :func:`SheepGraze` and :func:`SheepJump` we declare class
 :class:`Sheep` (subclass of :class:`argpext.Node`) and
 assign the mapping to its :attr:`SUBS` attribute, as shown
-in the example below. Functions :func:`SheepGraze` and
+in the example below. Tasks :func:`SheepGraze` and
 :func:`SheepJump` are now attached to node :class:`Sheep`.
 
 The next key thing is to include :meth:`Sheep.digest()` at
@@ -133,14 +133,14 @@ interface.
 
 
 .. _sheepactions:
-.. literalinclude:: sheepactions.py
+.. literalinclude:: examples/sheepactions.py
    :language: python3
    :lines: 3-
 
 When the above program is saved as file
 ``sheepactions.py`` and executed, we have:
 
-.. literalinclude:: sheepactions_help.tmp
+.. literalinclude:: examples/sheepactions_help.tmp
 
 The sub-commands ``graze`` and ``jump`` are clearly shown in
 the help message.  In order to display their individual
@@ -148,7 +148,7 @@ usage one should pass any of these sub-commands followed by
 the ``--help/-h`` switch. For example, to display the usage
 for ``graze``:
 
-.. literalinclude:: sheepactions_graze_help.tmp
+.. literalinclude:: examples/sheepactions_graze_help.tmp
 
 ..
 
@@ -156,13 +156,13 @@ for ``graze``:
   
   In command line:
   
-  .. literalinclude:: sheepactions_graze_daisies.tmp
-  .. literalinclude:: sheepactions_jump_j5.tmp
+  .. literalinclude:: examples/sheepactions_graze_daisies.tmp
+  .. literalinclude:: examples/sheepactions_jump_j5.tmp
   
   Equivalently, in Python interpreter:
 
-  .. literalinclude:: sheepactions_graze_daisies_cmd.tmp
-  .. literalinclude:: sheepactions_jump_j5_cmd.tmp
+  .. literalinclude:: examples/sheepactions_graze_daisies_cmd.tmp
+  .. literalinclude:: examples/sheepactions_jump_j5_cmd.tmp
 
 
 
@@ -175,7 +175,7 @@ In addition to attaching functions to a node, it is also
 possible to attach nodes to another node, as demonstrated by
 lines 18 and 19 of the following example
 
-.. literalinclude:: sheepgame.py
+.. literalinclude:: examples/sheepgame.py
    :language: python3
    :lines: 3-
    :linenos:
@@ -190,21 +190,21 @@ non-uniform height.
 When the above program is saved as file ``sheepgame.py``,
 the top level help message is invoked as follows:
 
-.. literalinclude:: sheepgame_help.tmp
+.. literalinclude:: examples/sheepgame_help.tmp
 
 
 To display sheep-related usage of ``sheepgame.py``, 
 pass the ``sheep`` subcommand:
 
-.. literalinclude:: sheepgame_sheep_help.tmp
+.. literalinclude:: examples/sheepgame_sheep_help.tmp
 
 To display even lower level help messages, additional
 sub-commands are passed:
 
-.. literalinclude:: sheepgame_sheep_jump_help.tmp
+.. literalinclude:: examples/sheepgame_sheep_jump_help.tmp
 
 
-.. literalinclude:: sheepgame_sheep_graze_help.tmp
+.. literalinclude:: examples/sheepgame_sheep_graze_help.tmp
 
 ..
   
@@ -212,20 +212,20 @@ sub-commands are passed:
 
   In the command line:
 
-  .. literalinclude:: sheepgame_sheep_jump5.tmp
-  .. literalinclude:: sheepgame_sheep_graze.tmp
-  .. literalinclude:: sheepgame_sheep_graze_daisies.tmp
+  .. literalinclude:: examples/sheepgame_sheep_jump5.tmp
+  .. literalinclude:: examples/sheepgame_sheep_graze.tmp
+  .. literalinclude:: examples/sheepgame_sheep_graze_daisies.tmp
 
   Equivalently, in Python interpreter:
 
-  .. literalinclude:: sheepgame_sheep_jump5_cmd.tmp
-  .. literalinclude:: sheepgame_sheep_graze_cmd.tmp
-  .. literalinclude:: sheepgame_sheep_graze_daisies_cmd.tmp
+  .. literalinclude:: examples/sheepgame_sheep_jump5_cmd.tmp
+  .. literalinclude:: examples/sheepgame_sheep_graze_cmd.tmp
+  .. literalinclude:: examples/sheepgame_sheep_graze_daisies_cmd.tmp
   
 
 Wolf-related usage of ``sheepgame.py``:
 
-.. literalinclude:: sheepgame_wolf_help.tmp
+.. literalinclude:: examples/sheepgame_wolf_help.tmp
 
 .. _fullexample_execution:
 
@@ -235,22 +235,22 @@ Wolf-related usage of ``sheepgame.py``:
   
   In the command line:
 
-  .. literalinclude:: sheepgame_wolf_feed.tmp
+  .. literalinclude:: examples/sheepgame_wolf_feed.tmp
 
   Equivalently, in Python interpreter
 
-  .. literalinclude:: sheepgame_wolf_feed_cmd.tmp
+  .. literalinclude:: examples/sheepgame_wolf_feed_cmd.tmp
   
 
 
-Functions with multiple arguments
+Tasks with multiple arguments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For simplicity, so far we have only considered functions of
 one argument. In practice, there is no such limitation. 
 
 For each argument of the function pointed to by the
-:attr:`HOOK` attribute there should be a call to
+:attr:`hook` attribute there should be a call to
 :meth:`add_argument` inside :meth:`populate`, whose
 ``dest=`` value coincides with the name of the argument.
 
@@ -263,13 +263,13 @@ Here is an example, where the three arguments ``quantity``,
 :meth:`add_argument` calls with ``dest='quantity'``,
 ``dest='feed'`` and ``dest='hours'``:
 
-.. literalinclude:: sheepgraze2.py
+.. literalinclude:: examples/sheepgraze2.py
    :language: python3
    :lines: 3-
 
 The usage is as follows:
 
-.. literalinclude:: sheepgraze2_help.tmp
+.. literalinclude:: examples/sheepgraze2_help.tmp
 
 ..
 
@@ -277,15 +277,15 @@ The usage is as follows:
 
   In command line
 
-  .. literalinclude:: sheepgraze2_exe1.tmp
-  .. literalinclude:: sheepgraze2_exe2.tmp
-  .. literalinclude:: sheepgraze2_exe3.tmp
+  .. literalinclude:: examples/sheepgraze2_exe1.tmp
+  .. literalinclude:: examples/sheepgraze2_exe2.tmp
+  .. literalinclude:: examples/sheepgraze2_exe3.tmp
 
   Equivalently, in Python interpreter
 
-  .. literalinclude:: sheepgraze2_exe1_cmd.tmp
-  .. literalinclude:: sheepgraze2_exe2_cmd.tmp
-  .. literalinclude:: sheepgraze2_exe3_cmd.tmp
+  .. literalinclude:: examples/sheepgraze2_exe1_cmd.tmp
+  .. literalinclude:: examples/sheepgraze2_exe2_cmd.tmp
+  .. literalinclude:: examples/sheepgraze2_exe3_cmd.tmp
 
   Notice the agreement between the default values
   (e.g. ``hour=2.5``) applied when an optional argument is
@@ -293,23 +293,23 @@ The usage is as follows:
   corresponding Python interpreter examples.
 
 
-Static :meth:`HOOK` methods
+Static :meth:`hook` methods
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Our :ref:`bare bones example<sheepgraze>` can be
 equivalently rewritten in a different style, as follows
 
-.. literalinclude:: sheepgraze_hook.py
+.. literalinclude:: examples/sheepgraze_hook.py
   :lines: 3-
 
 Return values
 ^^^^^^^^^^^^^
 
-The :meth:`Node.digest`, :meth:`Function.digest` and
-:meth:`Function.__call__` methods return the value of the
+The :meth:`Node.digest`, :meth:`Task.digest` and
+:meth:`Task.__call__` methods return the value of the
 corresponding reference function. For example:
 
-.. literalinclude:: retval.tmp
+.. literalinclude:: examples/retval.tmp
   :lines: 3-
 
 
@@ -321,20 +321,17 @@ Commands managed by Argpext are optionally saved into a
 local history. The feature is disabled by default; to enable
 it, set the environment variable
 :py:envvar:`ARGPEXT_HISTORY` to specify the name of the
-history file. Variable :py:envvar:`ARGPEXT_HISTORY_MAXSIZE`
-may be used to control the maximum size of the history file,
-in bytes. By default, the equivalent of
-``ARGPEXT_HISTORY_MAXSIZE=10240`` is used. 
+history file. 
 
 Command line history is available by running
 :program:`argpext.py` as executable with ``history``
 sub-command.
 
 
-Categorical variable type
+KeyWords variable type
 -------------------------
 
-This section introduces class :class:`Categorical` to cover
+This section introduces class :class:`KeyWords` to cover
 the type of variables whose possible values (or methods for
 generating those values) are known in advance; this is an
 alternative to using the ``choices=`` argument of
@@ -344,7 +341,7 @@ Consider the following possible mnemonic choices for
 specifying a date: "1977-02-04", "Lisas birthday", "y2kday",
 "today", and their implementation:
 
-.. literalinclude:: categdate.tmp
+.. literalinclude:: examples/categdate.tmp
    :linenos:
    :lines: 3-
 
@@ -359,7 +356,7 @@ finding the value of date:
 
 Actual evaluations are shown in lines 18-27.
 
-The :class:`Categorical` type object ``dates``, constructed
+The :class:`KeyWords` type object ``dates``, constructed
 in the above example can be used as ``type=`` argument,
 similar to the case in our next :ref:`example<sheepgraze3>`.
 
@@ -369,11 +366,7 @@ Treatment of unmatched values
 
 The last evaluation (line 26) results in an error because
 the argument ``2012-01-11`` does not match any of predefined
-values. This error behaviour may be changed by passing an
-additional ``typeothers=`` argument to the constructor of
-:class:`Categorical`. Setting ``typeothers=str`` for example
-will result in the conversion of any unmatched values to
-string (:class:`str`).
+values. 
 
 
 .. _categ_example1:
@@ -382,7 +375,7 @@ The bare bones example revisited
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Going back to :ref:`one<sheepgraze>` of our previously
-discussed examples :class:`Categorical` type values may be
+discussed examples :class:`KeyWords` type values may be
 found particularly useful. Problems may arise because
 :ref:`command line usage<sheepgraze_usage>` for that example
 allows one to pass any erroneous string as an
@@ -390,18 +383,18 @@ argument. Indeed, consider this:
 
 .. _categ_example1_program:
 
-.. literalinclude:: sheepgraze_money.tmp
+.. literalinclude:: examples/sheepgraze_money.tmp
 
 
-The :class:`Categorical` class allows one to limit the
+The :class:`KeyWords` class allows one to limit the
 domain of argument values to a limited set of valid values
 and reflect the available choices in the usage. Introducing
-the :class:`Categorical` class into our example leads to the
+the :class:`KeyWords` class into our example leads to the
 following:
 
 .. _sheepgraze3:
 
-.. literalinclude:: sheepgraze3.py
+.. literalinclude:: examples/sheepgraze3.py
    :lines: 3-
    :emphasize-lines: 12-14,16
    :linenos:
@@ -413,7 +406,7 @@ After this modification, the valid values (``hay``,
 ``grass``, and ``daisies``) of input become visible within
 the help message. Indeed:
 
-.. literalinclude:: sheepgraze3_help.tmp
+.. literalinclude:: examples/sheepgraze3_help.tmp
 
 ..
   
@@ -421,13 +414,13 @@ the help message. Indeed:
 
   Passing any of the valid values results in proper execution:
   
-  .. literalinclude:: sheepgraze3_hay.tmp
-  .. literalinclude:: sheepgraze3_daisies.tmp
+  .. literalinclude:: examples/sheepgraze3_hay.tmp
+  .. literalinclude:: examples/sheepgraze3_daisies.tmp
 
   Attempt to pass an erroneous argument leads to an
   error message:
   
-  .. literalinclude:: sheepgraze3_money.tmp
+  .. literalinclude:: examples/sheepgraze3_money.tmp
 
 
 .. _argpext_exe:
@@ -439,7 +432,7 @@ In addition to providing a Python module, program
 :program:`argpext.py` can be ran as an executable; its
 current usage is as follows:
 
-.. literalinclude:: argpext_help.tmp
+.. literalinclude:: examples/argpext_help.tmp
 
 
 .. _reference:
@@ -451,7 +444,7 @@ Reference
 Sub-command hierarchy
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. class:: Function
+.. class:: Task
 
    Base class for a callable function-like object that is
    capable of behaving like a script.  The object can be
@@ -461,20 +454,20 @@ Sub-command hierarchy
    evaluated directly, using the function call operator; See
    method :meth:`__call__` for details. The object is
    attached to a regular Python function (also called the
-   *reference function*) by the :meth:`HOOK` method.
+   *reference function*) by the :meth:`hook` method.
 
-   .. staticmethod:: Function.HOOK(*args,**kwds)
+   .. staticmethod:: Task.hook(*args,**kwds)
 
 	Specifies the reference Python function. If
-	:meth:`HOOK` takes positive number of arguments,
-	:meth:`Function.populate` must be properly
+	:meth:`hook` takes positive number of arguments,
+	:meth:`Task.populate` must be properly
 	overloaded as well.
 
-   .. method:: Function.populate(parser)
+   .. method:: Task.populate(parser)
 
-	This method should be overloaded if :meth:`HOOK`
+	This method should be overloaded if :meth:`hook`
 	takes positive number of arguments. For each argument *X* of
-	the :meth:`HOOK` method there must be a call (or its
+	the :meth:`hook` method there must be a call (or its
 	equivalent) to :py:meth:`add_argument` with *dest='X'*.
         The *parser* argument should be assumed  to be of type
 	:py:class:`argparse.ArgumentParser`.
@@ -482,23 +475,23 @@ Sub-command hierarchy
 
 
 
-   .. method:: Function.__call__(*args,**kwds)
+   .. method:: Task.__call__(*args,**kwds)
 
 	Execute the reference function; its return value is
 	returned. The arguments of the reference function
 	are given by *args* and *kwds*. If an argument of is
 	missing, the command line default values, defined
-	:meth:`Function.populate` are substituted. Notice
+	:meth:`Task.populate` are substituted. Notice
 	that the default values, if any, defined in the
-	arguments of :meth:`Function.HOOK` are not used. If
+	arguments of :meth:`Task.hook` are not used. If
 	too many arguments are given or some arguments
 	remain missing, a standard built-in exception is
 	raised.
 
-   .. method:: Function.digest(prog=None,args=None)
+   .. method:: Task.digest(prog=None,args=None)
 
 	Execute the reference function; its return value is
-	returned.  Function :meth:`Function.populate` is
+	returned.  Task :meth:`Task.populate` is
 	used to convert command line arguments given by
 	*args* into the arguments of the reference
 	function. Using the default value *args=None* is
@@ -513,24 +506,22 @@ Sub-command hierarchy
    Base class for hierarchical script-like object that can
    be executed on a complete list of command line
    arguments. The list starts with the mandatory sequence of
-   sub-commands that identifies the leaf :func:`Function`
+   sub-commands that identifies the leaf :func:`Task`
    class. The rest of the command line arguments are used to
    execute the reference function of that class, as
    specified in the documentation for
-   :meth:`Function.digest` method.
+   :meth:`Task.digest` method.
 
 
    .. attribute:: SUBS
 
       Specifies the list of child nodes along with their
-      assigned sub-commands. This attribute must be defined
-      and must be a :py:class:`list` or a :py:class:`tuple`
+      assigned sub-commands. This attribute, if defined,
+      must be a :py:class:`list` or a :py:class:`tuple`
       of *(key,basenode)* items, where the *basenode* is an
       instance of either of :class:`Node` or
-      :class:`Function` class, and the *key* is the
+      :class:`Task` class, and the *key* is the
       sub-command assigned to it.
-      :py:exc:`InitializationError` is raised if this
-      attribute is not defined at the evaluation time.
 
    .. method:: Node.digest(prog=None,args=None)
 
@@ -545,67 +536,29 @@ Sub-command hierarchy
       default value *None* translates to *sys.argv[0]*.
 
 
-Categorical variables
+KeyWords variable type
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. class:: Categorical(mapping=(),typeothers=None)
+.. class:: KeyWords(keywords=[])
 
-   Categorical variable type. A callable object that
-   converts input key into its corresponding literal value,
-   computing the latter if necessary.
+   KeyWords variable type. A callable object that
+   converts input key into itself, if one is defined,
+   throwing a :py:exc:`KeyError` exception otherwise
 
-   * mapping - this argument should be a list-like object *[item1,item2,...]*, needed to set up the mapping between the *the key*\s and *value*\s that correspond to each of those *key*\s. Each *item* can be one of the following:
+   * keywords - a list-like object *[item1,item2,...]*, that defined ordered sequence of unique keys
 
-     * [*key*, *unit*] - where *value* is an instance of type :class:`Unit`.
+   KeyWords variable type.
 
-     * [*key*, *value*] - where *value* is an instance of any other type. This item is equivalent to [*key*, :class:`Unit`\(value= *value*\)]
-
-     * *key* - equivalent to item  [*key*, :class:`Unit`\(value= *key*\) ]
-
-     :py:exc:`InitializationError` exception is raised if *mapping* is not properly defined.
-
-   * typeothers - Specifies the behavior when value for an undefined key is requested; See :meth:`Categorical.__call__` for details.
-
-   Categorical variable type.
-
-   .. method:: Categorical.__str__()
+   .. method:: KeyWords.__str__()
 
       Returns string representation for the object showing
       all the available keys.
 
-   .. method:: Categorical.__call__(key)
+   .. method:: KeyWords.__call__(key)
 
-      Finds and returns the literal value associated with
-      the given *key*.  If *key* does not match any of keys
-      defined by the *mapping* then *typeothers(key)* is
-      returned, unless *typeothers* is *None* (the default)
-      in which case :py:exc:`KeyEvaluationError` exception
-      is raised.
-
-.. class:: Unit(value,help=None,callable=False)
-
-   Value unit for :class:`Categorical` variables. The
-   instance of this class completely specifies how the value
-   should be computed when it is requested.
-
-   .. method:: Unit.evaluate()
-
-     Returns the literal value of valuation unit. When the
-     *callable* argument to :class:`Unit` is *False*, it is
-     identical to its *value* argument. When
-     *callable=True*, the literal value is found by
-     evaluation of *value()* at the time when the
-     :meth:`evaluate` is invoked.
-
-
-Exceptions
-^^^^^^^^^^
-
-   .. exception:: InitializationError
-
-   .. exception:: KeyEvaluationError
-
-
+      Returns the *key* itself, if *key* matches any of keys defined
+      by the *keywords*. Otherwise, raises the
+      :py:exc:`KeyError` exception.
 
 Environment variables
 ^^^^^^^^^^^^^^^^^^^^^
@@ -616,11 +569,6 @@ Environment variables
    Sub-command history file path. No history file is written
    if this variable is unset.
 
-.. envvar:: ARGPEXT_HISTORY_MAXSIZE
-
-   If set, specifies the maximum size of history file (if
-   any), in bytes. Ignored if below 10240 (10 Kilobytes).
-
 
 
 Porting from the earlier Argpext versions
@@ -629,13 +577,15 @@ Porting from the earlier Argpext versions
 Compared to the previous releases (0.1 and 0.2) of argpext,
 version 1.0 is a very substantial update. For consistency
 with the "Style Guide for Python Code" (PEP 8), class
-:class:`comm_cls` is renamed into :class:`Function` and
+:class:`comm_cls` is renamed into :class:`Task` and
 class :class:`node_cls` is renamed into :class:`Node`.
 Class :class:`keyval` is renamed into
-:class:`Categorical`. Interface to those classes have also
+:class:`KeyWords`. Interface to those classes have also
 been changed.  
 
 Version 1.1 is a bugfix version that addresses minor issues.
+
+Version 1.2 introduces introduces multiple new features.
 
 See also
 --------
