@@ -1,0 +1,19 @@
+#> 
+./help.sh
+make html
+
+
+#> Creating dist 
+
+rm -rf dist
+python setup.py sdist
+
+#> Uploading code
+
+python setup.py sdist bdist_wininst upload
+
+#> Uploading docs:
+
+
+zip -r ../docs.zip .
+

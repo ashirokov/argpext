@@ -1,0 +1,2 @@
+import sheepgame
+sheepgame.FeedWolf()()
