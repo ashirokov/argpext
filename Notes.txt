@@ -1,6 +1,10 @@
 #> 
-./help.sh
+
+
+./gendoc.py
+
 make html
+
 
 
 #> Creating dist 

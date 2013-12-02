@@ -15,19 +15,109 @@ http://www.opencontent.org/openpub ).
 
 import sys
 import time
+import re
 import os
+import inspect
 import argparse
-import abc
 import collections
 
 
+class Categorical(object):
+    """Categorical variable type."""
+
+    class Unit(object):
+        "Value unit for Categorical variables."
+        def __init__(self,value,help=None,callable=False):
+            self._value = value
+            assert(isinstance(help,(str,type(None),) ))
+            self._help = help
+            self._callable = callable
+            assert(isinstance(callable,bool))
+        def __call__(self):
+            return self._value() if self._callable else self._value
+
+        evaluate = __call__ # For backward compatibility with argpext-1.1 only
+
+
+    def __init__(self,keys=()):
+        L = []
+        for q in keys:
+            if not isinstance(q,str): raise TypeError()
+            item = (q, Categorical.Unit(value=q))
+            L += [ item ]
+
+        self.__dict = collections.OrderedDict(L)
+
+    def __str__(self):
+        K = []
+        for key,choice in self.__dict.items():
+            K += [key]
+        return '{%s}' % ( '|'.join(K) )
+
+    def __call__(self,key):
+        "Finds and returns value associated with the given key."
+        if key in self.__dict:
+            unit = self.__dict[key]
+            return unit()
+        else:
+            raise KeyError('unmatched key: "%s".' % (key) )
+
+    def items(self):
+        return self.__dict.items()
+    def __iter__(self):
+        return self.__dict.__iter__()
+    def keys(self):
+        return self.__dict.keys()
+    def values(self):
+        return self.__dict.values()
+    def __contains__(self,key):
+        return self.__dict.__contains__(key)
+
+
+
 class InitializationError(Exception): pass
-class KeyEvaluationError(Exception): pass
+
+
+E = Categorical(['ARGPEXT_HISTORY'])
+
+
+def frameref(fstr,up):
+    "returns frame reference string"
+    F = sys._getframe(1+up)
+    path = F.f_code.co_filename
+    basename = os.path.basename(path)
+    lineno = F.f_lineno
+    d = {
+        'path' : path,
+        'basename' : basename,
+        'lineno' : lineno
+    }
+    return fstr % d
+
+
+class Doc(object):
+    def __init__(self,value):
+        self.value = value
+    def __call__(self,short=False,label=None):
+        if self.value is None: return
+        R = self.value
+        if short is True:
+            R = re.split('[\.;]',R)[0]
+
+        debug = False
+        if debug:
+            R += '[%(position)s%(label)s]' % \
+                 { 'position' : frameref('%(basename)s:%(lineno)s',up=1)
+                   ,'label' : ('(%s)' % label  if label is not None else '') 
+                 }
+
+        return R
+
 
 
 class BaseNode(object):
 
-    def _log(self,prog,args):
+    def history_update(self,prog,args):
         """Update the history file, if one if defined."""
         filename = histfile()
 
@@ -50,16 +140,12 @@ class BaseNode(object):
             # Truncate history file, if necesary
             size = os.stat(filename).st_size
 
-            def histmaxsize():
-                "Returns maximum size of history file (if any), in bytes."
-                minsize = 10*1024
-                q = os.getenv('ARGPEXT_HISTORY_MAXSIZE')
-                q = minsize if q is None else max(int(q),minsize)
-                return q
-
-            maxsize = histmaxsize()
+            maxsize = 1024*1024
             if size > maxsize:
+
                 cutsize = size-maxsize/2
+
+                # Find: the remainder to be written to file
                 remainder = ''
                 with open(filename) as fhi:
                     cur = 0
@@ -68,12 +154,18 @@ class BaseNode(object):
                         cur += len(line)
                         if cur >= cutsize: break
                     remainder = fhi.read()
+
                 with open(filename,'w') as fhi:
                     fhi.write(remainder)
 
 
 class Function(BaseNode):
     """Base class for command line interface to a Python function."""
+
+    # Members to be redefined by a user
+    @staticmethod
+    def HOOK():
+        raise NotImplementedError()
 
     def populate(self,parser):
         """This method should be overloaded if HOOK takes
@@ -83,6 +175,9 @@ class Function(BaseNode):
         call (or its equivalent) to the parser.add_argument
         method with dest='X'."""
         pass
+
+
+    # Other members
 
     def defaults(self):
         """Returns the dictionary of command line default
@@ -123,19 +218,37 @@ class Function(BaseNode):
         """
         if prog is None: prog = os.path.basename( sys.argv[0] )
         if args is None: args = sys.argv[1:]
-        BaseNode._log(self,prog=prog,args=args)
+        BaseNode.history_update(self,prog=prog,args=args)
 
         q = self.__doc__
         if q is None: q = self.HOOK.__doc__
-        q = argparse.ArgumentParser(  description=q )
+        docstr = Doc(q)
+
+        q = argparse.ArgumentParser(  description=docstr(label='description') )
         self.populate( q )
         q = argparse.ArgumentParser.parse_args(q,args)
         q = vars(q)
         return self.__callable()( **q )
 
 
+def function(function):
+    class Test(Function):
+        HOOK=function
+    return Test
+
+
 class Node(BaseNode):
     """Command line interface for a node."""
+
+    # Members to be redefined by a user
+
+    SUBS = []
+
+    def populate(self,parser):
+        """This may be overloaded """
+        pass
+
+    # Other members
 
     def digest(self,prog=None,args=None):
         """Execute the node based on command line
@@ -146,6 +259,67 @@ class Node(BaseNode):
         the return value of the reference function.
         """
 
+        class Binding(object):
+            def __init__(self,node):
+                self._node = node
+            def __call__(self,namespace):
+                if not isinstance(namespace,argparse.Namespace): raise TypeError
+                q = vars( namespace )
+                del q[ _EXTRA_KWD ]
+                return self._node.HOOK( **q )
+
+
+        def add_subtasks(parser):
+            nodes = {}
+            subparsers = None
+
+            attributename = 'SUBS'
+            subs = getattr(self,attributename,None)
+            if subs is None:
+                raise InitializationError('mandatory attribute %s is not defined for class %s' % (  attributename , type(self).__name__ ) )
+
+            for name,node in subs:
+                nodes[name] = node
+
+                if subparsers is None: subparsers = parser.add_subparsers(help='Description')
+
+                if issubclass(node,Function):
+
+                    q = getattr(node,'__doc__',None)
+                    if q is None: q = node.HOOK.__doc__
+                    docstr = Doc(q)
+                    subparser = subparsers.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
+                    node().populate( subparser )
+                    subparser.set_defaults( ** { _EXTRA_KWD : Binding(node) } )
+                elif issubclass(node,Node):
+                    N = node()
+                    N._internal = True
+                    docstr = Doc(getattr(node,'__doc__',None))
+                    subparser = subparsers.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
+                    subparser.set_defaults( ** { _EXTRA_KWD : N } )
+                else:
+                    raise InitializationError('invalid type (%s) for sub-command "%s" of %s' % ( node.__name__, name, type(self).__name__ ) )
+            return nodes
+
+
+        def delegation(args,parser,nodes):
+            if len(args):
+                word = args[0]
+                node = nodes[word]
+
+                if issubclass(node,Function):
+                    q = argparse.ArgumentParser.parse_args( parser, args )
+                    # Execute bound function.
+                    return getattr(q,_EXTRA_KWD)( q )
+                elif issubclass(node,Node):
+                    q = argparse.ArgumentParser.parse_args( parser, [word] )
+                    return getattr(q,_EXTRA_KWD).digest( prog='%s %s' % (prog,word) # chaining
+                                                         , args=args[1:] )
+                else:
+                    raise TypeError
+
+
+
         if prog is None: prog = os.path.basename( sys.argv[0] )
         if args is None: args = sys.argv[1:]
 
@@ -154,146 +328,75 @@ class Node(BaseNode):
 
         # Write history file
         if not hasattr(self,'_internal'):
-            BaseNode._log(self,prog=prog,args=args)
+            BaseNode.history_update(self,prog=prog,args=args)
 
 
-        #print('(%s)' % prog)
+        # Find: rightparser, the parser for delegation tasks
+        docstr = Doc(self.__doc__)
 
-        parser = argparse.ArgumentParser( prog=prog, description=self.__doc__  )
-        nodes = {}
-        subparsers = None
+        rightparser = argparse.ArgumentParser( prog=prog, description=docstr(label='description')  )
 
-        attributename = 'SUBS'
-        subs = getattr(self,attributename,None)
-        if subs is None:
-            raise InitializationError('mandatory attribute %s is not defined for class %s' % (  attributename , type(self).__name__ ) )
+        # Find: rightnodes, the lookup dict for delegation tasks
+        rightnodes = add_subtasks(rightparser)
 
+        # Find: leftargs,rightargs: argument splitting
+        leftargs = []
+        rightargs = []
+        current = leftargs
+        for i,arg in enumerate(args):
+            if len(rightargs) or arg in rightnodes: current = rightargs
+            current += [arg]
 
-        for name,node in subs:
-            nodes[name] = node
+        # Find: leftparser, parser for flat level tasks: either before delegation or to print help.
+        docstr = Doc(self.__doc__)
 
-            def binding(namespace):
-                if not isinstance(namespace,argparse.Namespace): raise TypeError
-                q = vars( namespace )
-                del q[ _EXTRA_KWD ]
-                return node.HOOK( **q )
+        leftparser = argparse.ArgumentParser( prog=prog, description=docstr(label='description')  )
+        add_subtasks(leftparser)
 
-            if subparsers is None: subparsers = parser.add_subparsers(help='Description')
+        # Populate left parser with flat level tasks
+        self.populate( leftparser )
 
-            dosctr = getattr(node,'__doc__',None)
-
-            if issubclass(node,Function):
-                if dosctr is None: dosctr = node.HOOK.__doc__
-                subparser = subparsers.add_parser(name,help=dosctr,description=dosctr )
-                node().populate( subparser )
-                subparser.set_defaults( ** { _EXTRA_KWD : binding } )
-            elif issubclass(node,Node):
-                N = node()
-                N._internal = True
-                subparser = subparsers.add_parser(name,help=dosctr,description=dosctr )
-                subparser.set_defaults( ** { _EXTRA_KWD : N } )
-            else:
-                raise InitializationError('invalid type (%s) for sub-command "%s" of %s' % ( node.__name__, name, type(self).__name__ ) )
+        # Execute flat level tasks
+        namespace = argparse.ArgumentParser.parse_args( leftparser, leftargs )
+        for variable,value in vars(namespace).items():
+            module = inspect.getmodule(self)
+            setattr(module,variable,value)
 
 
-
-        word = None
-        try:
-            q = args[0]
-            node = nodes[q]
-            word = q
-        except (KeyError,IndexError):
-            argparse.ArgumentParser.parse_args( parser, args )
-
-        if word is not None:
-            if issubclass(node,Function):
-                q = argparse.ArgumentParser.parse_args( parser, args )
-                return getattr(q,_EXTRA_KWD)( q )
-            elif issubclass(node,Node):
-                q = argparse.ArgumentParser.parse_args( parser, [word] )
-                return getattr(q,_EXTRA_KWD).digest( prog='%s %s' % (prog,word) # chaining
-                                                     , args=args[1:] )
-            else:
-                raise TypeError
+        # Execute delegation level tasks.
+        delegation(args=rightargs,parser=rightparser,nodes=rightnodes)
 
 
 def histfile():
     "Returns file path of the hierarchical subcommand history file"
-    varb = 'ARGPEXT_HISTORY'
-    return os.getenv(varb)
+    varb = E('ARGPEXT_HISTORY')
+    path = os.getenv(varb)
+    if path is None: raise KeyError('Variable %s is undefined' % varb)
+    return path
 
-
-class Unit(object):
-    "Value unit for Categorical variables."
-    def __init__(self,value,help=None,callable=False):
-        self._value = value
-        assert(isinstance(help,(str,type(None),) ))
-        self._help = help
-        self._callable = callable
-        assert(isinstance(callable,bool))
-    def evaluate(self):
-        return self._value() if self._callable else self._value
-
-
-class Categorical(object):
-    "Categorical variable type."""
-    def __init__(self,mapping=(),typeothers=None):
-        L = []
-        count = 0
-        for q in mapping:
-            count += 1
-            if isinstance(q,str): 
-                item = (q, Unit(value=q))
-            elif isinstance(q,(list,tuple)):
-
-                if len(q) != 2: 
-                    raise InitializationError('invalid size %d for %s item number %d' % ( len(q), type(q).__name__, count ) )
-
-                if not isinstance(q[1],Unit):
-                    q = [q[0],Unit(value=q[1])]
-                item = q
-            else:
-                raise InitializationError('invalid type (%s) for mapping item number %d.' % ( type(q).__name__, count ) )
-            L += [ item ]
-
-        self.__dict = collections.OrderedDict(L)
-        self.__typeothers = typeothers
-
-    def __str__(self):
-        K = []
-        for key,choice in self.__dict.items():
-            K += [key]
-
-        q = self.__typeothers
-        if q is not None:
-            K += ['%s()' % q.__name__ ]
-
-        return '{%s}' % ( '|'.join(K) )
-
-    def __call__(self,key):
-        "Finds and returns value associated with the given key."
-        if key in self.__dict:
-            return self.__dict[key].evaluate()
-        else:
-            if self.__typeothers is None:
-                raise KeyEvaluationError('unmatched key: "%s".' % (key) )
-            else:
-                return self.__typeothers(key)
 
 
 class History(Function):
     "Display command line history."
 
     @staticmethod
-    def HOOK():
+    def HOOK(unique):
         q = histfile()
-        if q is not None:
-            try:
-                with open(q) as fhi:
-                    for line in fhi:
-                        print(line.rstrip())
-            except:
-                print('no history file found')
+        if not os.path.exists(q): 
+            print('history file is not found: %s' % q)
+        else:
+            lastcommand = None
+            with open(q) as fhi:
+                for line in fhi:
+                    date,path,command = line.split(',',2)
+                    if unique and lastcommand is not None and command == lastcommand: continue
+                    print(line.rstrip())
+                    lastcommand = command
+
+    def populate(self,parser):
+        parser.add_argument('-u',dest='unique',default=False,action='store_true',
+                            help='Do not show repeating commands')
+
 
 
 class Main(Node):

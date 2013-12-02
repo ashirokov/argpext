@@ -59,7 +59,7 @@ called :func:`sheep_graze` that lets the sheep graze.  Here
 is how we can use the standard :mod:`argparse` module in
 order to connect this function to the command line:
 
-.. literalinclude:: sheepgraze0.py
+.. literalinclude:: examples/sheepgraze0.py
    :language: python3
    :lines: 3-
 
@@ -68,7 +68,7 @@ The identical functionality is now achieved with our Argpext as follows:
 
 .. _sheepgraze:
 
-.. literalinclude:: sheepgraze.py
+.. literalinclude:: examples/sheepgraze.py
    :language: python3
    :lines: 3-
 
@@ -86,7 +86,7 @@ switches, we have:
 
 .. _sheepgraze_usage:
 
-.. literalinclude:: sheepgraze_help.tmp
+.. literalinclude:: examples/sheepgraze_help.tmp
 
 ..
   
@@ -95,13 +95,13 @@ switches, we have:
   Function :func:`sheep_graze` can be executed from the
   command line as follows:
   
-  .. literalinclude:: sheepgraze.tmp
-  .. literalinclude:: sheepgraze_daisies.tmp
+  .. literalinclude:: examples/sheepgraze.tmp
+  .. literalinclude:: examples/sheepgraze_daisies.tmp
 
   Equivalently, in Python interpreter:
 
-  .. literalinclude:: sheepgraze_cmd.tmp
-  .. literalinclude:: sheepgraze_daisies_cmd.tmp
+  .. literalinclude:: examples/sheepgraze_cmd.tmp
+  .. literalinclude:: examples/sheepgraze_daisies_cmd.tmp
 
 
 
@@ -133,14 +133,14 @@ interface.
 
 
 .. _sheepactions:
-.. literalinclude:: sheepactions.py
+.. literalinclude:: examples/sheepactions.py
    :language: python3
    :lines: 3-
 
 When the above program is saved as file
 ``sheepactions.py`` and executed, we have:
 
-.. literalinclude:: sheepactions_help.tmp
+.. literalinclude:: examples/sheepactions_help.tmp
 
 The sub-commands ``graze`` and ``jump`` are clearly shown in
 the help message.  In order to display their individual
@@ -148,7 +148,7 @@ usage one should pass any of these sub-commands followed by
 the ``--help/-h`` switch. For example, to display the usage
 for ``graze``:
 
-.. literalinclude:: sheepactions_graze_help.tmp
+.. literalinclude:: examples/sheepactions_graze_help.tmp
 
 ..
 
@@ -156,13 +156,13 @@ for ``graze``:
   
   In command line:
   
-  .. literalinclude:: sheepactions_graze_daisies.tmp
-  .. literalinclude:: sheepactions_jump_j5.tmp
+  .. literalinclude:: examples/sheepactions_graze_daisies.tmp
+  .. literalinclude:: examples/sheepactions_jump_j5.tmp
   
   Equivalently, in Python interpreter:
 
-  .. literalinclude:: sheepactions_graze_daisies_cmd.tmp
-  .. literalinclude:: sheepactions_jump_j5_cmd.tmp
+  .. literalinclude:: examples/sheepactions_graze_daisies_cmd.tmp
+  .. literalinclude:: examples/sheepactions_jump_j5_cmd.tmp
 
 
 
@@ -175,7 +175,7 @@ In addition to attaching functions to a node, it is also
 possible to attach nodes to another node, as demonstrated by
 lines 18 and 19 of the following example
 
-.. literalinclude:: sheepgame.py
+.. literalinclude:: examples/sheepgame.py
    :language: python3
    :lines: 3-
    :linenos:
@@ -190,21 +190,21 @@ non-uniform height.
 When the above program is saved as file ``sheepgame.py``,
 the top level help message is invoked as follows:
 
-.. literalinclude:: sheepgame_help.tmp
+.. literalinclude:: examples/sheepgame_help.tmp
 
 
 To display sheep-related usage of ``sheepgame.py``, 
 pass the ``sheep`` subcommand:
 
-.. literalinclude:: sheepgame_sheep_help.tmp
+.. literalinclude:: examples/sheepgame_sheep_help.tmp
 
 To display even lower level help messages, additional
 sub-commands are passed:
 
-.. literalinclude:: sheepgame_sheep_jump_help.tmp
+.. literalinclude:: examples/sheepgame_sheep_jump_help.tmp
 
 
-.. literalinclude:: sheepgame_sheep_graze_help.tmp
+.. literalinclude:: examples/sheepgame_sheep_graze_help.tmp
 
 ..
   
@@ -212,20 +212,20 @@ sub-commands are passed:
 
   In the command line:
 
-  .. literalinclude:: sheepgame_sheep_jump5.tmp
-  .. literalinclude:: sheepgame_sheep_graze.tmp
-  .. literalinclude:: sheepgame_sheep_graze_daisies.tmp
+  .. literalinclude:: examples/sheepgame_sheep_jump5.tmp
+  .. literalinclude:: examples/sheepgame_sheep_graze.tmp
+  .. literalinclude:: examples/sheepgame_sheep_graze_daisies.tmp
 
   Equivalently, in Python interpreter:
 
-  .. literalinclude:: sheepgame_sheep_jump5_cmd.tmp
-  .. literalinclude:: sheepgame_sheep_graze_cmd.tmp
-  .. literalinclude:: sheepgame_sheep_graze_daisies_cmd.tmp
+  .. literalinclude:: examples/sheepgame_sheep_jump5_cmd.tmp
+  .. literalinclude:: examples/sheepgame_sheep_graze_cmd.tmp
+  .. literalinclude:: examples/sheepgame_sheep_graze_daisies_cmd.tmp
   
 
 Wolf-related usage of ``sheepgame.py``:
 
-.. literalinclude:: sheepgame_wolf_help.tmp
+.. literalinclude:: examples/sheepgame_wolf_help.tmp
 
 .. _fullexample_execution:
 
@@ -235,11 +235,11 @@ Wolf-related usage of ``sheepgame.py``:
   
   In the command line:
 
-  .. literalinclude:: sheepgame_wolf_feed.tmp
+  .. literalinclude:: examples/sheepgame_wolf_feed.tmp
 
   Equivalently, in Python interpreter
 
-  .. literalinclude:: sheepgame_wolf_feed_cmd.tmp
+  .. literalinclude:: examples/sheepgame_wolf_feed_cmd.tmp
   
 
 
@@ -263,13 +263,13 @@ Here is an example, where the three arguments ``quantity``,
 :meth:`add_argument` calls with ``dest='quantity'``,
 ``dest='feed'`` and ``dest='hours'``:
 
-.. literalinclude:: sheepgraze2.py
+.. literalinclude:: examples/sheepgraze2.py
    :language: python3
    :lines: 3-
 
 The usage is as follows:
 
-.. literalinclude:: sheepgraze2_help.tmp
+.. literalinclude:: examples/sheepgraze2_help.tmp
 
 ..
 
@@ -277,15 +277,15 @@ The usage is as follows:
 
   In command line
 
-  .. literalinclude:: sheepgraze2_exe1.tmp
-  .. literalinclude:: sheepgraze2_exe2.tmp
-  .. literalinclude:: sheepgraze2_exe3.tmp
+  .. literalinclude:: examples/sheepgraze2_exe1.tmp
+  .. literalinclude:: examples/sheepgraze2_exe2.tmp
+  .. literalinclude:: examples/sheepgraze2_exe3.tmp
 
   Equivalently, in Python interpreter
 
-  .. literalinclude:: sheepgraze2_exe1_cmd.tmp
-  .. literalinclude:: sheepgraze2_exe2_cmd.tmp
-  .. literalinclude:: sheepgraze2_exe3_cmd.tmp
+  .. literalinclude:: examples/sheepgraze2_exe1_cmd.tmp
+  .. literalinclude:: examples/sheepgraze2_exe2_cmd.tmp
+  .. literalinclude:: examples/sheepgraze2_exe3_cmd.tmp
 
   Notice the agreement between the default values
   (e.g. ``hour=2.5``) applied when an optional argument is
@@ -299,7 +299,7 @@ Static :meth:`HOOK` methods
 Our :ref:`bare bones example<sheepgraze>` can be
 equivalently rewritten in a different style, as follows
 
-.. literalinclude:: sheepgraze_hook.py
+.. literalinclude:: examples/sheepgraze_hook.py
   :lines: 3-
 
 Return values
@@ -309,7 +309,7 @@ The :meth:`Node.digest`, :meth:`Function.digest` and
 :meth:`Function.__call__` methods return the value of the
 corresponding reference function. For example:
 
-.. literalinclude:: retval.tmp
+.. literalinclude:: examples/retval.tmp
   :lines: 3-
 
 
@@ -344,7 +344,7 @@ Consider the following possible mnemonic choices for
 specifying a date: "1977-02-04", "Lisas birthday", "y2kday",
 "today", and their implementation:
 
-.. literalinclude:: categdate.tmp
+.. literalinclude:: examples/categdate.tmp
    :linenos:
    :lines: 3-
 
@@ -390,7 +390,7 @@ argument. Indeed, consider this:
 
 .. _categ_example1_program:
 
-.. literalinclude:: sheepgraze_money.tmp
+.. literalinclude:: examples/sheepgraze_money.tmp
 
 
 The :class:`Categorical` class allows one to limit the
@@ -401,7 +401,7 @@ following:
 
 .. _sheepgraze3:
 
-.. literalinclude:: sheepgraze3.py
+.. literalinclude:: examples/sheepgraze3.py
    :lines: 3-
    :emphasize-lines: 12-14,16
    :linenos:
@@ -413,7 +413,7 @@ After this modification, the valid values (``hay``,
 ``grass``, and ``daisies``) of input become visible within
 the help message. Indeed:
 
-.. literalinclude:: sheepgraze3_help.tmp
+.. literalinclude:: examples/sheepgraze3_help.tmp
 
 ..
   
@@ -421,13 +421,13 @@ the help message. Indeed:
 
   Passing any of the valid values results in proper execution:
   
-  .. literalinclude:: sheepgraze3_hay.tmp
-  .. literalinclude:: sheepgraze3_daisies.tmp
+  .. literalinclude:: examples/sheepgraze3_hay.tmp
+  .. literalinclude:: examples/sheepgraze3_daisies.tmp
 
   Attempt to pass an erroneous argument leads to an
   error message:
   
-  .. literalinclude:: sheepgraze3_money.tmp
+  .. literalinclude:: examples/sheepgraze3_money.tmp
 
 
 .. _argpext_exe:
@@ -439,7 +439,7 @@ In addition to providing a Python module, program
 :program:`argpext.py` can be ran as an executable; its
 current usage is as follows:
 
-.. literalinclude:: argpext_help.tmp
+.. literalinclude:: examples/argpext_help.tmp
 
 
 .. _reference:
@@ -636,6 +636,8 @@ Class :class:`keyval` is renamed into
 been changed.  
 
 Version 1.1 is a bugfix version that addresses minor issues.
+
+Version 2.0 is a significant improvement.
 
 See also
 --------
