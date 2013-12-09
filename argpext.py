@@ -283,6 +283,19 @@ class Node(BaseNode):
 
                 if subparsers is None: subparsers = parser.add_subparsers(help='Description')
 
+                if inspect.isfunction(node):
+                    #print( 'node', node )
+                    #print( 'node', node.__name__ )
+                    #print( 'node.__defaults__', node.__defaults__ )
+                    #print( 'node.__globals__', str(node.__globals__)[:100] )
+                    #print( 'varnames:', node.__code__.co_varnames )
+                    #print( 'node', node.__name__.capitalize() )
+                    node = type(node.__name__.capitalize(), 
+                                (Function,) , 
+                                {'HOOK' : staticmethod(node)
+                                })
+
+
                 if issubclass(node,Function):
 
                     q = getattr(node,'__doc__',None)
@@ -307,7 +320,7 @@ class Node(BaseNode):
                 word = args[0]
                 node = nodes[word]
 
-                if issubclass(node,Function):
+                if inspect.isfunction(node) or issubclass(node,Function):
                     q = argparse.ArgumentParser.parse_args( parser, args )
                     # Execute bound function.
                     return getattr(q,_EXTRA_KWD)( q )
