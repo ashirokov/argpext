@@ -164,7 +164,7 @@ def get_func_defaults(func):
     D = {}
     q = func
     vs = q.__defaults__
-    if len(vs):
+    if vs is not None and len(vs):
         ns = q.__code__.co_varnames
         offset = len(ns)-len(vs)
         for i in range(offset,len(ns)):
@@ -213,7 +213,7 @@ class Function(BaseNode):
     def defaults(self):
         """Returns the dictionary of default function argument values."""
         D = {}
-        D.update( get_func_defaults( self.get_function() ) )
+        #D.update( get_func_defaults( self.get_function() ) )
         D.update( get_parser_defaults( self.populate ) )
         return D
 
@@ -225,21 +225,17 @@ class Function(BaseNode):
         return q
 
     def __call__(self,*args,**kwds):
-        """Execute the reference function based on command line
-        level default values of arguments and the values
-        *args* and *kwds* given in the argument list. The
-        return value is identical to the return value of the
-        reference function."""
-        kwds0 = self.defaults()
+        """Executes the reference function based on the default values and the
+        arguments passed."""
+        K = self.defaults()
         for key,value in kwds.items():
-            kwds0[key] = value
-        return self.get_function()(*args,**kwds0)
+            K[key] = value
+        return self.get_function()(*args,**K)
 
     def digest(self,prog=None,args=None):
         """Execute the reference function based on command line arguments
         (automatically set to sys.argv[1:] by default). The return
-        value is identical to the return value of the reference
-        function.
+        value equals the value returned by the reference function.
         """
 
         # Assign the default values of arguments.
@@ -248,7 +244,7 @@ class Function(BaseNode):
 
         # Update the history
         BaseNode.history_update(self,prog=prog,args=args)
-
+        
         # Find: docstring
         q = self.__doc__
         if q is None: q = self.HOOK.__doc__
@@ -257,7 +253,10 @@ class Function(BaseNode):
         q = argparse.ArgumentParser(  description=docstr(label='description') )
         self.populate( q )
         q = argparse.ArgumentParser.parse_args(q,args)
-        q = vars(q) # convert namespace to dictionary
+
+        # Find function arguments
+        q = vars( q )
+        # Execute function
         return self.get_function()( **q )
 
 
