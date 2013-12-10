@@ -213,8 +213,8 @@ class Function(BaseNode):
     def defaults(self):
         """Returns the dictionary of default function argument values."""
         D = {}
-        D.update( update_func_defaults( self.get_function() ) )
-        D.update( update_parser_defaults( self.populate ) )
+        D.update( get_func_defaults( self.get_function() ) )
+        D.update( get_parser_defaults( self.populate ) )
         return D
 
 
