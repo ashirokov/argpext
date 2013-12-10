@@ -182,16 +182,40 @@ class Function(BaseNode):
     def defaults(self):
         """Returns the dictionary of command line default
         values of arguments."""
-        parser = argparse.ArgumentParser()
-        self.populate( parser )
-        vars = {}
-        for k,v in parser._option_string_actions.items():
-            if issubclass(type(v),argparse.Action):
-                if isinstance(v,argparse._HelpAction): continue
-                key = v.dest
-                value = v.default
-                vars[key] = value
-        return vars
+
+        # First, take the default values of function
+        def update_func_defaults(D):
+            "Populate D with the default values from HOOK function"
+            q = self.HOOK
+            vs = q.__defaults__
+            if len(vs):
+                ns = q.__code__.co_varnames
+                offset = len(ns)-len(vs)
+                for i in range(offset,len(ns)):
+                    name = ns[i]
+                    value = vs[i-offset]
+                    D[name] = value
+
+        def update_parser_defaults(D):
+            "Populate D with the default values from parser, except for those None."
+            parser = argparse.ArgumentParser()
+
+            self.populate( parser )
+
+            # Populate with default values
+            for k,v in parser._option_string_actions.items():
+                if issubclass(type(v),argparse.Action):
+                    if isinstance(v,argparse._HelpAction): continue
+                    key = v.dest
+                    value = v.default
+                    D[key] = value
+
+
+        D = {}
+        #update_func_defaults(D)
+        update_parser_defaults(D)
+        return D
+
 
     def __callable(self):
         q = type(self).HOOK
@@ -230,11 +254,6 @@ class Function(BaseNode):
         q = vars(q)
         return self.__callable()( **q )
 
-
-def function(function):
-    class Test(Function):
-        HOOK=function
-    return Test
 
 
 class Node(BaseNode):
