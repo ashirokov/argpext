@@ -118,7 +118,7 @@ class Doc(object):
 class BaseNode(object):
 
     def history_update(self,prog,args):
-        """Update the history file, if one if defined."""
+        "Update the history log file, if the latter is defined."
         filename = histfile()
 
         if not len(args): return
@@ -159,10 +159,42 @@ class BaseNode(object):
                     fhi.write(remainder)
 
 
+def get_func_defaults(func):
+    "Populate D with the default values from HOOK function"
+    D = {}
+    q = func
+    vs = q.__defaults__
+    if len(vs):
+        ns = q.__code__.co_varnames
+        offset = len(ns)-len(vs)
+        for i in range(offset,len(ns)):
+            name = ns[i]
+            value = vs[i-offset]
+            D[name] = value
+    return D
+
+def get_parser_defaults( populate ):
+    "Populate D with the default values from parser, except for those None."
+    D = {}
+    parser = argparse.ArgumentParser()
+
+    populate( parser )
+
+    # Populate the default values
+    for k,v in parser._option_string_actions.items():
+        if issubclass(type(v),argparse.Action):
+            if isinstance(v,argparse._HelpAction): continue
+            key = v.dest
+            value = v.default
+            D[key] = value
+    return D
+
+
+
 class Function(BaseNode):
     """Base class for command line interface to a Python function."""
 
-    # Members to be redefined by a user
+    # Members to be overloaded by the user
     @staticmethod
     def HOOK():
         raise NotImplementedError()
@@ -171,55 +203,26 @@ class Function(BaseNode):
         """This method should be overloaded if HOOK takes
         positive number of arguments. The argument must be
         assumed to be of argparse.ArgumentParser type. For
-        each argument X of the HOOK method there must be a
+        each argument, say 'x' of the HOOK method there must be a
         call (or its equivalent) to the parser.add_argument
-        method with dest='X'."""
+        method with dest='x'."""
         pass
 
 
     # Other members
-
     def defaults(self):
-        """Returns the dictionary of command line default
-        values of arguments."""
-
-        # First, take the default values of function
-        def update_func_defaults(D):
-            "Populate D with the default values from HOOK function"
-            q = self.HOOK
-            vs = q.__defaults__
-            if len(vs):
-                ns = q.__code__.co_varnames
-                offset = len(ns)-len(vs)
-                for i in range(offset,len(ns)):
-                    name = ns[i]
-                    value = vs[i-offset]
-                    D[name] = value
-
-        def update_parser_defaults(D):
-            "Populate D with the default values from parser, except for those None."
-            parser = argparse.ArgumentParser()
-
-            self.populate( parser )
-
-            # Populate with default values
-            for k,v in parser._option_string_actions.items():
-                if issubclass(type(v),argparse.Action):
-                    if isinstance(v,argparse._HelpAction): continue
-                    key = v.dest
-                    value = v.default
-                    D[key] = value
-
-
+        """Returns the dictionary of default function argument values."""
         D = {}
-        #update_func_defaults(D)
-        update_parser_defaults(D)
+        D.update( update_func_defaults( self.get_function() ) )
+        D.update( update_parser_defaults( self.populate ) )
         return D
 
 
-    def __callable(self):
+    def get_function(self):
+        "Return a callable instance defined by the reference function"
         q = type(self).HOOK
-        return q.__func__ if sys.version_info[0:2] <= (2, 7,) else q
+        if sys.version_info[0:2] <= (2, 7,): q = q.__func__
+        return q
 
     def __call__(self,*args,**kwds):
         """Execute the reference function based on command line
@@ -230,20 +233,23 @@ class Function(BaseNode):
         kwds0 = self.defaults()
         for key,value in kwds.items():
             kwds0[key] = value
-        return self.__callable()(*args,**kwds0)
+        return self.get_function()(*args,**kwds0)
 
     def digest(self,prog=None,args=None):
-        """Execute the reference function based on command line
-        argument *args*, which must be 
-        :py:class:`list`, :py:class:`tuple`, or *None* (in
-        which case it is automatically assigned to
-        `=sys.argv[1:]`). The return value is identical to
-        the return value of the reference function.
+        """Execute the reference function based on command line arguments
+        (automatically set to sys.argv[1:] by default). The return
+        value is identical to the return value of the reference
+        function.
         """
+
+        # Assign the default values of arguments.
         if prog is None: prog = os.path.basename( sys.argv[0] )
         if args is None: args = sys.argv[1:]
+
+        # Update the history
         BaseNode.history_update(self,prog=prog,args=args)
 
+        # Find: docstring
         q = self.__doc__
         if q is None: q = self.HOOK.__doc__
         docstr = Doc(q)
@@ -251,8 +257,8 @@ class Function(BaseNode):
         q = argparse.ArgumentParser(  description=docstr(label='description') )
         self.populate( q )
         q = argparse.ArgumentParser.parse_args(q,args)
-        q = vars(q)
-        return self.__callable()( **q )
+        q = vars(q) # convert namespace to dictionary
+        return self.get_function()( **q )
 
 
 
@@ -264,7 +270,8 @@ class Node(BaseNode):
     SUBS = []
 
     def populate(self,parser):
-        """This may be overloaded """
+        """This may be overloaded to define global variables at hte frame
+        where class is being defined."""
         pass
 
     # Other members
