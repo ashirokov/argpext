@@ -230,6 +230,8 @@ class Function(BaseNode):
         K = self.defaults()
         for key,value in kwds.items():
             K[key] = value
+
+        # Execute the reference function
         return self.get_function()(*args,**K)
 
     def digest(self,prog=None,args=None):
@@ -250,13 +252,14 @@ class Function(BaseNode):
         if q is None: q = self.HOOK.__doc__
         docstr = Doc(q)
 
+        # Find keyword args to pass to function, based on command line arguments, args.
         q = argparse.ArgumentParser(  description=docstr(label='description') )
         self.populate( q )
-        q = argparse.ArgumentParser.parse_args(q,args)
+        q = vars(argparse.ArgumentParser.parse_args(q,args))
 
-        # Find function arguments
-        q = vars( q )
-        # Execute function
+        # How are the default used?
+
+        # Execute the reference function
         return self.get_function()( **q )
 
 
