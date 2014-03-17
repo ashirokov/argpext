@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 
 # File: sheepgraze.py
 import argpext

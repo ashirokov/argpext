@@ -6,6 +6,57 @@ import sys
 import subprocess
 import code
 
+
+
+class Workdir(object):
+
+    PATHS = ['PYTHONPATH','PATH']
+
+    def __init__(self,dirname):
+        self.dirname = dirname
+
+    def __enter__(self):
+        self.init_dir = os.path.abspath( os.getcwd() )
+        self.target_dir = os.path.abspath( self.dirname )
+
+        # Deal with sys.path
+        self.path_init = sys.path
+        self.path_mod = [self.target_dir]+[self.init_dir]+sys.path
+        sys.path = self.path_mod
+
+        # Deal with: PYTHONPATH
+        self.epath = {}
+        for k in self.PATHS:
+            q = os.environ.get(k,None)
+            self.epath[k] = q
+            q = q.split(os.path.pathsep) if q is not None else []
+            q = [self.init_dir]+q
+            q = os.path.pathsep.join(q)
+            os.environ[k] = q
+
+        os.chdir( self.dirname )
+        return self
+
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.chdir( self.init_dir )
+
+        for k in self.PATHS:
+            q = self.epath.get(k)
+            if q is None:
+                del os.environ[k]
+            else:
+                os.environ[k] = q
+
+
+        if sys.path != self.path_mod: raise ValueError('unexpected path')
+        sys.path = self.path_init
+
+
+        return False # Do not suppress exception
+
+
+
 class StringStream(object):
 
     def __init__(self,label):
@@ -28,71 +79,6 @@ class StringStream(object):
         return self._string
 
 
-PS1 = '>>>'
-PS2 = '...'
-
-
-def pnl(q):
-    """For empty string return itself; for non-empty string return the
-string finished by newline"""
-    if len(q): q += os.linesep
-    return q
-    
-
-def filter_out_tr(q):
-    L = []
-    if len(q):
-        q = q.splitlines()
-        for q in q:
-            if q.startswith('Traceback '): continue
-            if q.startswith(' '): continue
-            L += [q]
-    q = os.linesep.join(L)
-    return q
-
-
-
-def scriptrun(script,args,outputfile):
-
-    print('writing exprog:', outputfile, file=sys.__stdout__)
-
-    def prn(line,file):
-        file.write(line)
-        file.write(os.linesep)
-
-    output = open(outputfile,'w')
-
-    prn('$ '+' '.join( [script]+args ), file=output )
-
-    proc = subprocess.Popen( [os.path.abspath(script)]+args, stderr=subprocess.PIPE, stdout=subprocess.PIPE )
-
-    proc.wait()
-
-    L = []
-
-    # Deal with stdout
-    q = proc.stdout.read().decode()
-
-    if len(q): 
-        q = q.splitlines()
-        for q in q:
-            q = q.replace('usage: ./','usage: ')
-            prn(q, file=output)
-
-    # Deal with stderr
-    q = proc.stderr.read().decode()
-    q = filter_out_tr(q)
-
-    # display all
-    for line in q.splitlines():
-        prn( line, file=output )
-
-
-    output.close()
-
-
-
-
 class Reconnect(object):
     def __init__(self,stdout,stderr):
         self._so = sys.stdout
@@ -108,13 +94,78 @@ class Reconnect(object):
         return True # Suppresses the exception
 
 
-def interp(input,outputfile):
+def filter_out_tr(q):
+    "Filter out the traceback messages"
+    L = []
+    if len(q):
+        q = q.splitlines()
+        for q in q:
+            if q.startswith('Traceback '): continue
+            if q.startswith(' '): continue
+            L += [q]
+    q = os.linesep.join(L)
+    return q
 
-    print('writing excode:', outputfile,file=sys.__stdout__)
+
+
+def scriptrun(interpreter,script,args,outputfile):
+
+
+    def prn(line,file):
+        file.write(line)
+        file.write(os.linesep)
+
+
+    prm = '$ '+' '.join( [script]+args )+os.linesep
+
+    proc = subprocess.Popen( [interpreter]+[script]+args, stderr=subprocess.PIPE, stdout=subprocess.PIPE )
+
+    proc.wait()
+
+    L = []
+
+    # Deal with stdout
+    so = ''
+    q = proc.stdout.read().decode()
+    if len(q):
+        q = q.splitlines()
+        for q in q:
+            q = q.replace('usage: ./','usage: ')
+            so += (q+os.linesep)
+
+    # Deal with stderr
+    se = ''
+    q = proc.stderr.read().decode()
+    q = filter_out_tr(q)
+    for line in q.splitlines():
+        se += (line+os.linesep)
+
+    output = prm+so+se
+
+    fho = open(outputfile,'w')
+
+    print('Writing file:', outputfile)
+    #print( sys.path )
+
+    fho.write( output )
+    print( output )
+
+    fho.close()
+
+
+
+
+def interp(inputfile,outputfile):
+
+    def pnl(q):
+        if len(q): q += os.linesep
+        return q
+
+    print('Writing file:', outputfile,file=sys.__stdout__)
 
     cons = code.InteractiveConsole()
 
-    fhi = open(input)
+    fhi = open(inputfile)
     fho = open(outputfile,'w')
 
     start = [
@@ -126,6 +177,7 @@ def interp(input,outputfile):
     for q in start:
         cons.push(q)
 
+
     for line in fhi:
 
         line = line.rstrip()
@@ -134,16 +186,20 @@ def interp(input,outputfile):
         stderr = StringStream('stderr')
 
         with Reconnect(stdout=stdout,stderr=stderr):
-
             status = cons.push(line)
 
-            prompt = PS2 if status else PS1
+        prompt = '... ' if status else '>>> '
 
-            fho.write('%s %s' % ( prompt, line )+os.linesep )
-            fho.write( pnl(str(stdout)) )
-            fho.write( pnl(filter_out_tr(str(stderr))) )
+        prm = '%s%s' % ( prompt, line )+os.linesep
+        so = pnl(str(stdout))
+        se = pnl(filter_out_tr(str(stderr)))
+        output = prm+so+se
+
+        fho.write( output )
+        print( output, file=sys.__stdout__ , end='')
 
     fhi.close()
     fho.close()
+
 
 

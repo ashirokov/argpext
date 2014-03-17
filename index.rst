@@ -321,10 +321,7 @@ Commands managed by Argpext are optionally saved into a
 local history. The feature is disabled by default; to enable
 it, set the environment variable
 :py:envvar:`ARGPEXT_HISTORY` to specify the name of the
-history file. Variable :py:envvar:`ARGPEXT_HISTORY_MAXSIZE`
-may be used to control the maximum size of the history file,
-in bytes. By default, the equivalent of
-``ARGPEXT_HISTORY_MAXSIZE=10240`` is used. 
+history file. 
 
 Command line history is available by running
 :program:`argpext.py` as executable with ``history``
@@ -615,11 +612,6 @@ Environment variables
 
    Sub-command history file path. No history file is written
    if this variable is unset.
-
-.. envvar:: ARGPEXT_HISTORY_MAXSIZE
-
-   If set, specifies the maximum size of history file (if
-   any), in bytes. Ignored if below 10240 (10 Kilobytes).
 
 
 

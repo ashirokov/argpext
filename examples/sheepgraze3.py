@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 
 import argpext
 
@@ -11,9 +11,9 @@ class SheepGraze(argpext.Function):
     HOOK = sheep_graze
     def populate(self,parser):
         parser.add_argument('-f', dest='feed', default='grass'
-                            , type=argpext.Categorical(['hay',
-                                                        'grass',
-                                                        'daisies'])
+                            , type=argpext.KeyWords(['hay',
+                                                     'grass',
+                                                     'daisies'])
                             , help='Specify the feed. '\
                                 'Choose from:%(type)s. '\
                                 'Default: %(default)s.')

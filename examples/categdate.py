@@ -1,4 +1,6 @@
-#!/usr/bin/env python3
+
+
+import argpext
 
 from argpext import *
 import time
@@ -7,12 +9,14 @@ def today():
     "Return todays date in YYYY-MM-DD representation"
     return time.strftime('%Y-%m-%d', time.localtime())
 
-dates = Categorical([
-        '1977-02-04',
-        ['Lisas birthday', '1977-01-01' ],
-        ['y2kday', Unit(value='2000-01-01',help="The year 2000 date.") ],
-        ['today' , Unit(value=today,callable=True,help="Today's date") ] 
-        ])
+dates = KeyWords([
+    '1977-02-04',
+    'Lisas birthday',
+    'y2kday',
+    'today'
+])
+
+
 
 str(dates)
 

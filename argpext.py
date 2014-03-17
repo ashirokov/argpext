@@ -21,64 +21,45 @@ import inspect
 import argparse
 import collections
 
+class KeyWords(object):
+    "List of unique, ordered keywords"
 
-class Categorical(object):
-    """Categorical variable type."""
+    def __iadd__(self,keywords):
+        for key in keywords:
+            if not isinstance(key,str): raise TypeError()
+            if key in self._dct: raise ValueError("repeating keyword: '%s'" % key)
+            self._dct[key] = True # This value is always true
 
-    class Unit(object):
-        "Value unit for Categorical variables."
-        def __init__(self,value,help=None,callable=False):
-            self._value = value
-            assert(isinstance(help,(str,type(None),) ))
-            self._help = help
-            self._callable = callable
-            assert(isinstance(callable,bool))
-        def __call__(self):
-            return self._value() if self._callable else self._value
+    def __init__(self,keywords):
+        self._dct = collections.OrderedDict()
+        self += keywords
 
-        evaluate = __call__ # For backward compatibility with argpext-1.1 only
+    def __len__(self):
+        return len(self._dct)
 
+    def __iter__(self):
+        return reversed(self._dct.keys())
 
-    def __init__(self,keys=()):
-        L = []
-        for q in keys:
-            if not isinstance(q,str): raise TypeError()
-            item = (q, Categorical.Unit(value=q))
-            L += [ item ]
+    def __reversed__(self):
+        return self._dct.keys().__reversed__()
 
-        self.__dict = collections.OrderedDict(L)
-
-    def __str__(self):
-        K = []
-        for key,choice in self.__dict.items():
-            K += [key]
-        return '{%s}' % ( '|'.join(K) )
+    def __contains__(self,key):
+        return self._dct.__contains__(key)
 
     def __call__(self,key):
-        "Finds and returns value associated with the given key."
-        if key in self.__dict:
-            unit = self.__dict[key]
-            return unit()
-        else:
-            raise KeyError('unmatched key: "%s".' % (key) )
+        if key in self._dct: return key
+        else: raise KeyError('invalid key: "%s"' % key)
 
-    def items(self):
-        return self.__dict.items()
-    def __iter__(self):
-        return self.__dict.__iter__()
-    def keys(self):
-        return self.__dict.keys()
-    def values(self):
-        return self.__dict.values()
-    def __contains__(self,key):
-        return self.__dict.__contains__(key)
-
+    def __str__(self):
+        q = list([ ("'%s'" % k) for k in self._dct.keys() ])
+        q = '%s([%s])' % ( type(self).__name__, ','.join(q) )
+        return q
 
 
 class InitializationError(Exception): pass
 
 
-E = Categorical(['ARGPEXT_HISTORY'])
+E = KeyWords(['ARGPEXT_HISTORY'])
 
 
 def frameref(fstr,up):
@@ -412,7 +393,6 @@ def histfile():
     "Returns file path of the hierarchical subcommand history file"
     varb = E('ARGPEXT_HISTORY')
     path = os.getenv(varb)
-    if path is None: raise KeyError('Variable %s is undefined' % varb)
     return path
 
 
