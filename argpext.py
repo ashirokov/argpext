@@ -189,13 +189,20 @@ class Function(BaseNode):
         method with dest='x'."""
         pass
 
+    SOURCES = KeyWords(['parser','hook'])
+
 
     # Other members
-    def defaults(self):
+    def defaults(self,sources=['parser']):
         """Returns the dictionary of default function argument values."""
         D = {}
-        #D.update( get_func_defaults( self.get_function() ) )
-        D.update( get_parser_defaults( self.populate ) )
+        for src in sources:
+            if src == self.SOURCES('hook'):
+                D.update( get_func_defaults( self.get_function() ) )
+            elif src == self.SOURCE('parser'):
+                D.update( get_parser_defaults( self.populate ) )
+            else:
+                raise KeyError('invalid source: "%s"' % src)
         return D
 
 
@@ -208,7 +215,10 @@ class Function(BaseNode):
     def __call__(self,*args,**kwds):
         """Executes the reference function based on the default values and the
         arguments passed."""
-        K = self.defaults()
+
+        K = self.defaults(sources=['parser'])
+
+        # Update the defaults with the kwds given.
         for key,value in kwds.items():
             K[key] = value
 
