@@ -9,7 +9,7 @@ def feed_wolf(prey):
 
 class FeedWolf(argpext.Function):
     "Feed the wolf"
-    HOOK = feed_wolf
+    hook = feed_wolf
     def populate(self,parser):
         parser.add_argument('-p', dest='prey', default='sheep', 
                             help='Specify the food. Default:"%(default)s".')

@@ -8,7 +8,7 @@ def sheep_graze(feed):
 
 class SheepGraze(argpext.Function):
     "Let sheep graze"
-    HOOK = sheep_graze
+    hook = sheep_graze
     def populate(self,parser):
         parser.add_argument('-f', dest='feed', default='grass', 
                             help='Specify the feed. Default: %(default)s.')
@@ -19,7 +19,7 @@ def sheep_jump(n):
 
 class SheepJump(argpext.Function):
     "Let sheep jump"
-    HOOK = sheep_jump
+    hook = sheep_jump
     def populate(self,parser):
         parser.add_argument('-n', dest='n', default=2, type=int, 
                             help='Specify the number of jumps')

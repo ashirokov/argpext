@@ -141,7 +141,7 @@ class BaseNode(object):
 
 
 def get_func_defaults(func):
-    "Populate D with the default values from HOOK function"
+    "Populate D with the default values from the hook function"
     D = {}
     q = func
     vs = q.__defaults__
@@ -177,14 +177,14 @@ class Function(BaseNode):
 
     # Members to be overloaded by the user
     @staticmethod
-    def HOOK():
+    def hook():
         raise NotImplementedError()
 
     def populate(self,parser):
-        """This method should be overloaded if HOOK takes
+        """This method should be overloaded if hook takes
         positive number of arguments. The argument must be
         assumed to be of argparse.ArgumentParser type. For
-        each argument, say 'x' of the HOOK method there must be a
+        each argument, say 'x' of the hook method there must be a
         call (or its equivalent) to the parser.add_argument
         method with dest='x'."""
         pass
@@ -208,7 +208,7 @@ class Function(BaseNode):
 
     def get_function(self):
         "Return a callable instance defined by the reference function"
-        q = type(self).HOOK
+        q = type(self).hook
         if sys.version_info[0:2] <= (2, 7,): q = q.__func__
         return q
 
@@ -240,7 +240,7 @@ class Function(BaseNode):
         
         # Find: docstring
         q = self.__doc__
-        if q is None: q = self.HOOK.__doc__
+        if q is None: q = self.hook.__doc__
         docstr = Doc(q)
 
         # Find keyword args to pass to function, based on command line arguments, args.
@@ -285,7 +285,7 @@ class Node(BaseNode):
                 if not isinstance(namespace,argparse.Namespace): raise TypeError
                 q = vars( namespace )
                 del q[ _EXTRA_KWD ]
-                return self._node.HOOK( **q )
+                return self._node.hook( **q )
 
 
         def add_subtasks(parser):
@@ -311,14 +311,14 @@ class Node(BaseNode):
                     #print( 'node', node.__name__.capitalize() )
                     node = type(node.__name__.capitalize(), 
                                 (Function,) , 
-                                {'HOOK' : staticmethod(node)
+                                {'hook' : staticmethod(node)
                                 })
 
 
                 if issubclass(node,Function):
 
                     q = getattr(node,'__doc__',None)
-                    if q is None: q = node.HOOK.__doc__
+                    if q is None: q = node.hook.__doc__
                     docstr = Doc(q)
                     subparser = subparsers.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
                     node().populate( subparser )
@@ -411,7 +411,7 @@ class History(Function):
     "Display command line history."
 
     @staticmethod
-    def HOOK(unique):
+    def hook(unique):
         q = histfile()
         if not os.path.exists(q): 
             print('history file is not found: %s' % q)

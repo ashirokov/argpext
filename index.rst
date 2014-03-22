@@ -250,7 +250,7 @@ For simplicity, so far we have only considered functions of
 one argument. In practice, there is no such limitation. 
 
 For each argument of the function pointed to by the
-:attr:`HOOK` attribute there should be a call to
+:attr:`hook` attribute there should be a call to
 :meth:`add_argument` inside :meth:`populate`, whose
 ``dest=`` value coincides with the name of the argument.
 
@@ -293,7 +293,7 @@ The usage is as follows:
   corresponding Python interpreter examples.
 
 
-Static :meth:`HOOK` methods
+Static :meth:`hook` methods
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Our :ref:`bare bones example<sheepgraze>` can be
@@ -458,20 +458,20 @@ Sub-command hierarchy
    evaluated directly, using the function call operator; See
    method :meth:`__call__` for details. The object is
    attached to a regular Python function (also called the
-   *reference function*) by the :meth:`HOOK` method.
+   *reference function*) by the :meth:`hook` method.
 
-   .. staticmethod:: Function.HOOK(*args,**kwds)
+   .. staticmethod:: Function.hook(*args,**kwds)
 
 	Specifies the reference Python function. If
-	:meth:`HOOK` takes positive number of arguments,
+	:meth:`hook` takes positive number of arguments,
 	:meth:`Function.populate` must be properly
 	overloaded as well.
 
    .. method:: Function.populate(parser)
 
-	This method should be overloaded if :meth:`HOOK`
+	This method should be overloaded if :meth:`hook`
 	takes positive number of arguments. For each argument *X* of
-	the :meth:`HOOK` method there must be a call (or its
+	the :meth:`hook` method there must be a call (or its
 	equivalent) to :py:meth:`add_argument` with *dest='X'*.
         The *parser* argument should be assumed  to be of type
 	:py:class:`argparse.ArgumentParser`.
@@ -487,7 +487,7 @@ Sub-command hierarchy
 	missing, the command line default values, defined
 	:meth:`Function.populate` are substituted. Notice
 	that the default values, if any, defined in the
-	arguments of :meth:`Function.HOOK` are not used. If
+	arguments of :meth:`Function.hook` are not used. If
 	too many arguments are given or some arguments
 	remain missing, a standard built-in exception is
 	raised.
