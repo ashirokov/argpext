@@ -168,12 +168,16 @@ def get_parser_defaults( populate ):
             key = v.dest
             value = v.default
             D[key] = value
+
     return D
 
 
 
 class Function(BaseNode):
     """Base class for command line interface to a Python function."""
+
+    def __init__(self,srcs=['parser']):
+        self.srcs = srcs
 
     # Members to be overloaded by the user
     @staticmethod
@@ -189,17 +193,17 @@ class Function(BaseNode):
         method with dest='x'."""
         pass
 
-    SOURCES = KeyWords(['parser','hook'])
+    SRCS = KeyWords(['parser','hook'])
 
 
     # Other members
-    def defaults(self,sources=['parser']):
+    def get_defaults(self,sources):
         """Returns the dictionary of default function argument values."""
         D = {}
         for src in sources:
-            if src == self.SOURCES('hook'):
+            if src == self.SRCS('hook'):
                 D.update( get_func_defaults( self.get_function() ) )
-            elif src == self.SOURCE('parser'):
+            elif src == self.SRCS('parser'):
                 D.update( get_parser_defaults( self.populate ) )
             else:
                 raise KeyError('invalid source: "%s"' % src)
@@ -216,7 +220,8 @@ class Function(BaseNode):
         """Executes the reference function based on the default values and the
         arguments passed."""
 
-        K = self.defaults(sources=['parser'])
+        K = self.get_defaults(sources=self.srcs)
+
 
         K.update( kwds )
 
