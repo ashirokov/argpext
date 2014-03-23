@@ -56,9 +56,6 @@ class KeyWords(object):
         return q
 
 
-class InitializationError(Exception): pass
-
-
 E = KeyWords(['ARGPEXT_HISTORY'])
 
 
@@ -293,9 +290,7 @@ class Node(BaseNode):
             subparsers = None
 
             attributename = 'SUBS'
-            subs = getattr(self,attributename,None)
-            if subs is None:
-                raise InitializationError('mandatory attribute %s is not defined for class %s' % (  attributename , type(self).__name__ ) )
+            subs = getattr(self,attributename)
 
             for name,node in subs:
                 nodes[name] = node
@@ -330,7 +325,7 @@ class Node(BaseNode):
                     subparser = subparsers.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
                     subparser.set_defaults( ** { _EXTRA_KWD : N } )
                 else:
-                    raise InitializationError('invalid type (%s) for sub-command "%s" of %s' % ( node.__name__, name, type(self).__name__ ) )
+                    raise TypeError('invalid type (%s) for sub-command "%s" of %s' % ( node.__name__, name, type(self).__name__ ) )
             return nodes
 
 
