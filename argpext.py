@@ -38,7 +38,7 @@ class KeyWords(object):
         return len(self._dct)
 
     def __iter__(self):
-        return reversed(self._dct.keys())
+        return reversed(list(self._dct.keys()))
 
     def __reversed__(self):
         return self._dct.keys().__reversed__()
@@ -143,10 +143,9 @@ class BaseNode(object):
 def get_func_defaults(func):
     "Populate D with the default values from the hook function"
     D = {}
-    q = func
-    vs = q.__defaults__
+    vs = func.__defaults__
     if vs is not None and len(vs):
-        ns = q.__code__.co_varnames
+        ns = func.__code__.co_varnames
         offset = len(ns)-len(vs)
         for i in range(offset,len(ns)):
             name = ns[i]
@@ -176,8 +175,10 @@ def get_parser_defaults( populate ):
 class Function(BaseNode):
     """Base class for command line interface to a Python function."""
 
-    def __init__(self,srcs=['parser']):
-        self.srcs = srcs
+    DEFAULTS = KeyWords(['hook','parser'])
+
+    def __init__(self,bare=False):
+        self.defaults = ['parser'] if not bare else []
 
     # Members to be overloaded by the user
     @staticmethod
@@ -193,17 +194,15 @@ class Function(BaseNode):
         method with dest='x'."""
         pass
 
-    SRCS = KeyWords(['parser','hook'])
-
 
     # Other members
-    def get_defaults(self,sources):
+    def get_defaults(self,defaults):
         """Returns the dictionary of default function argument values."""
         D = {}
-        for src in sources:
-            if src == self.SRCS('hook'):
+        for default in defaults:
+            if default == self.DEFAULTS('hook'):
                 D.update( get_func_defaults( self.get_function() ) )
-            elif src == self.SRCS('parser'):
+            elif default == self.DEFAULTS('parser'):
                 D.update( get_parser_defaults( self.populate ) )
             else:
                 raise KeyError('invalid source: "%s"' % src)
@@ -220,12 +219,10 @@ class Function(BaseNode):
         """Executes the reference function based on the default values and the
         arguments passed."""
 
-        K = self.get_defaults(sources=self.srcs)
-
+        K = self.get_defaults(defaults=self.defaults)
 
         K.update( kwds )
 
-        # Execute the reference function
         return self.get_function()(*args,**K)
 
     def digest(self,prog=None,args=None):

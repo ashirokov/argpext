@@ -20,11 +20,8 @@ print('-------------')
 y = Square()(x=4)
 print( y )
 
+y = Square(bare=True)()
+print( y )
+
 y = Square()()
-print( y )
-
-y = Square(srcs=['parser'])()
-print( y )
-
-y = Square(srcs=['hook'])()
 print( y )
