@@ -30,7 +30,7 @@ class KeyWords(object):
             if key in self._dct: raise ValueError("repeating keyword: '%s'" % key)
             self._dct[key] = True # This value is always true
 
-    def __init__(self,keywords):
+    def __init__(self,keywords=[]):
         self._dct = collections.OrderedDict()
         self += keywords
 
@@ -171,6 +171,9 @@ def get_parser_defaults( populate ):
     return D
 
 
+class Callable(object):
+    pass
+
 
 class Function(BaseNode):
     """Base class for command line interface to a Python function."""
@@ -218,9 +221,7 @@ class Function(BaseNode):
 
         K = self.defaults(sources=['parser'])
 
-        # Update the defaults with the kwds given.
-        for key,value in kwds.items():
-            K[key] = value
+        K.update( kwds )
 
         # Execute the reference function
         return self.get_function()(*args,**K)
@@ -414,7 +415,7 @@ class History(Function):
     def hook(unique):
         q = histfile()
         if not os.path.exists(q): 
-            print('history file is not found: %s' % q)
+            print('History file ("%s") not found' % q)
         else:
             lastcommand = None
             with open(q) as fhi:

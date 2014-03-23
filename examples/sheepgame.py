@@ -17,10 +17,11 @@ class FeedWolf(argpext.Function):
 class Main(argpext.Node):
     "Top level sheepgame options"
     SUBS = [
-        ('feed-wolf', FeedWolf),      # Attaching a Function
         ('sheep', sheepactions.Sheep), # Attaching another Node
+        ('feed-wolf', FeedWolf), # Attaching a Function
         # Add more subcommands here
         ]
+
 
 if __name__ == '__main__':
     Main().digest()
