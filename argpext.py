@@ -171,9 +171,6 @@ def get_parser_defaults( populate ):
     return D
 
 
-class Callable(object):
-    pass
-
 
 class Function(BaseNode):
     """Base class for command line interface to a Python function."""
