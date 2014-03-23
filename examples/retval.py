@@ -12,16 +12,15 @@ class Square(argpext.Function):
         parser.add_argument('-x', default=2, type=float,
                             help='Specify the value of x.')
 
-
 y = Square().digest(prog=None,args=['-x','2'])
 print( y )
-print('-------------')
 
 y = Square()(x=4)
+print( y )
+
+y = Square()()
 print( y )
 
 y = Square(bare=True)()
 print( y )
 
-y = Square()()
-print( y )
