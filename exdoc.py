@@ -144,7 +144,7 @@ def scriptrun(interpreter,script,args,outputfile):
 
     fho = open(outputfile,'w')
 
-    print('Writing file:', outputfile)
+    sys.stdout.write('Writing file: %s\n' % outputfile)
     #print( sys.path )
 
     fho.write( output )
@@ -161,7 +161,7 @@ def interp(inputfile,outputfile):
         if len(q): q += os.linesep
         return q
 
-    print('Writing file:', outputfile,file=sys.__stdout__)
+    sys.__stdout__.write('Writing the file: %s\n' % outputfile)
 
     cons = code.InteractiveConsole()
 
@@ -196,7 +196,7 @@ def interp(inputfile,outputfile):
         output = prm+so+se
 
         fho.write( output )
-        print( output, file=sys.__stdout__ , end='')
+        sys.__stdout__.write( output+'\n' )
 
     fhi.close()
     fho.close()
