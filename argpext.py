@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 """
 
 Argpext: Hierarchical argument processing based on argparse.
 
-Copyright (c) 2012 by Alexander V. Shirokov. This material
+Copyright (c) 2014 by Alexander V. Shirokov. This material
 may be distributed only subject to the terms and conditions
 set forth in the Open Publication License, v1.0 or later
 (the latest version is presently available at
@@ -20,6 +20,18 @@ import os
 import inspect
 import argparse
 import collections
+
+VERSION = (2,0)
+
+class Chdir(object):
+    def __init__(self,path):
+        self.initdir = os.getcwd()
+        if not os.path.exists(path): os.makedirs(path)
+        os.chdir(path)
+    def __del__(self):
+        os.chdir(self.initdir)
+
+
 
 class KeyWords(object):
     "List of unique, ordered keywords"
@@ -383,7 +395,7 @@ class Node(BaseNode):
         # Populate left parser with flat level tasks
         self.populate( leftparser )
 
-        # Execute flat level tasks
+        # Execute flat level tasks (setting the global variables)
         namespace = argparse.ArgumentParser.parse_args( leftparser, leftargs )
         for variable,value in vars(namespace).items():
             module = inspect.getmodule(self)

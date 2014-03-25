@@ -4,6 +4,8 @@ import argpext
 
 import sheepactions # Module sheepactions is provided by previous example.
 
+
+
 def feed_wolf(prey):
     print('Wolf eats %s' % prey)
 
@@ -21,6 +23,8 @@ class Main(argpext.Node):
         ('feed-wolf', FeedWolf), # Attaching a Function
         # Add more subcommands here
         ]
+    def populate(self,parser):
+        parser.add_argument('--chdir',default=None,type=argpext.Chdir,help='Change to the directory.')
 
 
 if __name__ == '__main__':

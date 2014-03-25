@@ -328,10 +328,10 @@ Command line history is available by running
 sub-command.
 
 
-Categorical variable type
+KeyWords variable type
 -------------------------
 
-This section introduces class :class:`Categorical` to cover
+This section introduces class :class:`KeyWords` to cover
 the type of variables whose possible values (or methods for
 generating those values) are known in advance; this is an
 alternative to using the ``choices=`` argument of
@@ -356,7 +356,7 @@ finding the value of date:
 
 Actual evaluations are shown in lines 18-27.
 
-The :class:`Categorical` type object ``dates``, constructed
+The :class:`KeyWords` type object ``dates``, constructed
 in the above example can be used as ``type=`` argument,
 similar to the case in our next :ref:`example<sheepgraze3>`.
 
@@ -366,11 +366,7 @@ Treatment of unmatched values
 
 The last evaluation (line 26) results in an error because
 the argument ``2012-01-11`` does not match any of predefined
-values. This error behaviour may be changed by passing an
-additional ``typeothers=`` argument to the constructor of
-:class:`Categorical`. Setting ``typeothers=str`` for example
-will result in the conversion of any unmatched values to
-string (:class:`str`).
+values. 
 
 
 .. _categ_example1:
@@ -379,7 +375,7 @@ The bare bones example revisited
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Going back to :ref:`one<sheepgraze>` of our previously
-discussed examples :class:`Categorical` type values may be
+discussed examples :class:`KeyWords` type values may be
 found particularly useful. Problems may arise because
 :ref:`command line usage<sheepgraze_usage>` for that example
 allows one to pass any erroneous string as an
@@ -390,10 +386,10 @@ argument. Indeed, consider this:
 .. literalinclude:: examples/sheepgraze_money.tmp
 
 
-The :class:`Categorical` class allows one to limit the
+The :class:`KeyWords` class allows one to limit the
 domain of argument values to a limited set of valid values
 and reflect the available choices in the usage. Introducing
-the :class:`Categorical` class into our example leads to the
+the :class:`KeyWords` class into our example leads to the
 following:
 
 .. _sheepgraze3:
@@ -540,56 +536,29 @@ Sub-command hierarchy
       default value *None* translates to *sys.argv[0]*.
 
 
-Categorical variables
+KeyWords variable type
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. class:: Categorical(mapping=(),typeothers=None)
+.. class:: KeyWords(keywords=[])
 
-   Categorical variable type. A callable object that
-   converts input key into its corresponding literal value,
-   computing the latter if necessary.
+   KeyWords variable type. A callable object that
+   converts input key into itself, if one is defined,
+   throwing a :py:exc:`KeyError` exception otherwise
 
-   * mapping - this argument should be a list-like object *[item1,item2,...]*, needed to set up the mapping between the *the key*\s and *value*\s that correspond to each of those *key*\s. Each *item* can be one of the following:
+   * keywords - a list-like object *[item1,item2,...]*, that defined ordered sequence of unique keys
 
-     * [*key*, *unit*] - where *value* is an instance of type :class:`Unit`.
+   KeyWords variable type.
 
-     * [*key*, *value*] - where *value* is an instance of any other type. This item is equivalent to [*key*, :class:`Unit`\(value= *value*\)]
-
-     * *key* - equivalent to item  [*key*, :class:`Unit`\(value= *key*\) ]
-
-   * typeothers - Specifies the behavior when value for an undefined key is requested; See :meth:`Categorical.__call__` for details.
-
-   Categorical variable type.
-
-   .. method:: Categorical.__str__()
+   .. method:: KeyWords.__str__()
 
       Returns string representation for the object showing
       all the available keys.
 
-   .. method:: Categorical.__call__(key)
+   .. method:: KeyWords.__call__(key)
 
-      Finds and returns the literal value associated with
-      the given *key*.  If *key* does not match any of keys
-      defined by the *mapping* then *typeothers(key)* is
-      returned, unless *typeothers* is *None* (the default)
-      in which case :py:exc:`KeyEvaluationError` exception
-      is raised.
-
-.. class:: Unit(value,help=None,callable=False)
-
-   Value unit for :class:`Categorical` variables. The
-   instance of this class completely specifies how the value
-   should be computed when it is requested.
-
-   .. method:: Unit.evaluate()
-
-     Returns the literal value of valuation unit. When the
-     *callable* argument to :class:`Unit` is *False*, it is
-     identical to its *value* argument. When
-     *callable=True*, the literal value is found by
-     evaluation of *value()* at the time when the
-     :meth:`evaluate` is invoked.
-
+      Returns the *key* itself, if *key* matches any of keys defined
+      by the *keywords*. Otherwise, raises the
+      :py:exc:`KeyError` exception.
 
 Environment variables
 ^^^^^^^^^^^^^^^^^^^^^
@@ -611,7 +580,7 @@ with the "Style Guide for Python Code" (PEP 8), class
 :class:`comm_cls` is renamed into :class:`Function` and
 class :class:`node_cls` is renamed into :class:`Node`.
 Class :class:`keyval` is renamed into
-:class:`Categorical`. Interface to those classes have also
+:class:`KeyWords`. Interface to those classes have also
 been changed.  
 
 Version 1.1 is a bugfix version that addresses minor issues.
