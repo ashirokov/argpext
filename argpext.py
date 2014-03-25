@@ -172,8 +172,6 @@ def get_parser_defaults( populate ):
 class Function(BaseNode):
     """Base class for command line interface to a Python function."""
 
-    DEFAULTS = KeyWords(['hook','parser'])
-
     def __init__(self,bare=False):
         self.defaults = ['parser'] if not bare else []
 
@@ -195,11 +193,13 @@ class Function(BaseNode):
     # Other members
     def get_defaults(self,defaults):
         """Returns the dictionary of default function argument values."""
+        DEFAULTS = KeyWords(['hook','parser'])
+
         D = {}
         for default in defaults:
-            if default == self.DEFAULTS('hook'):
+            if default == DEFAULTS('hook'):
                 D.update( get_func_defaults( self.get_function() ) )
-            elif default == self.DEFAULTS('parser'):
+            elif default == DEFAULTS('parser'):
                 D.update( get_parser_defaults( self.populate ) )
             else:
                 raise KeyError('invalid source: "%s"' % src)

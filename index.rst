@@ -520,14 +520,12 @@ Sub-command hierarchy
    .. attribute:: SUBS
 
       Specifies the list of child nodes along with their
-      assigned sub-commands. This attribute must be defined
-      and must be a :py:class:`list` or a :py:class:`tuple`
+      assigned sub-commands. This attribute, if defined,
+      must be a :py:class:`list` or a :py:class:`tuple`
       of *(key,basenode)* items, where the *basenode* is an
       instance of either of :class:`Node` or
       :class:`Function` class, and the *key* is the
       sub-command assigned to it.
-      :py:exc:`InitializationError` is raised if this
-      attribute is not defined at the evaluation time.
 
    .. method:: Node.digest(prog=None,args=None)
 
@@ -558,8 +556,6 @@ Categorical variables
      * [*key*, *value*] - where *value* is an instance of any other type. This item is equivalent to [*key*, :class:`Unit`\(value= *value*\)]
 
      * *key* - equivalent to item  [*key*, :class:`Unit`\(value= *key*\) ]
-
-     :py:exc:`InitializationError` exception is raised if *mapping* is not properly defined.
 
    * typeothers - Specifies the behavior when value for an undefined key is requested; See :meth:`Categorical.__call__` for details.
 
@@ -593,15 +589,6 @@ Categorical variables
      *callable=True*, the literal value is found by
      evaluation of *value()* at the time when the
      :meth:`evaluate` is invoked.
-
-
-Exceptions
-^^^^^^^^^^
-
-   .. exception:: InitializationError
-
-   .. exception:: KeyEvaluationError
-
 
 
 Environment variables
