@@ -316,12 +316,15 @@ class Node(BaseNode):
 
                 if issubclass(subtask,Function):
 
+                    X = subtask()
+
                     q = getattr(subtask,'__doc__',None)
-                    if q is None: q = subtask().get_hook().__doc__
+                    if q is None: q = X.get_hook().__doc__
                     docstr = Doc(q)
+
                     subparser = subparsers.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
-                    subtask().populate( subparser )
-                    subparser.set_defaults( ** { _EXTRA_KWD : Binding(subtask().get_hook()) } )
+                    X.populate( subparser )
+                    subparser.set_defaults( ** { _EXTRA_KWD : Binding(X.get_hook()) } )
 
                 elif issubclass(subtask,Node):
 
@@ -329,6 +332,7 @@ class Node(BaseNode):
                     X._internal = True
 
                     docstr = Doc(getattr(subtask,'__doc__',None))
+
                     subparser = subparsers.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
                     subparser.set_defaults( ** { _EXTRA_KWD : X } )
                 else:
