@@ -150,7 +150,7 @@ class BaseNode(object):
 
 
 def get_func_defaults(func):
-    "Populate D with the default values from the hook function"
+    "Populate D with the default values from the function"
     D = {}
     vs = func.__defaults__
     if vs is not None and len(vs):
@@ -213,12 +213,11 @@ class Function(BaseNode):
         raise NotImplementedError()
 
     def populate(self,parser):
-        """This method should be overloaded if hook takes
-        positive number of arguments. The argument must be
-        assumed to be of argparse.ArgumentParser type. For
-        each argument, say 'x' of the hook method there must be a
-        call (or its equivalent) to the parser.add_argument
-        method with dest='x'."""
+        """This method should be overloaded if the function takes
+        positive number of arguments. The argument must be assumed to
+        be of argparse.ArgumentParser type. For each argument, say 'x'
+        of the method there must be a call (or its equivalent) to the
+        parser.add_argument method with dest='x'."""
         pass
 
 
@@ -310,12 +309,6 @@ class Node(BaseNode):
                 if subparsers is None: subparsers = parser.add_subparsers(help='Description')
 
                 if inspect.isfunction(subtask):
-                    #print( 'subtask', subtask )
-                    #print( 'subtask', subtask.__name__ )
-                    #print( 'subtask.__defaults__', subtask.__defaults__ )
-                    #print( 'subtask.__globals__', str(subtask.__globals__)[:100] )
-                    #print( 'varnames:', subtask.__code__.co_varnames )
-                    #print( 'subtask', subtask.__name__.capitalize() )
                     subtask = type(subtask.__name__.capitalize(), 
                                 (Function,) , 
                                 {'hook' : staticmethod(subtask)
