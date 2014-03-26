@@ -329,12 +329,15 @@ class Node(BaseNode):
                     subparser = subparsers.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
                     subtask().populate( subparser )
                     subparser.set_defaults( ** { _EXTRA_KWD : Binding(subtask.hook) } )
+
                 elif issubclass(subtask,Node):
-                    N = subtask()
-                    N._internal = True
+
+                    X = subtask()
+                    X._internal = True
+
                     docstr = Doc(getattr(subtask,'__doc__',None))
                     subparser = subparsers.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
-                    subparser.set_defaults( ** { _EXTRA_KWD : N } )
+                    subparser.set_defaults( ** { _EXTRA_KWD : X } )
                 else:
                     raise TypeError('invalid type (%s) for sub-command "%s" of %s' % ( subtask.__name__, name, type(self).__name__ ) )
             return subtasks
