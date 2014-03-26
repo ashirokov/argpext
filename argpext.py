@@ -321,7 +321,6 @@ class Node(BaseNode):
                                 {'hook' : staticmethod(node)
                                 })
 
-
                 if issubclass(node,Function):
 
                     q = getattr(node,'__doc__',None)
