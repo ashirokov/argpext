@@ -227,7 +227,7 @@ class Function(BaseNode):
         return get_parser_defaults( self.populate )
 
 
-    def get_function(self):
+    def get_hook(self):
         "Return a callable instance defined by the reference function"
         q = type(self).hook
         if sys.version_info[0:2] <= (2, 7,): q = q.__func__
@@ -241,7 +241,7 @@ class Function(BaseNode):
 
         K.update( kwds )
 
-        return self.get_function()(*args,**K)
+        return self.get_hook()(*args,**K)
 
     def digest(self,prog=None,args=None):
         """Execute the reference function based on command line arguments
@@ -258,7 +258,7 @@ class Function(BaseNode):
         
         # Find: docstring
         q = self.__doc__
-        if q is None: q = self.hook.__doc__
+        if q is None: q = self.get_hook().__doc__
         docstr = Doc(q)
 
         # Find keyword args to pass to function, based on command line arguments, args.
@@ -269,7 +269,7 @@ class Function(BaseNode):
         # How are the default used?
 
         # Execute the reference function
-        return self.get_function()( **q )
+        return self.get_hook()( **q )
 
 
 
@@ -317,11 +317,11 @@ class Node(BaseNode):
                 if issubclass(subtask,Function):
 
                     q = getattr(subtask,'__doc__',None)
-                    if q is None: q = subtask.hook.__doc__
+                    if q is None: q = subtask().get_hook().__doc__
                     docstr = Doc(q)
                     subparser = subparsers.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
                     subtask().populate( subparser )
-                    subparser.set_defaults( ** { _EXTRA_KWD : Binding(subtask.hook) } )
+                    subparser.set_defaults( ** { _EXTRA_KWD : Binding(subtask().get_hook()) } )
 
                 elif issubclass(subtask,Node):
 

@@ -26,6 +26,7 @@ class Main2(argpext.Function):
 
 
 class Main(argpext.Node):
+    "Get all"
     SUBS = [('m1', Main1),('m2', Main2)]
 
 if __name__ == '__main__':
