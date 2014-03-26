@@ -300,8 +300,7 @@ class Node(BaseNode):
             subtasks = {}
             subparsers = None
 
-            attributename = 'SUBS'
-            subs = getattr(self,attributename)
+            subs = getattr(self,'SUBS',[])
 
             for name,subtask in subs:
                 subtasks[name] = subtask
