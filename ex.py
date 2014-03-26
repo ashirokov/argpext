@@ -6,8 +6,7 @@ import argpext
 class Main1(argpext.Function):
     "Task Main 1"
 
-    @staticmethod
-    def hook(contdate):
+    def hook(self,contdate):
         print('A:', contdate)
         return contdate
     def populate(self,parser):
@@ -20,7 +19,7 @@ def func(contdate):
 
 class Main2(argpext.Function):
     "Task Main 2"
-    hook = func
+    hook = argpext.Hook(func)
     def populate(self,parser):
         parser.add_argument('contdate',type=int,help="Content date")
 

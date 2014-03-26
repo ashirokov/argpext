@@ -7,7 +7,7 @@ def sheep_jump(n):
 
 class SheepJump(argpext.Function):
     "Make sheep jump"
-    hook = sheep_jump
+    hook = argpext.Hook(sheep_jump)
     def populate(self,parser):
         parser.add_argument('-j', dest='n', default=2, type=int, help='Specify the number of jumps')
 

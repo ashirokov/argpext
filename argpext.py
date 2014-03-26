@@ -190,11 +190,12 @@ class Binding(object):
     """Binding gets executed when functions variables are set by the
     parser, hence resulting in a namespace"""
 
-    def __init__(self,function):
-        self._function = function
+    def __init__(self,funcobject):
+        self._funcobject = funcobject
 
     def __call__(self,namespace):
         "Implicit execution, by parser."
+        #print('implicit execution')
 
         def key_value_extract(namespace):
             if not isinstance(namespace,argparse.Namespace): raise TypeError
@@ -202,9 +203,18 @@ class Binding(object):
             del q[ _EXTRA_KWD ]
             return q
 
-        q = key_value_extract(namespace)
+        f = self._funcobject.get_hook()
+        kwds = key_value_extract(namespace)
+        return f(self._funcobject, **kwds )
 
-        return self._function( **q )
+
+class Hook(object):
+    def __init__(self,function):
+        self.function = function
+    def __call__(self,classobject,*args,**kwds):
+        "Function pass execution"
+        return self.function(*args,**kwds)
+
 
 
 
@@ -215,8 +225,7 @@ class Function(BaseNode):
         self.defaults = ['parser'] if not bare else []
 
     # Members to be overloaded by the user
-    @staticmethod
-    def hook():
+    def hook(self):
         raise NotImplementedError()
 
     def populate(self,parser):
@@ -242,12 +251,10 @@ class Function(BaseNode):
 
     def __call__(self,*args,**kwds):
         """Direct execution, using Function class object"""
-
+        #print('direct execution')
         K = self.get_defaults(defaults=self.defaults)
-
         K.update( kwds )
-
-        return self.get_hook()(*args,**K)
+        return self.get_hook()(*((self,)+args),**K)
 
     def digest(self,prog=None,args=None):
         """Execute the reference function based on command line arguments
@@ -275,7 +282,7 @@ class Function(BaseNode):
         # How are the default used?
 
         # Execute the reference function
-        return self.get_hook()( **q )
+        return self.get_hook()(self, **q )
 
 
 
@@ -316,7 +323,7 @@ class Node(BaseNode):
                 if inspect.isfunction(subtask):
                     subtask = type(subtask.__name__.capitalize(), 
                                 (Function,) , 
-                                {'hook' : staticmethod(subtask)
+                                {'hook' : MakeHook(subtask)
                                 })
 
                 if issubclass(subtask,Function):
@@ -329,7 +336,7 @@ class Node(BaseNode):
 
                     subparser = subparsers.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
                     X.populate( subparser )
-                    subparser.set_defaults( ** { _EXTRA_KWD : Binding(X.get_hook()) } )
+                    subparser.set_defaults( ** { _EXTRA_KWD : Binding(funcobject=X) } )
 
                 elif issubclass(subtask,Node):
 
@@ -421,8 +428,7 @@ def histfile():
 class History(Function):
     "Display command line history."
 
-    @staticmethod
-    def hook(unique):
+    def hook(self,unique):
         q = histfile()
         if not os.path.exists(q): 
             print('History file ("%s") not found' % q)

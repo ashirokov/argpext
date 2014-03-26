@@ -8,7 +8,7 @@ def sheep_graze(feed):
 
 class SheepGraze(argpext.Function):
     "Let sheep graze"
-    hook = sheep_graze
+    hook = argpext.Hook(sheep_graze)
     def populate(self,parser):
         parser.add_argument('-f', dest='feed', default='grass', 
                             help='Specify the feed. Default: %(default)s.')

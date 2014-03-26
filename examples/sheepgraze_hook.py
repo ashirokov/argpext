@@ -5,8 +5,7 @@ import argpext
 class SheepGraze(argpext.Function):
     "Let sheep graze"
 
-    @staticmethod
-    def hook(feed):
+    def hook(self,feed):
         print('Sheep grazes on %s' % feed)
 
     def populate(self,parser):

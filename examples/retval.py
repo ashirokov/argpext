@@ -7,7 +7,7 @@ def square(x=1):
     return x*x
 
 class Square(argpext.Function):
-    hook = square
+    hook = argpext.Hook(square)
     def populate(self,parser):
         parser.add_argument('-x', default=2, type=float,
                             help='Specify the value of x.')
