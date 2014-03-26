@@ -205,17 +205,7 @@ class Function(BaseNode):
     # Other members
     def get_defaults(self,defaults):
         """Returns the dictionary of default function argument values."""
-        DEFAULTS = KeyWords(['hook','parser'])
-
-        D = {}
-        for default in defaults:
-            if default == DEFAULTS('hook'):
-                D.update( get_func_defaults( self.get_function() ) )
-            elif default == DEFAULTS('parser'):
-                D.update( get_parser_defaults( self.populate ) )
-            else:
-                raise KeyError('invalid source: "%s"' % src)
-        return D
+        return get_parser_defaults( self.populate )
 
 
     def get_function(self):
