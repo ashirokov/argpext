@@ -59,6 +59,7 @@ class KeyWords(object):
         return self._dct.__contains__(key)
 
     def __call__(self,key):
+        "Keyword lookup"
         if key in self._dct: return key
         else: raise KeyError('invalid key: "%s"' % key)
 
@@ -89,6 +90,7 @@ class Doc(object):
     def __init__(self,value):
         self.value = value
     def __call__(self,short=False,label=None):
+        "Doc string presentation"
         if self.value is None: return
         R = self.value
         if short is True:
@@ -185,9 +187,14 @@ def get_parser_defaults( populate ):
 _EXTRA_KWD = '_ARGPEXT_EXTRA_KWD'
 
 class Binding(object):
+    """Binding gets executed when functions variables are set by the
+    parser, hence resulting in a namespace"""
+
     def __init__(self,function):
         self._function = function
+
     def __call__(self,namespace):
+        "Implicit execution, by parser."
 
         def key_value_extract(namespace):
             if not isinstance(namespace,argparse.Namespace): raise TypeError
@@ -234,8 +241,7 @@ class Function(BaseNode):
         return q
 
     def __call__(self,*args,**kwds):
-        """Executes the reference function based on the default values and the
-        arguments passed."""
+        """Direct execution, using Function class object"""
 
         K = self.get_defaults(defaults=self.defaults)
 
@@ -327,6 +333,7 @@ class Node(BaseNode):
 
                 elif issubclass(subtask,Node):
 
+
                     X = subtask()
                     X._internal = True
 
@@ -336,6 +343,7 @@ class Node(BaseNode):
                     subparser.set_defaults( ** { _EXTRA_KWD : X } )
                 else:
                     raise TypeError('invalid type (%s) for sub-command "%s" of %s' % ( subtask.__name__, name, type(self).__name__ ) )
+
             return subtasks
 
 
