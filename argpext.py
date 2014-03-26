@@ -298,46 +298,46 @@ class Node(BaseNode):
         """
 
         def add_subtasks(parser):
-            nodes = {}
+            subtasks = {}
             subparsers = None
 
             attributename = 'SUBS'
             subs = getattr(self,attributename)
 
-            for name,node in subs:
-                nodes[name] = node
+            for name,subtask in subs:
+                subtasks[name] = subtask
 
                 if subparsers is None: subparsers = parser.add_subparsers(help='Description')
 
-                if inspect.isfunction(node):
-                    #print( 'node', node )
-                    #print( 'node', node.__name__ )
-                    #print( 'node.__defaults__', node.__defaults__ )
-                    #print( 'node.__globals__', str(node.__globals__)[:100] )
-                    #print( 'varnames:', node.__code__.co_varnames )
-                    #print( 'node', node.__name__.capitalize() )
-                    node = type(node.__name__.capitalize(), 
+                if inspect.isfunction(subtask):
+                    #print( 'subtask', subtask )
+                    #print( 'subtask', subtask.__name__ )
+                    #print( 'subtask.__defaults__', subtask.__defaults__ )
+                    #print( 'subtask.__globals__', str(subtask.__globals__)[:100] )
+                    #print( 'varnames:', subtask.__code__.co_varnames )
+                    #print( 'subtask', subtask.__name__.capitalize() )
+                    subtask = type(subtask.__name__.capitalize(), 
                                 (Function,) , 
-                                {'hook' : staticmethod(node)
+                                {'hook' : staticmethod(subtask)
                                 })
 
-                if issubclass(node,Function):
+                if issubclass(subtask,Function):
 
-                    q = getattr(node,'__doc__',None)
-                    if q is None: q = node.hook.__doc__
+                    q = getattr(subtask,'__doc__',None)
+                    if q is None: q = subtask.hook.__doc__
                     docstr = Doc(q)
                     subparser = subparsers.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
-                    node().populate( subparser )
-                    subparser.set_defaults( ** { _EXTRA_KWD : Binding(node.hook) } )
-                elif issubclass(node,Node):
-                    N = node()
+                    subtask().populate( subparser )
+                    subparser.set_defaults( ** { _EXTRA_KWD : Binding(subtask.hook) } )
+                elif issubclass(subtask,Node):
+                    N = subtask()
                     N._internal = True
-                    docstr = Doc(getattr(node,'__doc__',None))
+                    docstr = Doc(getattr(subtask,'__doc__',None))
                     subparser = subparsers.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
                     subparser.set_defaults( ** { _EXTRA_KWD : N } )
                 else:
-                    raise TypeError('invalid type (%s) for sub-command "%s" of %s' % ( node.__name__, name, type(self).__name__ ) )
-            return nodes
+                    raise TypeError('invalid type (%s) for sub-command "%s" of %s' % ( subtask.__name__, name, type(self).__name__ ) )
+            return subtasks
 
 
         def delegation(args,parser,nodes):
