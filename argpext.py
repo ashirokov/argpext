@@ -195,7 +195,7 @@ class Binding(object):
 
     def __call__(self,namespace):
         "Implicit execution, by parser."
-        print('implicit execution')
+        #print('implicit execution')
 
         def key_value_extract(namespace):
             if not isinstance(namespace,argparse.Namespace): raise TypeError
@@ -227,7 +227,7 @@ class Hook(object):
 class Function(BaseNode):
     """Base class for command line interface to a Python function."""
 
-    def __init__(self,display=True,bare=False):
+    def __init__(self,display=False,bare=False):
         self.defaults = ['parser'] if not bare else []
         self._display = display
 
@@ -261,7 +261,7 @@ class Function(BaseNode):
 
     def __call__(self,*args,**kwds):
         """Direct execution, using Function class object"""
-        print('direct execution')
+        #print('direct execution')
         K = self.get_defaults(defaults=self.defaults)
         K.update( kwds )
         r = self.get_hook()(*((self,)+args),**K)
