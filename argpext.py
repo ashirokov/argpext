@@ -181,6 +181,20 @@ def get_parser_defaults( populate ):
 
 
 
+
+_EXTRA_KWD = '_ARGPEXT_EXTRA_KWD'
+
+class Binding(object):
+    def __init__(self,node):
+        self._node = node
+    def __call__(self,namespace):
+        if not isinstance(namespace,argparse.Namespace): raise TypeError
+        q = vars( namespace )
+        del q[ _EXTRA_KWD ]
+        return self._node.hook( **q )
+
+
+
 class Function(BaseNode):
     """Base class for command line interface to a Python function."""
 
@@ -277,16 +291,6 @@ class Node(BaseNode):
         the return value of the reference function.
         """
 
-        class Binding(object):
-            def __init__(self,node):
-                self._node = node
-            def __call__(self,namespace):
-                if not isinstance(namespace,argparse.Namespace): raise TypeError
-                q = vars( namespace )
-                del q[ _EXTRA_KWD ]
-                return self._node.hook( **q )
-
-
         def add_subtasks(parser):
             nodes = {}
             subparsers = None
@@ -350,8 +354,6 @@ class Node(BaseNode):
 
         if prog is None: prog = os.path.basename( sys.argv[0] )
         if args is None: args = sys.argv[1:]
-
-        _EXTRA_KWD = '_ARGPEXT_EXTRA_KWD'
 
 
         # Write history file
