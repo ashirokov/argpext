@@ -185,13 +185,19 @@ def get_parser_defaults( populate ):
 _EXTRA_KWD = '_ARGPEXT_EXTRA_KWD'
 
 class Binding(object):
-    def __init__(self,node):
-        self._node = node
+    def __init__(self,function):
+        self._function = function
     def __call__(self,namespace):
-        if not isinstance(namespace,argparse.Namespace): raise TypeError
-        q = vars( namespace )
-        del q[ _EXTRA_KWD ]
-        return self._node.hook( **q )
+
+        def key_value_extract(namespace):
+            if not isinstance(namespace,argparse.Namespace): raise TypeError
+            q = vars( namespace )
+            del q[ _EXTRA_KWD ]
+            return q
+
+        q = key_value_extract(namespace)
+
+        return self._function( **q )
 
 
 
@@ -322,7 +328,7 @@ class Node(BaseNode):
                     docstr = Doc(q)
                     subparser = subparsers.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
                     node().populate( subparser )
-                    subparser.set_defaults( ** { _EXTRA_KWD : Binding(node) } )
+                    subparser.set_defaults( ** { _EXTRA_KWD : Binding(node.hook) } )
                 elif issubclass(node,Node):
                     N = node()
                     N._internal = True
