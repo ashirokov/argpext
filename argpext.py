@@ -195,7 +195,7 @@ class Binding(object):
 
     def __call__(self,namespace):
         "Implicit execution, by parser."
-        #print('implicit execution')
+        print('implicit execution')
 
         def key_value_extract(namespace):
             if not isinstance(namespace,argparse.Namespace): raise TypeError
@@ -205,7 +205,9 @@ class Binding(object):
 
         f = self._funcobject.get_hook()
         kwds = key_value_extract(namespace)
-        return f(self._funcobject, **kwds )
+        r = f(self._funcobject, **kwds )
+        if self._funcobject.display(): print( r ) 
+        return r
 
 
 class Hook(object):
@@ -213,16 +215,24 @@ class Hook(object):
         self.function = function
     def __call__(self,classobject,*args,**kwds):
         "Function pass execution"
-        return self.function(*args,**kwds)
-
+        if not isinstance(classobject,Function): raise TypeError()
+        r = self.function(*args,**kwds)
+        #if classobject.display(): 
+        #    print( r, '(Hook)' )
+        #    classobject._display = False
+        return r
 
 
 
 class Function(BaseNode):
     """Base class for command line interface to a Python function."""
 
-    def __init__(self,bare=False):
+    def __init__(self,display=True,bare=False):
         self.defaults = ['parser'] if not bare else []
+        self._display = display
+
+    def display(self):
+        return self._display
 
     # Members to be overloaded by the user
     def hook(self):
@@ -251,10 +261,12 @@ class Function(BaseNode):
 
     def __call__(self,*args,**kwds):
         """Direct execution, using Function class object"""
-        #print('direct execution')
+        print('direct execution')
         K = self.get_defaults(defaults=self.defaults)
         K.update( kwds )
-        return self.get_hook()(*((self,)+args),**K)
+        r = self.get_hook()(*((self,)+args),**K)
+        if self.display(): print( r )
+        return r
 
     def digest(self,prog=None,args=None):
         """Execute the reference function based on command line arguments
@@ -325,6 +337,7 @@ class Node(BaseNode):
                                 (Function,) , 
                                 {'hook' : MakeHook(subtask)
                                 })
+                    subtask.__init__()
 
                 if issubclass(subtask,Function):
 
