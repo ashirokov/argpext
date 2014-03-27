@@ -211,8 +211,16 @@ class Binding(object):
         f = self._funcobject.get_hook()
         kwds = key_value_extract(namespace)
         r = f(self._funcobject, **kwds )
-        if self._funcobject.display(): print( r ) 
+        if self._funcobject._display: print( r, '(Binding)' ) 
         return r
+
+
+def display(function):
+    def wrapper(*args,**kwargs):
+        r = function(*args,**kwargs)
+        if args[0]._display: print( r, '(@display)' )
+        return r
+    return wrapper
 
 
 class Hook(object):
@@ -222,9 +230,7 @@ class Hook(object):
         "Function pass execution"
         if not isinstance(classobject,Function): raise TypeError()
         r = self.function(*args,**kwds)
-        #if classobject.display(): 
-        #    print( r, '(Hook)' )
-        #    classobject._display = False
+        if classobject._display: print( r, '(Hook)' ) 
         return r
 
 
@@ -232,12 +238,9 @@ class Hook(object):
 class Function(BaseNode):
     """Base class for command line interface to a Python function."""
 
-    def __init__(self,display=False,bare=False):
+    def __init__(self,display=True,bare=False):
         self.defaults = ['parser'] if not bare else []
         self._display = display
-
-    def display(self):
-        return self._display
 
     # Members to be overloaded by the user
     def hook(self):
@@ -270,7 +273,7 @@ class Function(BaseNode):
         K = self.get_defaults(defaults=self.defaults)
         K.update( kwds )
         r = self.get_hook()(*((self,)+args),**K)
-        if self.display(): print( r )
+        if self._display: print( r, '(direct)' )
         return r
 
     def digest(self,prog=None,args=None):

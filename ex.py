@@ -3,12 +3,16 @@
 import argpext
 
 
+
 class Main1(argpext.Function):
     "Task Main 1"
 
+    @argpext.display
     def hook(self,contdate):
         print('A:', contdate)
         return contdate
+
+
     def populate(self,parser):
         parser.add_argument('contdate',type=int,help="Content date")
 
