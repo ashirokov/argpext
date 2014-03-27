@@ -23,7 +23,9 @@ def func(contdate):
 
 class Main2(argpext.Function):
     "Task Main 2"
-    hook = argpext.Hook(func)
+
+    hook = argpext.display(argpext.Hook(func))
+
     def populate(self,parser):
         parser.add_argument('contdate',type=int,help="Content date")
 

@@ -211,7 +211,7 @@ class Binding(object):
         f = self._funcobject.get_hook()
         kwds = key_value_extract(namespace)
         r = f(self._funcobject, **kwds )
-        if self._funcobject._display: print( r, '(Binding)' ) 
+        #if self._funcobject._display: print( r, '(Binding)' ) 
         return r
 
 
@@ -230,7 +230,7 @@ class Hook(object):
         "Function pass execution"
         if not isinstance(classobject,Function): raise TypeError()
         r = self.function(*args,**kwds)
-        if classobject._display: print( r, '(Hook)' ) 
+        #if classobject._display: print( r, '(Hook)' ) 
         return r
 
 
@@ -273,7 +273,7 @@ class Function(BaseNode):
         K = self.get_defaults(defaults=self.defaults)
         K.update( kwds )
         r = self.get_hook()(*((self,)+args),**K)
-        if self._display: print( r, '(direct)' )
+        #if self._display: print( r, '(direct)' )
         return r
 
     def digest(self,prog=None,args=None):
