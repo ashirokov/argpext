@@ -23,13 +23,18 @@ import collections
 
 VERSION = (2,0,'2014-03-26')
 
-class Chdir(object):
+class ChDir(object):
     def __init__(self,path):
         self.initdir = os.getcwd()
         if not os.path.exists(path): os.makedirs(path)
         os.chdir(path)
     def __del__(self):
-        os.chdir(self.initdir)
+        try:
+            os.chdir(self.initdir)
+        except TypeError:
+            pass
+        except AttributeError:
+            pass
 
 
 
