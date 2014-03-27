@@ -214,7 +214,6 @@ class Binding(object):
         #if self._funcobject._display: print( r, '(Binding)' ) 
         return r
 
-
 def display(function):
     def wrapper(*args,**kwargs):
         r = function(*args,**kwargs)
@@ -222,16 +221,23 @@ def display(function):
         return r
     return wrapper
 
-
-class Hook(object):
-    def __init__(self,function):
-        self.function = function
-    def __call__(self,classobject,*args,**kwds):
-        "Function pass execution"
-        if not isinstance(classobject,Function): raise TypeError()
-        r = self.function(*args,**kwds)
-        #if classobject._display: print( r, '(Hook)' ) 
+def hook(function):
+    def wrapper(*args,**kwargs):
+        self = args[0]
+        args = args[1:]
+        r = function(*args,**kwargs)
         return r
+    return wrapper
+
+
+def hook_display(function):
+    def wrapper(*args,**kwargs):
+        self = args[0]
+        args = args[1:]
+        r = function(*args,**kwargs)
+        if self._display: print( r, '(@display)' )
+        return r
+    return wrapper
 
 
 
@@ -343,7 +349,7 @@ class Node(BaseNode):
                 if inspect.isfunction(subtask):
                     subtask = type(subtask.__name__.capitalize(), 
                                 (Function,) , 
-                                {'hook' : Hook(subtask)
+                                {'hook' : hook(subtask)
                                 })
                     subtask.__init__()
 

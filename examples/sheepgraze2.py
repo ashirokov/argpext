@@ -9,7 +9,7 @@ def sheep_graze(quantity,feed,hours):
 
 class SheepGraze(argpext.Function):
     "Let sheep graze"
-    hook = argpext.Hook(sheep_graze)
+    hook = argpext.hook(sheep_graze)
     def populate(self,parser):
         parser.add_argument(dest='quantity', help='Quantity of sheep.')
         parser.add_argument('-f', dest='feed', default='grass', 

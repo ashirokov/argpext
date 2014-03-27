@@ -12,9 +12,10 @@ class Main1(argpext.Function):
         print('A:', contdate)
         return contdate
 
-
     def populate(self,parser):
         parser.add_argument('contdate',type=int,help="Content date")
+
+
 
 
 def func(contdate):
@@ -24,15 +25,23 @@ def func(contdate):
 class Main2(argpext.Function):
     "Task Main 2"
 
-    hook = argpext.display(argpext.Hook(func))
+    hook = argpext.hook_display(func)
 
     def populate(self,parser):
         parser.add_argument('contdate',type=int,help="Content date")
 
 
+
+
+
 class Main(argpext.Node):
     "Get all"
     SUBS = [('m1', Main1),('m2', Main2)]
+
+
+
+
+
 
 if __name__ == '__main__':
     Main().digest()
