@@ -335,7 +335,7 @@ class Node(BaseNode):
                 if inspect.isfunction(subtask):
                     subtask = type(subtask.__name__.capitalize(), 
                                 (Function,) , 
-                                {'hook' : MakeHook(subtask)
+                                {'hook' : Hook(subtask)
                                 })
                     subtask.__init__()
 
