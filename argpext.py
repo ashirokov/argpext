@@ -360,7 +360,7 @@ class Node(BaseNode):
 
 
                     X = subtask()
-                    X._internal = True
+                    X._disable_history = True
 
                     docstr = Doc(getattr(subtask,'__doc__',None))
 
@@ -395,7 +395,7 @@ class Node(BaseNode):
 
 
         # Write history file
-        if not hasattr(self,'_internal'):
+        if not hasattr(self,'_disable_history'):
             BaseNode.history_update(self,prog=prog,args=args)
 
 
