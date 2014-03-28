@@ -113,6 +113,9 @@ class Doc(object):
 
 
 class BaseNode(object):
+    def __init__(self,bare=False,display=True):
+        self._bare = bare
+        self._display = display
 
     def history_update(self,prog,args):
         "Update the history log file, if the latter is defined."
@@ -245,8 +248,7 @@ class Function(BaseNode):
     """Base class for command line interface to a Python function."""
 
     def __init__(self,display=True,bare=False):
-        self._bare = bare
-        self._display = display
+        BaseNode.__init__(self,display=display,bare=bare)
 
     # Members to be overloaded by the user
     def hook(self):
@@ -311,6 +313,9 @@ class Function(BaseNode):
 class Node(BaseNode):
     """Command line interface for a node."""
 
+    def __init__(self,display=True,bare=False):
+        BaseNode.__init__(self,display=display,bare=bare)
+
     # Members to be redefined by a user
 
     SUBS = []
@@ -351,7 +356,7 @@ class Node(BaseNode):
 
                 if issubclass(subtask,Function):
 
-                    X = subtask()
+                    X = subtask(display=self._display,bare=self._bare)
 
                     q = getattr(subtask,'__doc__',None)
                     if q is None: q = X.get_hook().__doc__
@@ -362,9 +367,7 @@ class Node(BaseNode):
                     subparser.set_defaults( ** { _EXTRA_KWD : Binding(funcobject=X) } )
 
                 elif issubclass(subtask,Node):
-
-
-                    X = subtask()
+                    X = subtask(display=self._display,bare=self._bare)
                     X._disable_history = True
 
                     docstr = Doc(getattr(subtask,'__doc__',None))
