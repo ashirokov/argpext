@@ -245,7 +245,7 @@ class Function(BaseNode):
     """Base class for command line interface to a Python function."""
 
     def __init__(self,display=True,bare=False):
-        self.defaults = ['parser'] if not bare else []
+        self._bare = bare
         self._display = display
 
     # Members to be overloaded by the user
@@ -261,12 +261,6 @@ class Function(BaseNode):
         pass
 
 
-    # Other members
-    def get_defaults(self,defaults):
-        """Returns the dictionary of default function argument values."""
-        return get_parser_defaults( self.populate )
-
-
     def get_hook(self):
         "Return a callable instance defined by the reference function"
         q = type(self).hook
@@ -276,7 +270,9 @@ class Function(BaseNode):
     def __call__(self,*args,**kwds):
         """Direct execution, using Function class object"""
         #print('direct execution')
-        K = self.get_defaults(defaults=self.defaults)
+        K = {}
+        if not self._bare: K.update( get_parser_defaults( self.populate ) )
+        # functions defaults will apply at this point
         K.update( kwds )
         r = self.get_hook()(*((self,)+args),**K)
         #if self._display: print( r, '(direct)' )
