@@ -111,8 +111,10 @@ class Doc(object):
         return R
 
 
+DISPLAY_KWDS = KeyWords(['stream','str'])
 
 class BaseNode(object):
+
     def __init__(self,bare=False,display=True):
         self._bare = bare
         self._display = display
@@ -217,13 +219,6 @@ class Binding(object):
         #if self._funcobject._display: print( r, '(Binding)' ) 
         return r
 
-def display(function):
-    def wrapper(*args,**kwargs):
-        r = function(*args,**kwargs)
-        if args[0]._display: print( r, '(@display)' )
-        return r
-    return wrapper
-
 def hook(function):
     def wrapper(*args,**kwargs):
         self = args[0]
@@ -233,12 +228,37 @@ def hook(function):
     return wrapper
 
 
+def _display(slf,r):
+    q = slf._display
+    if q == False:
+        pass
+    elif q == True:
+        print( r )
+    elif isinstance(q,dict):
+        try:
+            for k in q: DISPLAY_KWDS(k)
+        except KeyError:
+            raise KeyError('invalid key ("%s") in the the "display=" argument; allowed keys: %s' % (k, ",".join(['"%s"' % q for q in DISPLAY_KWDS]) ))
+        stream = q.get('stream',sys.stdout)
+        strformat = q.get('str', str)
+        print(strformat(r), file=stream)
+    else:
+        raise TypeError('invalid type of display argument (neither bool not dict)')
+
+def display(function):
+    def wrapper(*args,**kwargs):
+        slf = args[0]
+        r = function(*args,**kwargs)
+        _display(slf,r)
+        return r
+    return wrapper
+
 def hook_display(function):
     def wrapper(*args,**kwargs):
-        self = args[0]
+        slf = args[0]
         args = args[1:]
         r = function(*args,**kwargs)
-        if self._display: print( r, '(@display)' )
+        _display(slf,r)
         return r
     return wrapper
 
