@@ -21,7 +21,7 @@ import inspect
 import argparse
 import collections
 
-VERSION = (2,0,'2014-03-26')
+VERSION = (2,0,'2014-03-28')
 
 class ChDir(object):
     def __init__(self,path):
