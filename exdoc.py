@@ -5,7 +5,7 @@ import os
 import sys
 import subprocess
 import code
-
+import xml, xml.dom.minidom
 
 
 class Workdir(object):
@@ -203,3 +203,21 @@ def interp(inputfile,outputfile):
 
 
 
+def xmlgen(filename):
+    dom = xml.dom.minidom.parse( filename )
+    dom = dom.childNodes[0]
+
+    q = getattr(dom.attributes.get('directory'),'value',None)
+    if q is not None:
+        os.chdir( q )
+
+    for cn in dom.childNodes:
+        if isinstance(cn,xml.dom.minidom.Text) : continue
+        def parse_interp(dom):
+            print(dom)
+            outputfile = getattr(dom.attributes.get('output'),'value',None)
+            print( outputfile )
+            pass
+        def parse_script(dom):
+            pass
+        {'interp' : parse_interp, 'script' : parse_script}[ cn.tagName](cn)
