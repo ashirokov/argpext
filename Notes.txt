@@ -1,8 +1,8 @@
 #> 
 
+./exdoc.py docgen.xml
 
-./gendoc.py
-
+.
 make html
 
 
