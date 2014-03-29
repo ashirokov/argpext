@@ -10,76 +10,6 @@ import code
 import xml, xml.dom.minidom
 
 
-class Workdir(object):
-
-    PATHS = ['PYTHONPATH','PATH']
-
-    def __init__(self,dirname):
-        self.dirname = dirname
-
-    def __enter__(self):
-        self.init_dir = os.path.abspath( os.getcwd() )
-        self.target_dir = os.path.abspath( self.dirname )
-
-        # Deal with sys.path
-        self.path_init = sys.path
-        self.path_mod = [self.target_dir]+[self.init_dir]+sys.path
-        sys.path = self.path_mod
-
-        # Deal with: PYTHONPATH
-        self.epath = {}
-        for k in self.PATHS:
-            q = os.environ.get(k,None)
-            self.epath[k] = q
-            q = q.split(os.path.pathsep) if q is not None else []
-            q = [self.target_dir,self.init_dir]+q
-            q = os.path.pathsep.join(q)
-            os.environ[k] = q
-            print(k,q)
-
-        os.chdir( self.dirname )
-        return self
-
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        os.chdir( self.init_dir )
-
-        for k in self.PATHS:
-            q = self.epath.get(k)
-            if q is None:
-                del os.environ[k]
-            else:
-                os.environ[k] = q
-
-
-        if sys.path != self.path_mod: raise ValueError('unexpected path')
-        sys.path = self.path_init
-
-
-        return False # Do not suppress exception
-
-
-
-class StringStream(object):
-
-    def __init__(self,label):
-        self._string = ''
-        self._label = label
-
-    def flush(self):
-        pass
-
-    def write(self,str):
-        self._string += str
-
-    def __repr__(self):
-        if self._label == 'stdout':
-            return "<_io.TextIOWrapper name='<stdout>' mode='w' encoding='UTF-8'>"
-        elif self._label == 'stderr':
-            return "<_io.TextIOWrapper name='<stderr>' mode='w' encoding='UTF-8'>"
-
-    def __str__(self):
-        return self._string
 
 
 class Reconnect(object):
@@ -190,17 +120,20 @@ def interp(fhi,outputfile):
 
         line = line.rstrip()
 
-        stdout = StringStream('stdout')
-        stderr = StringStream('stderr')
+        stdout = io.StringIO()
+        stderr = io.StringIO()
 
         with Reconnect(stdout=stdout,stderr=stderr):
             status = cons.push(line)
+        stdout.seek(0)
+        stderr.seek(0)
+
 
         prompt = '... ' if status else '>>> '
 
         prm = '%s%s' % ( prompt, line )+os.linesep
-        so = pnl(str(stdout))
-        se = pnl(filter_out_tr(str(stderr)))
+        so = pnl(str(stdout.read()))
+        se = pnl(filter_out_tr(str(stderr.read())))
         output = prm+so+se
         
         fho.write( output )
