@@ -31,7 +31,7 @@ from sheepgame import sheepactions
 sheepactions.SheepGraze()()
 </interp>
 
-<interp output="sheepgame_sheep_graze_daisies_cmd.tmp'">
+<interp output="sheepgame_sheep_graze_daisies_cmd.tmp">
 from sheepgame import sheepactions
 sheepactions.SheepGraze()(feed='daisies')
 </interp>
@@ -60,59 +60,92 @@ sheepgraze2.SheepGraze()('herd',feed='hay')
 
 <interp output="retval.tmp" input="retval.py"/>
 
-<script path="sheepgraze.py" args="-h" 
+<script command="sheepgraze.py -h" 
 	output="sheepgraze_help.tmp"/>
 
-<script path="sheepgraze.py" args="-f daisies" 
+<script command="sheepgraze.py -f daisies" 
 	output="sheepgraze_daisies.tmp"/>
 
-<script path="sheepgraze.py" args="-f money" 
+<script command="sheepgraze.py -f money" 
 	output="sheepgraze_money.tmp"/>
 
-<script path="sheepgraze.py" 
+<script command="sheepgraze.py" 
 	args="" output="sheepgraze.tmp"/>
 
-<script path="sheepgraze3.py" args="-h" 
+<script command="sheepgraze3.py -h" 
 	output="sheepgraze3_help.tmp"/>
 
-<script path="sheepgraze3.py" args="-f hay" 
+<script command="sheepgraze3.py -f hay" 
 	output="sheepgraze3_hay.tmp"/>
 
-<script path="sheepgraze3.py" args="-f daisies" 
+<script command="sheepgraze3.py -f daisies" 
 	output="sheepgraze3_daisies.tmp"/>
 
-<script path="sheepgraze3.py" args="-f money" 
+<script command="sheepgraze3.py -f money" 
 	output="sheepgraze3_money.tmp"/>
 
-<script path="sheepjump.py" args="-h" 
+<script command="sheepjump.py -h" 
 	output="sheepjump_help.tmp"/>
 
-<script path="sheepjump.py" args="-n 5" 
+<script command="sheepjump.py -n 5" 
 	output="sheepjump_j5.tmp"/>
 
-<script path="sheepactions.py" args="-h" 
+<script command="sheepactions.py -h" 
 	output="sheepactions_help.tmp"/>
 
-<script path="sheepactions.py" args="jump -h" 
+<script command="sheepactions.py jump -h" 
 	output="sheepactions_jump_help.tmp"/>
 
-<script path="sheepactions.py" args="graze -h" output="sheepactions_graze_help.tmp"/>
+<script command="sheepactions.py graze -h" 
+	output="sheepactions_graze_help.tmp"/>
 
-<script path="sheepactions.py" args="graze -f daisies" output="sheepactions_graze_daisies.tmp"/>
-<script path="sheepactions.py" args="jump -n 5" output="sheepactions_jump_j5.tmp"/>
-<script path="sheepgame.py" args="-h" output="sheepgame_help.tmp"/>
-<script path="sheepgame.py" args="sheep -h" output="sheepgame_sheep_help.tmp"/>
-<script path="sheepgame.py" args="sheep jump -h" output="sheepgame_sheep_jump_help.tmp"/>
-<script path="sheepgame.py" args="sheep graze -h" output="sheepgame_sheep_graze_help.tmp"/>
-<script path="sheepgame.py" args="feed-wolf -h" output="sheepgame_wolf_help.tmp"/>
-<script path="sheepgame.py" args="sheep jump -n 5" output="sheepgame_sheep_jump5.tmp"/>
-<script path="sheepgame.py" args="sheep graze" output="sheepgame_sheep_graze.tmp"/>
-<script path="sheepgame.py" args="sheep graze -f daisies" output="sheepgame_sheep_graze_daisies.tmp"/>
-<script path="sheepgame.py" args="feed-wolf" output="sheepgame_wolf_feed.tmp"/>
-<script path="sheepgraze2.py" args="-h" output="sheepgraze2_help.tmp"/>
-<script path="sheepgraze2.py" args="dosen" output="sheepgraze2_exe1.tmp"/>
-<script path="sheepgraze2.py" args="herd -t 5" output="sheepgraze2_exe2.tmp"/>
-<script path="sheepgraze2.py" args="herd -f hay" output="sheepgraze2_exe3.tmp"/>
-<script path="python" args="-m argpext -h" output="argpext_help.tmp"/>
+<script command="sheepactions.py graze -f daisies" 
+	output="sheepactions_graze_daisies.tmp"/>
+
+<script command="sheepactions.py jump -n 5" 
+	output="sheepactions_jump_j5.tmp"/>
+
+<script command="sheepgame.py -h" 
+	output="sheepgame_help.tmp"/>
+
+<script command="sheepgame.py sheep -h" 
+	output="sheepgame_sheep_help.tmp"/>
+
+<script command="sheepgame.py sheep jump -h" 
+	output="sheepgame_sheep_jump_help.tmp"/>
+
+<script command="sheepgame.py sheep graze -h" 
+	output="sheepgame_sheep_graze_help.tmp"/>
+
+<script command="sheepgame.py feed-wolf -h" 
+	output="sheepgame_wolf_help.tmp"/>
+
+<script command="sheepgame.py sheep jump -n 5" 
+	output="sheepgame_sheep_jump5.tmp"/>
+
+<script command="sheepgame.py sheep graze" 
+	output="sheepgame_sheep_graze.tmp"/>
+
+<script command="sheepgame.py sheep graze -f daisies" 
+	output="sheepgame_sheep_graze_daisies.tmp"/>
+
+<script command="sheepgame.py feed-wolf" 
+	output="sheepgame_wolf_feed.tmp"/>
+
+<script command="sheepgraze2.py -h" 
+	output="sheepgraze2_help.tmp"/>
+
+<script command="sheepgraze2.py dosen" 
+	output="sheepgraze2_exe1.tmp"/>
+
+<script command="sheepgraze2.py herd -t 5" 
+	output="sheepgraze2_exe2.tmp"/>
+
+<script command="sheepgraze2.py herd -f hay" 
+	output="sheepgraze2_exe3.tmp"/>
+
+<script command="-m argpext -h" 
+	output="argpext_help.tmp"
+	/>
 
 </xml>

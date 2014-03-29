@@ -31,9 +31,10 @@ class Workdir(object):
             q = os.environ.get(k,None)
             self.epath[k] = q
             q = q.split(os.path.pathsep) if q is not None else []
-            q = [self.init_dir]+q
+            q = [self.target_dir,self.init_dir]+q
             q = os.path.pathsep.join(q)
             os.environ[k] = q
+            print(k,q)
 
         os.chdir( self.dirname )
         return self
@@ -109,7 +110,7 @@ def filter_out_tr(q):
 
 
 
-def scriptrun(interpreter,script,args,outputfile):
+def scriptrun(command,outputfile,pyflags):
 
 
     def prn(line,file):
@@ -117,11 +118,17 @@ def scriptrun(interpreter,script,args,outputfile):
         file.write(os.linesep)
 
 
-    prm = '$ '+' '.join( [script]+args )+os.linesep
+    prm = '$ '+command+os.linesep
 
-    proc = subprocess.Popen( [interpreter]+[script]+args, stderr=subprocess.PIPE, stdout=subprocess.PIPE )
+    cmd = [sys.executable]+command.split()
 
+    print(cmd,file=sys.__stdout__)
+
+    proc = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE )
+
+    print('waiting..',file=sys.__stdout__)
     proc.wait()
+    print('waiting.. done',file=sys.__stdout__)
 
     L = []
 
@@ -206,27 +213,35 @@ def xmlgen(filename):
     dom = xml.dom.minidom.parse( filename )
     dom = dom.childNodes[0]
 
-    q = getattr(dom.attributes.get('directory'),'value',None)
-    if q is not None:
-        os.chdir( q )
+    q = getattr(dom.attributes.get('directory'),'value',os.getcwd())
+    with Workdir(q):
 
-    for cn in dom.childNodes:
-        if isinstance(cn,xml.dom.minidom.Text) : continue
-        def parse_interp(dom):
-            outputfile = getattr(dom.attributes.get('output'),'value',None)
+        for cn in dom.childNodes:
+            if isinstance(cn,xml.dom.minidom.Text) : continue
 
-            q = getattr(dom.attributes.get('input'),'value',None)
-            if q:
-                q = open(q)
-            else:
-                q = dom.childNodes[0].data.strip()
-                q = io.StringIO(q)
 
-            interp(fhi=q,outputfile=outputfile)
-            q.close()
+            def parse_interp(dom):
+                outputfile = getattr(dom.attributes.get('output'),'value',None)
 
-            print('**')
+                q = getattr(dom.attributes.get('input'),'value',None)
+                if q:
+                    q = open(q)
+                else:
+                    q = dom.childNodes[0].data.strip()
+                    q = io.StringIO(q)
 
-        def parse_script(dom):
-            pass
-        {'interp' : parse_interp, 'script' : parse_script}[ cn.tagName](cn)
+                interp(fhi=q,outputfile=outputfile)
+                q.close()
+
+                print('**')
+
+            def parse_script(dom):
+                outputfile = getattr(dom.attributes.get('output'),'value',None)
+                command = getattr(dom.attributes.get('command'),'value',None)
+                pyflags = getattr(dom.attributes.get('pyflags'),'value',None)
+
+                shell = {'False' : False, 'True' : True}[getattr(dom.attributes.get('shell'),'value',"False")]
+
+                scriptrun(command,outputfile,pyflags)
+
+            {'interp' : parse_interp, 'script' : parse_script}[ cn.tagName](cn)
