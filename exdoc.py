@@ -2,6 +2,7 @@
 import argpext
 
 import os
+import io
 import sys
 import subprocess
 import code
@@ -155,7 +156,7 @@ def scriptrun(interpreter,script,args,outputfile):
 
 
 
-def interp(inputfile,outputfile):
+def interp(fhi,outputfile):
 
     def pnl(q):
         if len(q): q += os.linesep
@@ -165,7 +166,6 @@ def interp(inputfile,outputfile):
 
     cons = code.InteractiveConsole()
 
-    fhi = open(inputfile)
     fho = open(outputfile,'w')
 
     start = [
@@ -194,11 +194,10 @@ def interp(inputfile,outputfile):
         so = pnl(str(stdout))
         se = pnl(filter_out_tr(str(stderr)))
         output = prm+so+se
-
+        
         fho.write( output )
-        sys.__stdout__.write( output+'\n' )
+        sys.__stdout__.write( output )
 
-    fhi.close()
     fho.close()
 
 
@@ -214,10 +213,20 @@ def xmlgen(filename):
     for cn in dom.childNodes:
         if isinstance(cn,xml.dom.minidom.Text) : continue
         def parse_interp(dom):
-            print(dom)
             outputfile = getattr(dom.attributes.get('output'),'value',None)
-            print( outputfile )
-            pass
+
+            q = getattr(dom.attributes.get('input'),'value',None)
+            if q:
+                q = open(q)
+            else:
+                q = dom.childNodes[0].data.strip()
+                q = io.StringIO(q)
+
+            interp(fhi=q,outputfile=outputfile)
+            q.close()
+
+            print('**')
+
         def parse_script(dom):
             pass
         {'interp' : parse_interp, 'script' : parse_script}[ cn.tagName](cn)
