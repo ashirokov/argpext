@@ -128,37 +128,49 @@ class BaseNode(object):
         if filename is not None:
 
             # Generate the logline
-            timestr = time.strftime('%Y%m%d-%H:%M:%S', time.localtime())
-            path = os.getcwd()
-            cmd = ' '.join([prog]+args)
+            def get_logline():
+                timestr = time.strftime('%Y%m%d-%H:%M:%S', time.localtime())
+                path = os.getcwd()
+                cmd = ' '.join([prog]+args)
+                logline = ','.join([ timestr, path, cmd ])+'\n'
+                return logline
+
+            def updatelog(filename,logline):
+                MAX_LINESIZE = 1024
+                MAX_FILESIZE = 1024*1024
+                RETAIN_FILESIZE = MAX_FILESIZE/2
+
+                def truncated_line(line,dots,size):
+                    if len(line) > size:
+                        dots = dots[0:size]
+                        line = line[0:size]
+                        line = line[0:(len(line)-len(dots))]+dots
+                    return line
+
+                def truncate_file(filename,max_filesize,retain_filesize):
+                    if not ( 0 <= retain_filesize <= max_filesize ): raise ValueError()
+                    initsize = os.stat(filename).st_size
+                    cmlsize = 0
+                    remove_trigger = ( initsize-max_filesize > 0)
+                    retain_lines = []
+                    if remove_trigger:
+                        minimum_remove_size = initsize-retain_filesize
+                        with open(filename) as fh:
+                            for line in fh:
+                                cmlsize += len(line)
+                                if cmlsize >= minimum_remove_size:
+                                    retain_lines += [line]
+                            with open(filename,'w') as fh:
+                                for line in retain_loines:
+                                    fh.write( line )
+
+            LINESEP = '\n'
+            logline = get_logline()
+            with open(filename,'a') as fh: fh.write( logline )
+            updatelog(filename, logline)
 
 
-            logline = ','.join([ timestr, path, cmd ])+'\n'
 
-            # Update the log file
-            with open(filename,'a') as fho:
-                fho.write( logline )
-
-            # Truncate history file, if necesary
-            size = os.stat(filename).st_size
-
-            maxsize = 1024*1024
-            if size > maxsize:
-
-                cutsize = size-maxsize/2
-
-                # Find: the remainder to be written to file
-                remainder = ''
-                with open(filename) as fhi:
-                    cur = 0
-                    while 1:
-                        line = fhi.readline()
-                        cur += len(line)
-                        if cur >= cutsize: break
-                    remainder = fhi.read()
-
-                with open(filename,'w') as fhi:
-                    fhi.write(remainder)
 
 
 def get_func_defaults(func):
