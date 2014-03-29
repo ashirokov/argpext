@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import shutil
 import os
 import io
 import sys
@@ -246,8 +247,20 @@ def xmlgen(filename):
 
             scriptrun(command,outputfile,interpreter_flags)
 
+        def parse_copy(dom):
+            path = attr(dom,'output',None)
+            if os.path.samefile(os.getcwd(),path): return
+            inputfile = path
+            outputfile = os.path.join(outputdir,path)
+            shutil.copy(src=inputfile,dst=outputfile)
+
+
+
         print('#'*70)
-        {'interp' : parse_interp, 'script' : parse_script}[ cn.tagName](cn)
+        {'interp' : parse_interp, 
+         'script' : parse_script,
+         'copy' : parse_copy
+         }[ cn.tagName](cn)
         print(':'*70)
 
 if __name__ == '__main__':

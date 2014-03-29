@@ -1,29 +1,70 @@
 <xml outputdir="examples">
 
-<interp output="sheepgraze_daisies_cmd.tmp">
-import sheepgraze
-sheepgraze.SheepGraze()(feed='daisies')
-</interp>
+<copy output="sheepgraze0.py"/>
 
+<copy output="sheepgraze.py"/>
+
+<script output="sheepgraze_help.tmp"
+	command="sheepgraze.py -h"
+	/>
+
+<script output="sheepgraze.tmp"
+	command="sheepgraze.py"
+	/>
+
+
+
+<script output="sheepgraze_daisies.tmp"
+	command="sheepgraze.py -f daisies"
+	/>
 
 <interp output="sheepgraze_cmd.tmp">
 import sheepgraze
 sheepgraze.SheepGraze()()
 </interp>
 
-<interp output="sheepactions_graze_daisies_cmd.tmp">
-from sheepactions import *
-SheepGraze()(feed='daisies')
+<interp output="sheepgraze_daisies_cmd.tmp">
+import sheepgraze
+sheepgraze.SheepGraze()(feed='daisies')
 </interp>
+
+
+
+<copy output="sheepactions.py"/>
+
+<copy output="sheepgame.py"/>
+<copy output="sheepgraze2.py"/>
+<copy output="sheepgraze_hook.py"/>
+<copy output="sheepgraze3.py"/>
+
+
+<script output="sheepactions_help.tmp"
+	command="sheepactions.py -h" 
+	/>
+
+<script output="sheepactions_graze_help.tmp"
+	command="sheepactions.py graze -h" 
+	/>
 
 <interp output="sheepactions_jump_j5_cmd.tmp">
 from sheepactions import *
 SheepJump()(n=5)
 </interp>
 
+
+
+
+
+
+
 <interp output="sheepgame_sheep_jump5_cmd.tmp">
 from sheepgame import sheepactions
 sheepactions.SheepJump()(n=5)
+</interp>
+
+<interp output="sheepactions_graze_daisies_cmd.tmp">
+from sheepactions import *
+SheepGraze()(feed='daisies')
 </interp>
 
 <interp output="sheepgame_sheep_graze_cmd.tmp">
@@ -60,24 +101,8 @@ sheepgraze2.SheepGraze()('herd',feed='hay')
 	source="categdate.py"
 	/>
 
-<interp output="retval.tmp" 
-	source="retval.py"
-	/>
-
-<script output="sheepgraze_help.tmp"
-	command="sheepgraze.py -h"
-	/>
-
-<script output="sheepgraze_daisies.tmp"
-	command="sheepgraze.py -f daisies"
-	/>
-
 <script output="sheepgraze_money.tmp"
 	command="sheepgraze.py -f money"
-	/>
-
-<script output="sheepgraze.tmp"
-	command="sheepgraze.py"
 	/>
 
 <script output="sheepgraze3_help.tmp"
@@ -104,16 +129,8 @@ sheepgraze2.SheepGraze()('herd',feed='hay')
 	command="sheepjump.py -n 5" 
 	/>
 
-<script output="sheepactions_help.tmp"
-	command="sheepactions.py -h" 
-	/>
-
 <script output="sheepactions_jump_help.tmp"
 	command="sheepactions.py jump -h" 
-	/>
-
-<script output="sheepactions_graze_help.tmp"
-	command="sheepactions.py graze -h" 
 	/>
 
 <script output="sheepactions_graze_daisies.tmp"
@@ -150,6 +167,10 @@ sheepgraze2.SheepGraze()('herd',feed='hay')
 
 <script output="sheepgame_sheep_graze.tmp"
 	command="sheepgame.py sheep graze" 
+	/>
+
+<interp output="retval.tmp" 
+	source="retval.py"
 	/>
 
 <script output="sheepgame_sheep_graze_daisies.tmp"
