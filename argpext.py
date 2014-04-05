@@ -224,9 +224,8 @@ class Binding(object):
             del q[ _EXTRA_KWD ]
             return q
 
-        print('Implicit execution via node')
+        #print('execution: implicit via node')
         f = self._funcobject.get_hook()
-        # Implicit execution: invoked by command lines
 
         kwds = key_value_extract(namespace)
         r = f(self._funcobject, **kwds )
@@ -248,19 +247,29 @@ def hook(function):
     return wrapper
 
 
-def _display(dspl,r):
+def display_element(dspl,r):
     if dspl == False:
         pass
     elif dspl == True:
-        print( '[%s]' % r )
+        sys.stdout.write( str(r)+'\n' )
     elif isinstance(dspl,dict):
         try:
             for k in dspl: DISPLAY_KWDS(k)
         except KeyError:
             raise KeyError('invalid key ("%s") in the the "dspl=" argument; allowed keys: %s' % (k, ",".join(['"%s"' % q for q in DISPLAY_KWDS]) ))
+
+        # Conditional convertion
+        s = dspl.get('str',None)
+        if s is not None:
+            r = s( r )
+
+        # Make sure output is converter to a string
+        if not isinstance(r,str):
+            r = str(r)
+
         stream = dspl.get('stream',sys.stdout)
-        strformat = dspl.get('str', str)
-        print('|', strformat(r), file=stream)
+        stream.write(r+'\n')
+
     else:
         raise TypeError('invalid type of display argument (neither bool not dict)')
 
@@ -269,13 +278,13 @@ def display(function):
         slf = args[0]
         dspl = slf._display
         r = function(*args,**kwargs)
-        if not inspect.isgenerator(r):
-            _display(dspl,r)
-            return r
-        else:
+        if inspect.isgenerator(r):
             for rr in r:
-                _display(dspl,rr)
+                display_element(dspl,rr)
                 yield rr
+        else:
+            display_element(dspl,r)
+            return r
     return wrapper
 
 def hook_display(function):
@@ -317,7 +326,7 @@ class Function(BaseNode):
         K.update( kwds )
 
         # Explicit execution: invoked from a python script.
-        print('Explicit execution in script')
+        #print('execution: explicit, in script')
         r = self.get_hook()(*((self,)+args),**K)
 
         return r
@@ -348,7 +357,7 @@ class Function(BaseNode):
         # How are the default used?
 
         # Execute the reference function, for Function.digest()
-        print('Implicit execution of function via digest')
+        #print('execution: implicit, of Function, via digest')
         r = self.get_hook()(self, **q )
         if inspect.isgenerator(r):
             for rr in r:

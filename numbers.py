@@ -8,7 +8,6 @@ class Numbers(argpext.Function):
     @argpext.display
     def hook(self,n):
         for i in range(n):
-            print('#',i)
             yield i
 
     def populate(self,parser):
