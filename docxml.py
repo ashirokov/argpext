@@ -179,6 +179,7 @@ def xmlgen(filename):
             interpreter_flags = q.split() if q is not None else []
 
             scriptrun(command,outputfile,interpreter_flags)
+            return outputfile
 
         def parse_copy(dom):
             path = attr(dom,'output',None)
@@ -186,15 +187,27 @@ def xmlgen(filename):
             inputfile = path
             outputfile = os.path.join(outputdir,path)
             shutil.copy(src=inputfile,dst=outputfile)
+            return outputfile
 
+        def pad(ch,title):
+            nleftpad = 5
+            nmax = 70
+            s = '%s %s ' % (ch*nleftpad, title )
+            nrem = nmax-len(s)
+            if nrem > 0:
+                s += ch*nrem 
+            return s
 
+        print( pad('#', ("processing: %s" % cn.tagName) ) )
 
-        print('#'*70)
-        {'interp' : parse_interp, 
-         'script' : parse_script,
-         'copy' : parse_copy
-         }[ cn.tagName](cn)
-        print(':'*70)
+        outputfile = {'interp' : parse_interp, 
+                      'script' : parse_script,
+                      'copy' : parse_copy
+                      }[ cn.tagName ](cn)
+
+        print( pad(':', ('wrote: %s' % outputfile) ) )
+        print()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
