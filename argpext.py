@@ -226,14 +226,10 @@ class Binding(object):
 
         #print('execution: implicit via node')
         f = self._funcobject.get_hook()
-
         kwds = key_value_extract(namespace)
         r = f(self._funcobject, **kwds )
-        if inspect.isgenerator(r):
-            for rr in r:
-                pass
-        else:
-            return r
+        #print('r:',r)
+        return r
 
 
 
@@ -328,7 +324,7 @@ class Function(BaseNode):
         # Explicit execution: invoked from a python script.
         #print('execution: explicit, in script')
         r = self.get_hook()(*((self,)+args),**K)
-
+        #print('r:',r)
         return r
 
     def digest(self,prog=None,args=None):
@@ -359,11 +355,8 @@ class Function(BaseNode):
         # Execute the reference function, for Function.digest()
         #print('execution: implicit, of Function, via digest')
         r = self.get_hook()(self, **q )
-        if inspect.isgenerator(r):
-            for rr in r:
-                pass
-        else:
-            return r
+        #print('r:',r)
+        return r
 
 
 
@@ -497,7 +490,7 @@ class Node(BaseNode):
 
 
         # Execute delegation level tasks.
-        delegation(args=rightargs,parser=rightparser,nodes=rightnodes)
+        return delegation(args=rightargs,parser=rightparser,nodes=rightnodes)
 
 
 def histfile():
