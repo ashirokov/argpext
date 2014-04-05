@@ -6,19 +6,20 @@ class Numbers(argpext.Function):
     "List numbers in increasing order"
 
     @argpext.display
-    def hook(self):
-        for i in range(5):
+    def hook(self,n):
+        for i in range(n):
             print('#',i)
             yield i
 
-class Root(argpext.Node):
-    SUBS = [('numbers', Numbers)]
+    def populate(self,parser):
+        parser.add_argument('-n',type=int, help="")
 
 
-Numbers(display=True).digest(args=[])
+class Main(argpext.Node):
+    SUBS = [('numbers', Numbers),
+            ]
 
-Root(display=True).digest(args=['numbers'])
+if __name__ == '__main__':
+    Main().digest()
 
-for i in Numbers()():
-    print('i:',i)
-
+    
