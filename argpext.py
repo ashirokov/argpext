@@ -217,7 +217,6 @@ class Binding(object):
 
     def __call__(self,namespace):
         "Implicit execution, by parser."
-        #print('implicit execution')
 
         def key_value_extract(namespace):
             if not isinstance(namespace,argparse.Namespace): raise TypeError
@@ -225,12 +224,20 @@ class Binding(object):
             del q[ _EXTRA_KWD ]
             return q
 
+        print('Implicit execution via node')
         f = self._funcobject.get_hook()
         # Implicit execution: invoked by command lines
 
         kwds = key_value_extract(namespace)
         r = f(self._funcobject, **kwds )
-        return r
+        if inspect.isgenerator(r):
+            for rr in r:
+                pass
+        else:
+            return r
+
+
+
 
 def hook(function):
     def wrapper(*args,**kwargs):
@@ -245,7 +252,7 @@ def _display(dspl,r):
     if dspl == False:
         pass
     elif dspl == True:
-        print( r )
+        print( '[%s]' % r )
     elif isinstance(dspl,dict):
         try:
             for k in dspl: DISPLAY_KWDS(k)
@@ -253,7 +260,7 @@ def _display(dspl,r):
             raise KeyError('invalid key ("%s") in the the "dspl=" argument; allowed keys: %s' % (k, ",".join(['"%s"' % q for q in DISPLAY_KWDS]) ))
         stream = dspl.get('stream',sys.stdout)
         strformat = dspl.get('str', str)
-        print(strformat(r), file=stream)
+        print('|', strformat(r), file=stream)
     else:
         raise TypeError('invalid type of display argument (neither bool not dict)')
 
@@ -308,8 +315,11 @@ class Function(BaseNode):
         if not self._bare: K.update( get_parser_defaults( self.populate ) )
         # functions defaults will apply at this point
         K.update( kwds )
+
         # Explicit execution: invoked from a python script.
+        print('Explicit execution in script')
         r = self.get_hook()(*((self,)+args),**K)
+
         return r
 
     def digest(self,prog=None,args=None):
@@ -338,7 +348,13 @@ class Function(BaseNode):
         # How are the default used?
 
         # Execute the reference function, for Function.digest()
-        return self.get_hook()(self, **q )
+        print('Implicit execution of function via digest')
+        r = self.get_hook()(self, **q )
+        if inspect.isgenerator(r):
+            for rr in r:
+                pass
+        else:
+            return r
 
 
 

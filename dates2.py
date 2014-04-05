@@ -7,12 +7,14 @@ class Dates(argpext.Function):
 
     @argpext.display
     def hook(self):
-        for i in range(1000000000):
+        for i in range(10000000000000):
             print('#',i)
             yield i
 
+class Main(argpext.Node):
+    SUBS = [('dates', Dates)]
 
 
 if __name__ == '__main__':
-    Dates(True).digest()
+    Main(True).digest()
 
