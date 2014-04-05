@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 
 import argpext
 
@@ -6,12 +6,12 @@ import sheepactions # Module sheepactions is provided by previous example.
 
 
 
-def feed_wolf(prey):
-    print('Wolf eats %s' % prey)
-
 class FeedWolf(argpext.Function):
     "Feed the wolf"
-    hook = argpext.hook(feed_wolf)
+
+    def hook(self,prey):
+        print('Wolf eats %s' % prey)
+
     def populate(self,parser):
         parser.add_argument('-p', dest='prey', default='sheep', 
                             help='Specify the food. Default:"%(default)s".')
