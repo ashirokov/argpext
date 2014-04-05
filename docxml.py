@@ -83,7 +83,7 @@ def scriptrun(command,outputfile,interpreter_flags):
 
     fho = open(outputfile,'w')
 
-    sys.stdout.write('Writing file: %s\n' % outputfile)
+    #sys.stdout.write('Writing file: %s\n' % outputfile)
     #print( sys.path )
 
     fho.write( output )
