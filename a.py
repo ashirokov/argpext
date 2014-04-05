@@ -1,24 +1,25 @@
 #!/usr/bin/env python
 
+import inspect
+
 def display(function):
     def wrapper(*args,**kwds):
         r = function(*args,**kwds)
-        print('|1|',r)
-        return r
+        print('r:',r)
+        if not inspect.isgenerator(r):
+            print('|1|',r)
+            return r
+        else:
+            for rr in r:
+                print('|2|',rr)
+                yield rr
     return wrapper
+
 
 @display
 def ls():
     R = [i for i in range(4)]
     return R
-
-def display(function):
-    def wrapper(*args,**kwds):
-        r = function(*args,**kwds)
-        for rr in r:
-            print('|2|',rr)
-            yield rr
-    return wrapper
 
 @display
 def gn():
