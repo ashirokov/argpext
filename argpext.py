@@ -226,9 +226,10 @@ class Binding(object):
             return q
 
         f = self._funcobject.get_hook()
+        # Implicit execution: invoked by command lines
+
         kwds = key_value_extract(namespace)
         r = f(self._funcobject, **kwds )
-        #if self._funcobject._display: print( r, '(Binding)' ) 
         return r
 
 def hook(function):
@@ -308,8 +309,8 @@ class Function(BaseNode):
         if not self._bare: K.update( get_parser_defaults( self.populate ) )
         # functions defaults will apply at this point
         K.update( kwds )
+        # Explicit execution: invoked from a python script.
         r = self.get_hook()(*((self,)+args),**K)
-        #if self._display: print( r, '(direct)' )
         return r
 
     def digest(self,prog=None,args=None):
@@ -337,7 +338,7 @@ class Function(BaseNode):
 
         # How are the default used?
 
-        # Execute the reference function
+        # Execute the reference function, for Function.digest()
         return self.get_hook()(self, **q )
 
 
