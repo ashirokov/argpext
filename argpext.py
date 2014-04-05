@@ -267,13 +267,7 @@ def display(function):
     return wrapper
 
 def hook_display(function):
-    def wrapper(*args,**kwargs):
-        slf = args[0]
-        args = args[1:]
-        r = function(*args,**kwargs)
-        _display(slf,r)
-        return r
-    return wrapper
+    return display(hook(function))
 
 
 
