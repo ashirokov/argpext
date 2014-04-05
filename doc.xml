@@ -121,13 +121,6 @@ sheepgraze2.SheepGraze()('herd',feed='hay')
 	command="sheepgraze3.py -f money" 
 	/>
 
-<script output="sheepjump_help.tmp"
-	command="sheepjump.py -h" 
-	/>
-
-<script output="sheepjump_j5.tmp"
-	command="sheepjump.py -n 5" 
-	/>
 
 <script output="sheepactions_jump_help.tmp"
 	command="sheepactions.py jump -h" 
