@@ -585,7 +585,7 @@ been changed.
 
 Version 1.1 is a bugfix version that addresses minor issues.
 
-Version 2.0 is a significant improvement.
+Version 1.2 introduces introduces multiple new features.
 
 See also
 --------
