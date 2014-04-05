@@ -115,7 +115,7 @@ DISPLAY_KWDS = KeyWords(['stream','str'])
 
 class BaseNode(object):
 
-    def __init__(self,bare=False,display=True):
+    def __init__(self,bare,display):
         self._bare = bare
         self._display = display
 
@@ -279,7 +279,7 @@ def hook_display(function):
 class Function(BaseNode):
     """Base class for command line interface to a Python function."""
 
-    def __init__(self,display=True,bare=False):
+    def __init__(self,display=False,bare=False):
         BaseNode.__init__(self,display=display,bare=bare)
 
     # Members to be overloaded by the user
@@ -345,7 +345,7 @@ class Function(BaseNode):
 class Node(BaseNode):
     """Command line interface for a node."""
 
-    def __init__(self,display=True,bare=False):
+    def __init__(self,display=False,bare=False):
         BaseNode.__init__(self,display=display,bare=bare)
 
     # Members to be redefined by a user
