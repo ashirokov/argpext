@@ -5,10 +5,10 @@ import argpext
 class Dates(argpext.Function):
     "List dates in increasing order"
 
-    @argpext.display
     def hook(self,start):
         for i in range(1000000000):
-            yield start+i
+            print(i)
+            yield i
 
 
 

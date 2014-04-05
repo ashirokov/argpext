@@ -241,19 +241,18 @@ def hook(function):
     return wrapper
 
 
-def _display(slf,r):
-    q = slf._display
-    if q == False:
+def _display(dspl,r):
+    if dspl == False:
         pass
-    elif q == True:
+    elif dspl == True:
         print( r )
-    elif isinstance(q,dict):
+    elif isinstance(dspl,dict):
         try:
-            for k in q: DISPLAY_KWDS(k)
+            for k in dspl: DISPLAY_KWDS(k)
         except KeyError:
-            raise KeyError('invalid key ("%s") in the the "display=" argument; allowed keys: %s' % (k, ",".join(['"%s"' % q for q in DISPLAY_KWDS]) ))
-        stream = q.get('stream',sys.stdout)
-        strformat = q.get('str', str)
+            raise KeyError('invalid key ("%s") in the the "dspl=" argument; allowed keys: %s' % (k, ",".join(['"%s"' % q for q in DISPLAY_KWDS]) ))
+        stream = dspl.get('stream',sys.stdout)
+        strformat = dspl.get('str', str)
         print(strformat(r), file=stream)
     else:
         raise TypeError('invalid type of display argument (neither bool not dict)')
@@ -261,9 +260,15 @@ def _display(slf,r):
 def display(function):
     def wrapper(*args,**kwargs):
         slf = args[0]
+        dspl = slf._display
         r = function(*args,**kwargs)
-        _display(slf,r)
-        return r
+        if not inspect.isgenerator(r):
+            _display(dspl,r)
+            return r
+        else:
+            for rr in r:
+                _display(dspl,rr)
+                yield rr
     return wrapper
 
 def hook_display(function):
