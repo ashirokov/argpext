@@ -4,6 +4,9 @@ import sys
 import ex
 
 
+ex.Main().digest(['m1','2'])
+ex.Main().digest(['m2','3'])
+
 ex.Main1()(2)
 
 ex.Main2()(3)
