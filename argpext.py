@@ -228,7 +228,6 @@ class Binding(object):
         f = self._funcobject.get_hook()
         kwds = key_value_extract(namespace)
         r = f(self._funcobject, **kwds )
-        #print('r:',r)
         return r
 
 
@@ -275,9 +274,11 @@ def display(function):
         dspl = slf._display
         r = function(*args,**kwargs)
         if inspect.isgenerator(r):
-            for rr in r:
-                display_element(dspl,rr)
-                yield rr
+            def wrapper():
+                for rr in r:
+                    display_element(dspl,rr)
+                    yield rr
+            return wrapper
         else:
             display_element(dspl,r)
             return r
