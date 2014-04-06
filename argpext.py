@@ -82,11 +82,17 @@ def frameref(fstr,up):
     F = sys._getframe(1+up)
     path = F.f_code.co_filename
     basename = os.path.basename(path)
+
+    dirbasename = os.path.basename(os.path.abspath(os.path.dirname(path)))
+
+    pybasename = os.path.join( * (([dirbasename] if basename.lower() == '__init__.py' else [])+[basename]) )
+
     lineno = F.f_lineno
     d = {
         'path' : path,
         'basename' : basename,
-        'lineno' : lineno
+        'pybasename' : pybasename,
+        'lineno' : lineno,
     }
     return fstr % d
 
@@ -110,6 +116,20 @@ class Doc(object):
 
         return R
 
+class DebugPrint(object):
+    def __init__(self,prefix):
+        self.prefix = prefix
+
+class DebugPrintOff(DebugPrint):
+    def __call__(self,*args,**kwds): pass
+
+class DebugPrintOn(DebugPrint):
+    def __call__(self,*args,**kwds): 
+        prefix = frameref(self.prefix,up=1)
+        a = (prefix,)+args
+        print(*a,**kwds)
+
+DB = DebugPrintOn(prefix='DB: %(pybasename)s:%(lineno)s: ')
 
 DISPLAY_KWDS = KeyWords(['stream','str'])
 
@@ -273,17 +293,17 @@ def display(function):
         slf = args[0]
         dspl = slf._display
         r = function(*args,**kwargs)
-        print('OKOK:', r)
+        DB(r)
         if inspect.isgenerator(r):
-            #def w():
-            #    for rr in r:
-            #        display_element(dspl,rr)
-            #        yield rr
-            #return w
+            def w():
+                for rr in r:
+                    display_element(dspl,rr)
+                    yield rr
+            return w
 
-            for rr in r:
-                display_element(dspl,rr)
-                yield rr
+            #for rr in r:
+            #    display_element(dspl,rr)
+            #    yield rr
         else:
             display_element(dspl,r)
             return r
