@@ -3,9 +3,10 @@
 import sys
 import argpext
 
+prn = argpext.DebugPrintOn(prefix='| ')
 
 def test_numbers():
-    print('#'*120)
+    prn('#'*120)
 
     import numbers
 
@@ -13,47 +14,40 @@ def test_numbers():
              (numbers.Fn, 'fn')
              ]
 
-    L = []
+    E = []
     for pair in PAIRS:
         C,word = pair
-        L += [C(display=True).digest()]
-        L += [C(display=True)()]
-        L += [numbers.Main(display=True).digest(args=[word])]
+        E += [C(display=True).digest()]
+        E += [C(display=True)()]
+        E += [numbers.Main(display=True).digest(args=[word])]
 
 
-    for r in L:
-        print('-'*90)
-        print( 'r:',r )
-        for x in r:
-            print( 'x =', x )
+    for L in E:
+        prn('-'*90)
+        prn('L:',L, type(L))
+        for x in L:
+            prn( 'x =', x )
 
 
 
 
 def test_ex():
-    print('#'*120)
+    prn('#'*120)
 
     import ex
-
-    print('--------------------')
-
-    ex.Main().digest(['m1','2'])
-
-    ex.Fn()(2)
-
-    print('--------------------')
 
     def fmt(value):
         return '[%s]' % value
 
     for display in [False,True,{'stream': sys.stderr, 'str' : fmt  }]:
-        print('display:',display)
-        ex.Fn(display=display)(2)
-        print()
+        prn('display=%s' % display)
+        for x in ex.Fn(display=display)():
+            prn('x:',x)
 
 
 
 test_numbers()
+
 test_ex()
 
 
