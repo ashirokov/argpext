@@ -7,7 +7,7 @@ SEQUENCE = [1,2]
 class Fn(argpext.Function):
     "Task Main 1"
 
-    #@argpext.display
+    @argpext.display
     def hook(self):
         return SEQUENCE
 

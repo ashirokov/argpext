@@ -126,7 +126,7 @@ class DebugPrintOn(DebugPrint):
         a = (prefix,)+args
         print(*a,**kwds)
 
-DB = DebugPrintOn(prefix='DB: %(pybasename)s:%(lineno)s: ')
+DB = DebugPrintOff(prefix='DB: %(pybasename)s:%(lineno)s: ')
 
 DISPLAY_KWDS = KeyWords(['stream','str'])
 
@@ -282,7 +282,7 @@ def display_element(dspl,r):
     else:
         raise TypeError('invalid type of display argument (neither bool not dict)')
 
-    stream.write( ('{%s}' % r)+'\n' )
+    stream.write( ('%s' % r)+'\n' )
 
 
 def display(function):

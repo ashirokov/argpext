@@ -37,7 +37,7 @@ def test_ex():
     import ex
 
     def fmt(value):
-        return '[%s]' % value
+        return 'FMT%s' % value
 
     for display in [False,True,{'stream': sys.stderr, 'str' : fmt  }]:
         prn('display=%s' % display)
