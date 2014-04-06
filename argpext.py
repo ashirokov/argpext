@@ -36,8 +36,6 @@ class ChDir(object):
         except AttributeError:
             pass
 
-
-
 class KeyWords(object):
     "List of unique, ordered keywords"
 
@@ -73,8 +71,7 @@ class KeyWords(object):
         q = '%s([%s])' % ( type(self).__name__, ','.join(q) )
         return q
 
-
-E = KeyWords(['ARGPEXT_HISTORY'])
+ENVVARS = KeyWords(['ARGPEXT_HISTORY'])
 
 
 def frameref(fstr,up):
@@ -82,11 +79,17 @@ def frameref(fstr,up):
     F = sys._getframe(1+up)
     path = F.f_code.co_filename
     basename = os.path.basename(path)
+
+    dirbasename = os.path.basename(os.path.abspath(os.path.dirname(path)))
+
+    pybasename = os.path.join( * (([dirbasename] if basename.lower() == '__init__.py' else [])+[basename]) )
+
     lineno = F.f_lineno
     d = {
         'path' : path,
         'basename' : basename,
-        'lineno' : lineno
+        'pybasename' : pybasename,
+        'lineno' : lineno,
     }
     return fstr % d
 
@@ -110,6 +113,20 @@ class Doc(object):
 
         return R
 
+class DebugPrint(object):
+    def __init__(self,prefix):
+        self.prefix = prefix
+
+class DebugPrintOff(DebugPrint):
+    def __call__(self,*args,**kwds): pass
+
+class DebugPrintOn(DebugPrint):
+    def __call__(self,*args,**kwds): 
+        prefix = frameref(self.prefix,up=1)
+        a = (prefix,)+args
+        print(*a,**kwds)
+
+DB = DebugPrintOff(prefix='DB: %(pybasename)s:%(lineno)s: ')
 
 DISPLAY_KWDS = KeyWords(['stream','str'])
 
@@ -224,10 +241,11 @@ class Binding(object):
             del q[ _EXTRA_KWD ]
             return q
 
-        #print('execution: implicit via node')
+        DB('execution: implicit via node')
         f = self._funcobject.get_hook()
         kwds = key_value_extract(namespace)
         r = f(self._funcobject, **kwds )
+        DB('hook returns:',r,type(r))
         return r
 
 
@@ -244,9 +262,9 @@ def hook(function):
 
 def display_element(dspl,r):
     if dspl == False:
-        pass
+        return
     elif dspl == True:
-        sys.stdout.write( str(r)+'\n' )
+        stream = sys.stdout
     elif isinstance(dspl,dict):
         try:
             for k in dspl: DISPLAY_KWDS(k)
@@ -255,33 +273,36 @@ def display_element(dspl,r):
 
         # Conditional convertion
         s = dspl.get('str',None)
-        if s is not None:
-            r = s( r )
+        if s is not None: r = s( r )
 
         # Make sure output is converter to a string
-        if not isinstance(r,str):
-            r = str(r)
+        if not isinstance(r,str): r = str(r)
 
         stream = dspl.get('stream',sys.stdout)
-        stream.write(r+'\n')
-
     else:
         raise TypeError('invalid type of display argument (neither bool not dict)')
 
+    stream.write( ('%s' % r)+'\n' )
+
+
 def display(function):
-    def wrapper(*args,**kwargs):
-        slf = args[0]
-        dspl = slf._display
-        r = function(*args,**kwargs)
+    def wrapper(*args,**kwds):
+        self = args[0]
+        display = self._display
+        r = function(*args,**kwds)
+        DB('display', r)
         if inspect.isgenerator(r):
-            def wrapper():
+            DB('generator')
+            def new_generator():
                 for rr in r:
-                    display_element(dspl,rr)
+                    display_element(display, rr)
                     yield rr
-            return wrapper
+            return new_generator()
         else:
-            display_element(dspl,r)
+            DB('not generator')
+            display_element(display, r)
             return r
+
     return wrapper
 
 def hook_display(function):
@@ -323,9 +344,9 @@ class Function(BaseNode):
         K.update( kwds )
 
         # Explicit execution: invoked from a python script.
-        #print('execution: explicit, in script')
+        DB('execution: explicit, in script')
         r = self.get_hook()(*((self,)+args),**K)
-        #print('r:',r)
+        DB('hook returns:',r,type(r))
         return r
 
     def digest(self,prog=None,args=None):
@@ -354,9 +375,9 @@ class Function(BaseNode):
         # How are the default used?
 
         # Execute the reference function, for Function.digest()
-        #print('execution: implicit, of Function, via digest')
+        DB('execution: implicit, of Function, via digest')
         r = self.get_hook()(self, **q )
-        #print('r:',r)
+        DB('hook returns:',r,type(r))
         return r
 
 
@@ -496,7 +517,7 @@ class Node(BaseNode):
 
 def histfile():
     "Returns file path of the hierarchical subcommand history file"
-    varb = E('ARGPEXT_HISTORY')
+    varb = ENVVARS('ARGPEXT_HISTORY')
     path = os.getenv(varb)
     return path
 
