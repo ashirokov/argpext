@@ -2,21 +2,27 @@
 
 import argpext
 
-class Numbers(argpext.Function):
-    "List numbers in increasing order"
+SEQUENCE = [1,2]
 
+class Gn(argpext.Function):
+    "List numbers in increasing order"
     @argpext.display
-    def hook(self,n):
-        for i in range(n):
+    def hook(self):
+        for i in SEQUENCE:
             yield i
 
-    def populate(self,parser):
-        parser.add_argument('-n',type=int, help="")
+class Fn(argpext.Function):
+    "List numbers in increasing order"
+    @argpext.display
+    def hook(self):
+        return SEQUENCE
 
 
 class Main(argpext.Node):
-    SUBS = [('numbers', Numbers),
+    SUBS = [('gn', Gn),
+            ('fn', Fn),
             ]
+
 
 if __name__ == '__main__':
     Main().digest()

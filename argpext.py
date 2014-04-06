@@ -273,12 +273,17 @@ def display(function):
         slf = args[0]
         dspl = slf._display
         r = function(*args,**kwargs)
+        print('OKOK:', r)
         if inspect.isgenerator(r):
-            def wrapper(*args,**kwargs):
-                for rr in r:
-                    display_element(dspl,rr)
-                    yield rr
-            return wrapper
+            #def w():
+            #    for rr in r:
+            #        display_element(dspl,rr)
+            #        yield rr
+            #return w
+
+            for rr in r:
+                display_element(dspl,rr)
+                yield rr
         else:
             display_element(dspl,r)
             return r
