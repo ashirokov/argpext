@@ -274,7 +274,7 @@ def display(function):
         dspl = slf._display
         r = function(*args,**kwargs)
         if inspect.isgenerator(r):
-            def wrapper():
+            def wrapper(*args,**kwargs):
                 for rr in r:
                     display_element(dspl,rr)
                     yield rr
