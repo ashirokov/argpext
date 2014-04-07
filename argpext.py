@@ -71,6 +71,7 @@ class KeyWords(object):
         q = '%s([%s])' % ( type(self).__name__, ','.join(q) )
         return q
 
+
 ENVVARS = KeyWords(['ARGPEXT_HISTORY'])
 
 
@@ -126,7 +127,7 @@ class DebugPrintOn(DebugPrint):
         a = (prefix,)+args
         print(*a,**kwds)
 
-DB = DebugPrintOff(prefix='DB: %(pybasename)s:%(lineno)s: ')
+prn = DebugPrintOff(prefix='DB: %(pybasename)s:%(lineno)s: ')
 
 DISPLAY_KWDS = KeyWords(['stream','str'])
 
@@ -241,23 +242,14 @@ class Binding(object):
             del q[ _EXTRA_KWD ]
             return q
 
-        DB('execution: implicit via node')
+        prn('execution: implicit via node')
         f = self._funcobject.get_hook()
         kwds = key_value_extract(namespace)
         r = f(self._funcobject, **kwds )
-        DB('hook returns:',r,type(r))
+        prn('hook returns:',r,type(r))
         return r
 
 
-
-
-def hook(function):
-    def wrapper(*args,**kwargs):
-        self = args[0]
-        args = args[1:]
-        r = function(*args,**kwargs)
-        return r
-    return wrapper
 
 
 def display_element(dspl,r):
@@ -290,23 +282,28 @@ def display(function):
         self = args[0]
         display = self._display
         r = function(*args,**kwds)
-        DB('display', r)
+        prn('display', r)
         if inspect.isgenerator(r):
-            DB('generator')
+            prn('generator')
             def new_generator():
                 for rr in r:
                     display_element(display, rr)
                     yield rr
             return new_generator()
         else:
-            DB('not generator')
+            prn('not generator')
             display_element(display, r)
             return r
 
     return wrapper
 
-def hook_display(function):
-    return display(hook(function))
+def hook(function,display=False):
+    def wrapper(*args,**kwargs):
+        self = args[0]
+        args = args[1:]
+        r = function(*args,**kwargs)
+        return r
+    return wrapper if not display else globals()['display'](wrapper)
 
 
 
@@ -344,9 +341,9 @@ class Function(BaseNode):
         K.update( kwds )
 
         # Explicit execution: invoked from a python script.
-        DB('execution: explicit, in script')
+        prn('execution: explicit, in script')
         r = self.get_hook()(*((self,)+args),**K)
-        DB('hook returns:',r,type(r))
+        prn('hook returns:',r,type(r))
         return r
 
     def digest(self,prog=None,args=None):
@@ -375,9 +372,9 @@ class Function(BaseNode):
         # How are the default used?
 
         # Execute the reference function, for Function.digest()
-        DB('execution: implicit, of Function, via digest')
+        prn('execution: implicit, of Function, via digest')
         r = self.get_hook()(self, **q )
-        DB('hook returns:',r,type(r))
+        prn('hook returns:',r,type(r))
         return r
 
 
@@ -423,8 +420,7 @@ class Node(BaseNode):
                     subtask = type(subtask.__name__.capitalize(), 
                                 (Function,) , 
                                 {'hook' : hook(subtask)
-                                })
-                    subtask.__init__()
+                                })()
 
                 if issubclass(subtask,Function):
 
