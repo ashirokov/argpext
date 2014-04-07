@@ -307,7 +307,7 @@ def hook(function,display=False):
 
 
 
-class Function(BaseNode):
+class Task(BaseNode):
     """Base class for command line interface to a Python function."""
 
     def __init__(self,display=False,bare=False):
@@ -333,7 +333,7 @@ class Function(BaseNode):
         return q
 
     def __call__(self,*args,**kwds):
-        """Direct execution, using Function class object"""
+        """Direct execution, using Task class object"""
         #print('direct execution')
         K = {}
         if not self._bare: K.update( get_parser_defaults( self.populate ) )
@@ -371,8 +371,8 @@ class Function(BaseNode):
 
         # How are the default used?
 
-        # Execute the reference function, for Function.digest()
-        prn('execution: implicit, of Function, via digest')
+        # Execute the reference function, for Task.digest()
+        prn('execution: implicit, of Task, via digest')
         r = self.get_hook()(self, **q )
         prn('hook returns:',r,type(r))
         return r
@@ -418,11 +418,11 @@ class Node(BaseNode):
 
                 if inspect.isfunction(subtask):
                     subtask = type(subtask.__name__.capitalize(), 
-                                (Function,) , 
+                                (Task,) , 
                                 {'hook' : hook(subtask)
                                 })()
 
-                if issubclass(subtask,Function):
+                if issubclass(subtask,Task):
 
                     X = subtask(display=self._display,bare=self._bare)
 
@@ -453,7 +453,7 @@ class Node(BaseNode):
                 word = args[0]
                 node = nodes[word]
 
-                if inspect.isfunction(node) or issubclass(node,Function):
+                if inspect.isfunction(node) or issubclass(node,Task):
                     q = argparse.ArgumentParser.parse_args( parser, args )
                     # Execute bound function.
                     return getattr(q,_EXTRA_KWD)( q )
@@ -519,7 +519,7 @@ def histfile():
 
 
 
-class History(Function):
+class History(Task):
     "Display command line history."
 
     def hook(self,unique):

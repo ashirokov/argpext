@@ -13,11 +13,11 @@ def func():
     return list([i for i in gnr()])
 
 
-prn = argpext.DebugPrintOn('# ')
+prn = argpext.DebugPrintOn('# %(pybasename)s %(lineno)s:')
 
 def tasktest():
     for F,D in itertools.product([gnr,func],[False,True]):
-        t = type('T',(argpext.Function,), {'hook' : argpext.hook(F,display=D)})(display=D)
+        t = type('T',(argpext.Task,), {'hook' : argpext.hook(F,display=D)})(display=D)
         prn( t )
         for i in t():
             prn( i )

@@ -73,7 +73,7 @@ The identical functionality is now achieved with our Argpext as follows:
    :lines: 3-
 
 Class :class:`SheepGraze`, constructed by inheritance from
-:class:`argpext.Function`, establishes the interface between
+:class:`argpext.Task`, establishes the interface between
 command line and function :func:`sheep_graze`.
 
 Command line is processed during the call to the
@@ -92,7 +92,7 @@ switches, we have:
   
   Examples of execution
 
-  Function :func:`sheep_graze` can be executed from the
+  Task :func:`sheep_graze` can be executed from the
   command line as follows:
   
   .. literalinclude:: examples/sheepgraze.tmp
@@ -124,7 +124,7 @@ To provide the mapping between sub-commands ``graze`` and
 :func:`SheepGraze` and :func:`SheepJump` we declare class
 :class:`Sheep` (subclass of :class:`argpext.Node`) and
 assign the mapping to its :attr:`SUBS` attribute, as shown
-in the example below. Functions :func:`SheepGraze` and
+in the example below. Tasks :func:`SheepGraze` and
 :func:`SheepJump` are now attached to node :class:`Sheep`.
 
 The next key thing is to include :meth:`Sheep.digest()` at
@@ -243,7 +243,7 @@ Wolf-related usage of ``sheepgame.py``:
   
 
 
-Functions with multiple arguments
+Tasks with multiple arguments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For simplicity, so far we have only considered functions of
@@ -305,8 +305,8 @@ equivalently rewritten in a different style, as follows
 Return values
 ^^^^^^^^^^^^^
 
-The :meth:`Node.digest`, :meth:`Function.digest` and
-:meth:`Function.__call__` methods return the value of the
+The :meth:`Node.digest`, :meth:`Task.digest` and
+:meth:`Task.__call__` methods return the value of the
 corresponding reference function. For example:
 
 .. literalinclude:: examples/retval.tmp
@@ -444,7 +444,7 @@ Reference
 Sub-command hierarchy
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. class:: Function
+.. class:: Task
 
    Base class for a callable function-like object that is
    capable of behaving like a script.  The object can be
@@ -456,14 +456,14 @@ Sub-command hierarchy
    attached to a regular Python function (also called the
    *reference function*) by the :meth:`hook` method.
 
-   .. staticmethod:: Function.hook(*args,**kwds)
+   .. staticmethod:: Task.hook(*args,**kwds)
 
 	Specifies the reference Python function. If
 	:meth:`hook` takes positive number of arguments,
-	:meth:`Function.populate` must be properly
+	:meth:`Task.populate` must be properly
 	overloaded as well.
 
-   .. method:: Function.populate(parser)
+   .. method:: Task.populate(parser)
 
 	This method should be overloaded if :meth:`hook`
 	takes positive number of arguments. For each argument *X* of
@@ -475,23 +475,23 @@ Sub-command hierarchy
 
 
 
-   .. method:: Function.__call__(*args,**kwds)
+   .. method:: Task.__call__(*args,**kwds)
 
 	Execute the reference function; its return value is
 	returned. The arguments of the reference function
 	are given by *args* and *kwds*. If an argument of is
 	missing, the command line default values, defined
-	:meth:`Function.populate` are substituted. Notice
+	:meth:`Task.populate` are substituted. Notice
 	that the default values, if any, defined in the
-	arguments of :meth:`Function.hook` are not used. If
+	arguments of :meth:`Task.hook` are not used. If
 	too many arguments are given or some arguments
 	remain missing, a standard built-in exception is
 	raised.
 
-   .. method:: Function.digest(prog=None,args=None)
+   .. method:: Task.digest(prog=None,args=None)
 
 	Execute the reference function; its return value is
-	returned.  Function :meth:`Function.populate` is
+	returned.  Task :meth:`Task.populate` is
 	used to convert command line arguments given by
 	*args* into the arguments of the reference
 	function. Using the default value *args=None* is
@@ -506,11 +506,11 @@ Sub-command hierarchy
    Base class for hierarchical script-like object that can
    be executed on a complete list of command line
    arguments. The list starts with the mandatory sequence of
-   sub-commands that identifies the leaf :func:`Function`
+   sub-commands that identifies the leaf :func:`Task`
    class. The rest of the command line arguments are used to
    execute the reference function of that class, as
    specified in the documentation for
-   :meth:`Function.digest` method.
+   :meth:`Task.digest` method.
 
 
    .. attribute:: SUBS
@@ -520,7 +520,7 @@ Sub-command hierarchy
       must be a :py:class:`list` or a :py:class:`tuple`
       of *(key,basenode)* items, where the *basenode* is an
       instance of either of :class:`Node` or
-      :class:`Function` class, and the *key* is the
+      :class:`Task` class, and the *key* is the
       sub-command assigned to it.
 
    .. method:: Node.digest(prog=None,args=None)
@@ -577,7 +577,7 @@ Porting from the earlier Argpext versions
 Compared to the previous releases (0.1 and 0.2) of argpext,
 version 1.0 is a very substantial update. For consistency
 with the "Style Guide for Python Code" (PEP 8), class
-:class:`comm_cls` is renamed into :class:`Function` and
+:class:`comm_cls` is renamed into :class:`Task` and
 class :class:`node_cls` is renamed into :class:`Node`.
 Class :class:`keyval` is renamed into
 :class:`KeyWords`. Interface to those classes have also
