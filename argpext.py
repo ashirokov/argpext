@@ -245,7 +245,7 @@ class Binding(object):
         prn('execution: implicit via node')
 
         H,isstatic = self._funcobject.get_hook()
-        A = (() if isstatic else (self._funcobject))+()
+        A = ((self._funcobject,) if not isstatic else ())+()
         K = key_value_extract(namespace)
 
         r = H(*A,**K)
@@ -386,7 +386,7 @@ class Task(BaseNode):
         # Execute the reference function, for Task.digest()
         prn('execution: implicit, of Task, via digest')
         H,isstatic = self.get_hook()
-        A = ((self) if not isstatic else ()) + ()
+        A = ((self,) if not isstatic else ()) + ()
         r = H(*A, **K )
         prn('hook returns:',r,type(r))
         return r

@@ -3,10 +3,8 @@
 import itertools
 import argpext
 
-SEQUENCE = [1,2]
-
 def gnr():
-    for i in range(3):
+    for i in range(2):
         yield i
 
 def func():
@@ -16,13 +14,30 @@ def func():
 prn = argpext.DebugPrintOn('# %(pybasename)s %(lineno)s:')
 
 def tasktest():
-    for task,display,isstatic in itertools.product([gnr,func],[False,True],[False,True]):
+
+    options = {
+        'task' : [gnr,func],
+        'display' : [False,True],
+        'isstatic' : [False,True],
+        }
+
+    keys = [
+        'isstatic',
+        'display',
+        'task',
+        ]
+
+    for item in itertools.product(*[options[k] for k in keys]):
+
         print('-'*120)
-        print(task,display,isstatic)
-        if isstatic:
-            t = type('T',(argpext.Task,), {'HOOK' : task})(display=display)
+        x = [(key, item[i]) for i,key in enumerate(keys)]
+        print( x )
+        x = dict(x)
+
+        if x['isstatic']:
+            t = type('T',(argpext.Task,), {'HOOK' : x['task']})(display=x['display'])
         else:
-            t = type('T',(argpext.Task,), {'hook' : argpext.hook(task,display=display)})(display=display)
+            t = type('T',(argpext.Task,), {'hook' : argpext.hook(x['task'],display=x['display'])})(display=x['display'])
 
         prn( t )
 
