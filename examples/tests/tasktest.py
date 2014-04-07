@@ -16,9 +16,16 @@ def func():
 prn = argpext.DebugPrintOn('# %(pybasename)s %(lineno)s:')
 
 def tasktest():
-    for F,D in itertools.product([gnr,func],[False,True]):
-        t = type('T',(argpext.Task,), {'hook' : argpext.hook(F,display=D)})(display=D)
+    for task,display,isstatic in itertools.product([gnr,func],[False,True],[False,True]):
+        print('-'*120)
+        print(task,display,isstatic)
+        if isstatic:
+            t = type('T',(argpext.Task,), {'HOOK' : task})(display=display)
+        else:
+            t = type('T',(argpext.Task,), {'hook' : argpext.hook(task,display=display)})(display=display)
+
         prn( t )
+
         for i in t():
             prn( i )
 

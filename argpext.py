@@ -243,9 +243,12 @@ class Binding(object):
             return q
 
         prn('execution: implicit via node')
-        f = self._funcobject.get_hook()
-        kwds = key_value_extract(namespace)
-        r = f(self._funcobject, **kwds )
+
+        H,isstatic = self._funcobject.get_hook()
+        A = (() if isstatic else (self._funcobject))+()
+        K = key_value_extract(namespace)
+
+        r = H(*A,**K)
         prn('hook returns:',r,type(r))
         return r
 
@@ -328,9 +331,14 @@ class Task(BaseNode):
 
     def get_hook(self):
         "Return a callable instance defined by the reference function"
-        q = type(self).hook
+        t = type(self)
+        for attrname,isstatic in [('HOOK',True),
+                                  ('hook',False)]:
+            if hasattr(t,attrname):
+                q = getattr(t,attrname)
+                break
         if sys.version_info[0:2] <= (2, 7,): q = q.__func__
-        return q
+        return q,isstatic
 
     def __call__(self,*args,**kwds):
         """Direct execution, using Task class object"""
@@ -342,7 +350,11 @@ class Task(BaseNode):
 
         # Explicit execution: invoked from a python script.
         prn('execution: explicit, in script')
-        r = self.get_hook()(*((self,)+args),**K)
+
+        H,isstatic = self.get_hook()
+        A = ((self,) if not isstatic else ())+args
+
+        r = H(*A,**K)
         prn('hook returns:',r,type(r))
         return r
 
@@ -361,19 +373,21 @@ class Task(BaseNode):
         
         # Find: docstring
         q = self.__doc__
-        if q is None: q = self.get_hook().__doc__
+        if q is None: q = self.get_hook()[0].__doc__
         docstr = Doc(q)
 
         # Find keyword args to pass to function, based on command line arguments, args.
         q = argparse.ArgumentParser(  description=docstr(label='description') )
         self.populate( q )
-        q = vars(argparse.ArgumentParser.parse_args(q,args))
+        K = vars(argparse.ArgumentParser.parse_args(q,args))
 
         # How are the default used?
 
         # Execute the reference function, for Task.digest()
         prn('execution: implicit, of Task, via digest')
-        r = self.get_hook()(self, **q )
+        H,isstatic = self.get_hook()
+        A = ((self) if not isstatic else ()) + ()
+        r = H(*A, **K )
         prn('hook returns:',r,type(r))
         return r
 
@@ -427,7 +441,7 @@ class Node(BaseNode):
                     X = subtask(display=self._display,bare=self._bare)
 
                     q = getattr(subtask,'__doc__',None)
-                    if q is None: q = X.get_hook().__doc__
+                    if q is None: q = X.get_hook()[0].__doc__
                     docstr = Doc(q)
 
                     subparser = subparsers.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
