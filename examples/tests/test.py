@@ -1,60 +1,50 @@
 #!/usr/bin/env python
 
-import sys
+import itertools
 import argpext
 
-prn = argpext.DebugPrintOn(prefix='| ')
+def gnr():
+    for i in range(2):
+        yield i
 
-def test_numbers():
-    prn('#'*120)
-
-    import numbers
-
-    PAIRS = [(numbers.Gn, 'gn'),
-             (numbers.Fn, 'fn')
-             ]
-
-    E = []
-    for pair in PAIRS:
-        C,word = pair
-        E += [C(display=True).digest()]
-        E += [C(display=True)()]
-        E += [numbers.Main(display=True).digest(args=[word])]
+def func():
+    return list([i for i in gnr()])
 
 
-    for L in E:
-        prn('-'*90)
-        prn('L:',L, type(L))
-        for x in L:
-            prn( 'x =', x )
+prn = argpext.DebugPrintOn('# %(pybasename)s %(lineno)s:')
+
+def tasktest():
+
+    options = {
+        'task' : [gnr,func],
+        'display' : [False,True],
+        'isstatic' : [False,True],
+        }
+
+    keys = [
+        'isstatic',
+        'display',
+        'task',
+        ]
+
+    for item in itertools.product(*[options[k] for k in keys]):
+
+        print('-'*120)
+        x = [(key, item[i]) for i,key in enumerate(keys)]
+        print( x )
+        x = dict(x)
+
+        if x['isstatic']:
+            t = type('T',(argpext.Task,), {'HOOK' : x['task']})(display=x['display'])
+        else:
+            t = type('T',(argpext.Task,), {'hook' : argpext.hook(x['task'],display=x['display'])})(display=x['display'])
+
+        prn( t )
+
+        for i in t():
+            prn( i )
 
 
-
-
-def test_ex():
-    prn('#'*120)
-
-    import ex
-
-    def fmt(value):
-        return 'FMT%s' % value
-
-    for display in [False,True,{'stream': sys.stderr, 'str' : fmt  }]:
-        prn('display=%s' % display)
-        for x in ex.Fn(display=display)():
-            prn('x:',x)
-
-
-
-test_numbers()
-
-test_ex()
-
-
-
-
-
-
-
+tasktest()
 
 
