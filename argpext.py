@@ -125,7 +125,7 @@ class DebugPrintOn(DebugPrint):
         print(*a,**kwds)
 
 
-prn = DebugPrintOn(prefix='DB: %(pybasename)s:%(lineno)s: ')
+prn = DebugPrintOff(prefix='DB: %(pybasename)s:%(lineno)s: ')
 
 
 class Doc(object):

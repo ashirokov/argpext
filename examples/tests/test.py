@@ -41,8 +41,6 @@ def tasktest():
         else:
             t = type('T',(argpext.Task,), {'hook' : argpext.hook(x['task'],display=x['display'])})(display=x['display'])
 
-        prn( t )
-
         for i in t():
             prn( i )
 
