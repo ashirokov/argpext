@@ -27,6 +27,8 @@ def tasktest():
         'task',
         ]
 
+    print('Test order: ', ', '.join(keys) )
+
     for item in itertools.product(*[options[k] for k in keys]):
 
         print('-'*120)
