@@ -98,7 +98,7 @@ def frameref(fstr,up):
     }
     return fstr % d
 
-def chainref(fstr='%(pybasename)s:%(lineno)s:%(name)s(..)',sep='<-',up=0):
+def chainref(fstr='%(name)s[%(pybasename)s:%(lineno)s]',sep=' < ',up=0):
     "Return chain reference."
     i = 0
     L = []
@@ -269,8 +269,8 @@ class Binding(object):
 
         r = H(*A,**K)
         prn('hook returns:',r,type(r))
+        if isstatic: r = layover(r,self._funcobject._display)
         return r
-
 
 
 
@@ -296,12 +296,15 @@ def display_element(dspl,r):
     else:
         raise TypeError('invalid type of display argument (neither bool not dict)')
 
-    stream.write( ('%s' % r)+'\n' )
+    #stream.write( ('%s{%s}' % (r, chainref()))+'\n' )
+    stream.write( str(r)+'\n' )
+
 
 def layover(r,display):
     if inspect.isgenerator(r):
         def wrapper():
             for rr in r:
+                prn( chainref() )
                 display_element(display, rr)
                 yield rr
         return wrapper()
@@ -317,7 +320,6 @@ def display(function):
         display = self._display
         r = function(*args,**kwds)
         prn('display', r)
-
         return layover(r,display)
 
     return wrapper
@@ -378,6 +380,7 @@ class Task(BaseNode):
 
         r = H(*A,**K)
         prn('hook returns:',r,type(r))
+        if isstatic: r = layover(r,self._display)
         return r
 
     def digest(self,prog=None,args=None):
@@ -411,6 +414,7 @@ class Task(BaseNode):
         A = ((self,) if not isstatic else ()) + ()
         r = H(*A, **K )
         prn('hook returns:',r,type(r))
+        if isstatic: r = layover(r,self._display)
         return r
 
 
