@@ -298,6 +298,18 @@ def display_element(dspl,r):
 
     stream.write( ('%s' % r)+'\n' )
 
+def layover(r,display):
+    if inspect.isgenerator(r):
+        def wrapper():
+            for rr in r:
+                display_element(display, rr)
+                yield rr
+        return wrapper()
+    else:
+        display_element(display, r)
+        return r
+
+
 
 def display(function):
     def wrapper(*args,**kwds):
@@ -305,17 +317,8 @@ def display(function):
         display = self._display
         r = function(*args,**kwds)
         prn('display', r)
-        if inspect.isgenerator(r):
-            prn('generator')
-            def new_generator():
-                for rr in r:
-                    display_element(display, rr)
-                    yield rr
-            return new_generator()
-        else:
-            prn('not generator')
-            display_element(display, r)
-            return r
+
+        return layover(r,display)
 
     return wrapper
 
