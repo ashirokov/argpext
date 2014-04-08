@@ -78,22 +78,54 @@ ENVVARS = KeyWords(['ARGPEXT_HISTORY'])
 
 def frameref(fstr,up):
     "returns frame reference string"
-    F = sys._getframe(1+up)
-    path = F.f_code.co_filename
+    frame = sys._getframe(1+up)
+    code = frame.f_code
+    lineno = frame.f_lineno
+    path = code.co_filename
+    name = code.co_name
     basename = os.path.basename(path)
 
     dirbasename = os.path.basename(os.path.abspath(os.path.dirname(path)))
 
     pybasename = os.path.join( * (([dirbasename] if basename.lower() == '__init__.py' else [])+[basename]) )
 
-    lineno = F.f_lineno
     d = {
         'path' : path,
         'basename' : basename,
         'pybasename' : pybasename,
         'lineno' : lineno,
+        'name' : name
     }
     return fstr % d
+
+def chainref(fstr='%(pybasename)s:%(lineno)s:%(name)s(..)',sep='<-',up=0):
+    "Return chain reference."
+    i = 0
+    L = []
+    while 1:
+        try:
+            f = frameref(fstr,up=1+up+i)
+        except ValueError:
+            break
+        L += [f]
+        i += 1
+    return sep.join(L)
+
+class DebugPrint(object):
+    def __init__(self,prefix):
+        self.prefix = prefix
+
+class DebugPrintOff(DebugPrint):
+    def __call__(self,*args,**kwds): pass
+
+class DebugPrintOn(DebugPrint):
+    def __call__(self,*args,**kwds): 
+        prefix = frameref(self.prefix,up=1)
+        a = (prefix,)+args
+        print(*a,**kwds)
+
+
+prn = DebugPrintOn(prefix='DB: %(pybasename)s:%(lineno)s: ')
 
 
 class Doc(object):
@@ -115,20 +147,6 @@ class Doc(object):
 
         return R
 
-class DebugPrint(object):
-    def __init__(self,prefix):
-        self.prefix = prefix
-
-class DebugPrintOff(DebugPrint):
-    def __call__(self,*args,**kwds): pass
-
-class DebugPrintOn(DebugPrint):
-    def __call__(self,*args,**kwds): 
-        prefix = frameref(self.prefix,up=1)
-        a = (prefix,)+args
-        print(*a,**kwds)
-
-prn = DebugPrintOff(prefix='DB: %(pybasename)s:%(lineno)s: ')
 
 DISPLAY_KWDS = KeyWords(['stream','str'])
 
