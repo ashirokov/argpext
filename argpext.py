@@ -596,7 +596,7 @@ if __name__ == '__main__':
 
 class Function(Task):
     def __init__(self,*args,**kwds):
-        warnings.warn("Class Function has been renamed into Task. "\
+        warnings.warn("Class 'Function' has been renamed into 'Task'. "\
                       "The support for Function may terminate starting from argpext Version 2.0"
                       , UserWarning)
         Task.__init__(self,*args,**kwds)
@@ -605,7 +605,7 @@ class Unit(object):
     "Value unit for Categorical variables."
     def __init__(self,value,help=None,callable=False):
         warnings.warn("Classes Categorical and Unit are now deprecated. "\
-                          "Please use the new argpext.KeyWords class and standard pythons map to achieve identical effects."\
+                          "Please use the new argpext.KeyWords class and standard pythons map to achieve the identical functionality."\
                           "The support for Unit may terminate starting from argpext Version 2.0"
                       , UserWarning)
         self._value = value
