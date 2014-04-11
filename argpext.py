@@ -68,15 +68,25 @@ class KeyWords(object):
         else: raise KeyError('invalid key: "%s"' % key)
 
     def __str__(self):
-        q = list([ ("'%s'" % k) for k in self._dct.keys() ])
-        q = '%s([%s])' % ( type(self).__name__, ','.join(q) )
+        #prn( chainref() )
+        f = frameref(up=1)
+        brief = (f['basename'] == 'argparse.py' and f['name'] == '_expand_help')
+        if not brief:
+            q = list([ ("'%s'" % k) for k in self._dct.keys() ])
+            q = '%s([%s])' % ( type(self).__name__, ','.join(q) )
+        else:
+            q = list([ ("'%s'" % k) for k in self._dct.keys() ])
+            if len(q) > 2:
+                q[-1] = 'and '+q[-1]
+            q = ', '.join(q)
+
         return q
 
 
 ENVVARS = KeyWords(['ARGPEXT_HISTORY'])
 
 
-def frameref(fstr,up):
+def frameref(up=0):
     "returns frame reference string"
     frame = sys._getframe(1+up)
     code = frame.f_code
@@ -89,14 +99,14 @@ def frameref(fstr,up):
 
     pybasename = os.path.join( * (([dirbasename] if basename.lower() == '__init__.py' else [])+[basename]) )
 
-    d = {
+    return {
         'path' : path,
         'basename' : basename,
         'pybasename' : pybasename,
         'lineno' : lineno,
         'name' : name
     }
-    return fstr % d
+
 
 def chainref(fstr='%(name)s[%(pybasename)s:%(lineno)s]',sep=' < ',up=0):
     "Return chain reference."
@@ -104,7 +114,7 @@ def chainref(fstr='%(name)s[%(pybasename)s:%(lineno)s]',sep=' < ',up=0):
     L = []
     while 1:
         try:
-            f = frameref(fstr,up=1+up+i)
+            f = fstr % frameref(up=1+up+i)
         except ValueError:
             break
         L += [f]
@@ -120,7 +130,7 @@ class DebugPrintOff(DebugPrint):
 
 class DebugPrintOn(DebugPrint):
     def __call__(self,*args,**kwds): 
-        prefix = frameref(self.prefix,up=1)
+        prefix = self.prefix % frameref(up=1)
         a = (prefix,)+args
         print(*a,**kwds)
 
@@ -141,7 +151,7 @@ class Doc(object):
         debug = False
         if debug:
             R += '[%(position)s%(label)s]' % \
-                 { 'position' : frameref('%(basename)s:%(lineno)s',up=1)
+                 { 'position' : '%(basename)s:%(lineno)s' % frameref(up=1)
                    ,'label' : ('(%s)' % label  if label is not None else '') 
                  }
 
@@ -566,14 +576,14 @@ class History(Task):
     def hook(self,unique):
         q = histfile()
         if not os.path.exists(q): 
-            print('History file ("%s") not found' % q)
+            sys.stderr.write(('History file ("%s") not found' % q)+os.linesep)
         else:
             lastcommand = None
             with open(q) as fhi:
                 for line in fhi:
                     date,path,command = line.split(',',2)
                     if unique and lastcommand is not None and command == lastcommand: continue
-                    print(line.rstrip())
+                    sys.stdout.write(line.rstrip()+os.linesep)
                     lastcommand = command
 
     def populate(self,parser):
@@ -597,8 +607,8 @@ if __name__ == '__main__':
 
 class Function(Task):
     def __init__(self,*args,**kwds):
-        warnings.warn("Class 'Function' has been renamed into 'Task'. "\
-                      "The support for Function may terminate starting from argpext Version 2.0"
+        warnings.warn("Please rename all 'argpext.Function' into 'argpext.Task'. "\
+                      "The support for argpext.Function may terminate starting from argpext Version 2.0"
                       , UserWarning)
         Task.__init__(self,*args,**kwds)
 

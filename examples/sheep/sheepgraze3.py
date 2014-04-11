@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 
 import argpext
 
@@ -17,7 +17,7 @@ class SheepGraze(argpext.Function):
                                                      'grass',
                                                      'daisies'])
                             , help='Specify the feed. '\
-                                'Choose from:%(type)s. '\
+                                'Choose from: %(type)s. '\
                                 'Default: %(default)s.')
 
 if __name__ == '__main__':
