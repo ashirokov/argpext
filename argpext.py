@@ -315,6 +315,7 @@ def layover(r,display):
 
 
 def display(function):
+    # The function argument should be a non-class member function.
     def wrapper(*args,**kwds):
         self = args[0]
         display = self._display
