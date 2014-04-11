@@ -311,9 +311,9 @@ def hook(function,display=False):
     return wrapper if not display else globals()['display'](wrapper)
 
 
-def execution(basenode,kwds):
+def execution(basenode,args,kwds):
     H,isstatic = basenode.get_hook()
-    args = ((basenode,) if not isstatic else ())+()
+    args = ((basenode,) if not isstatic else ())+args
     r = H(*args,**kwds)
     prn('hook returns:',r,type(r))
     if isstatic: r = layover(r,basenode._display)
@@ -341,7 +341,7 @@ class Binding(object):
 
         prn('execution: implicit via node')
 
-        return execution( basenode=self._funcobject, kwds=get_kwds(namespace) )
+        return execution( basenode=self._funcobject, args=(), kwds=get_kwds(namespace) )
 
 
 
@@ -389,7 +389,7 @@ class Task(BaseNode):
         # Explicit execution: invoked from a python script.
         prn('execution: explicit, in script')
 
-        return execution( basenode=self, kwds=get_kwds(kwds) )
+        return execution( basenode=self, args=args, kwds=get_kwds(kwds) )
 
 
     def digest(self,prog=None,args=None):
@@ -421,7 +421,7 @@ class Task(BaseNode):
 
         prn('execution: implicit, of Task, via digest')
 
-        return execution( basenode=self, kwds=get_kwds(args) )
+        return execution( basenode=self, args=(), kwds=get_kwds(args) )
 
 
 
