@@ -333,7 +333,7 @@ class Binding(object):
     def __call__(self,namespace):
         "Implicit execution, by parser."
 
-        def key_value_extract(namespace):
+        def get_kwds(namespace):
             if not isinstance(namespace,argparse.Namespace): raise TypeError
             q = vars( namespace )
             del q[ _EXTRA_KWD ]
@@ -341,7 +341,7 @@ class Binding(object):
 
         prn('execution: implicit via node')
 
-        return execution(basenode=self._funcobject,kwds=key_value_extract(namespace))
+        return execution( basenode=self._funcobject, kwds=get_kwds(namespace) )
 
 
 
@@ -378,15 +378,18 @@ class Task(BaseNode):
     def __call__(self,*args,**kwds):
         """Direct execution, using Task class object"""
         #print('direct execution')
-        K = {}
-        if not self._bare: K.update( get_parser_defaults( self.populate ) )
-        # functions defaults will apply at this point
-        K.update( kwds )
+
+        def get_kwds(kwds):
+            K = {}
+            if not self._bare: K.update( get_parser_defaults( self.populate ) )
+            # functions defaults will apply at this point
+            K.update( kwds )
+            return K
 
         # Explicit execution: invoked from a python script.
         prn('execution: explicit, in script')
 
-        return execution(basenode=self,kwds=K)
+        return execution( basenode=self, kwds=get_kwds(kwds) )
 
 
     def digest(self,prog=None,args=None):
@@ -408,14 +411,17 @@ class Task(BaseNode):
         docstr = Doc(q)
 
         # Find keyword args to pass to function, based on command line arguments, args.
-        q = argparse.ArgumentParser(  description=docstr(label='description') )
-        self.populate( q )
-        K = vars(argparse.ArgumentParser.parse_args(q,args))
+        def get_kwds(args):
+            q = argparse.ArgumentParser(  description=docstr(label='description') )
+            self.populate( q )
+            K = vars(argparse.ArgumentParser.parse_args(q,args))
+            return K
 
         # How are the default used?
 
         prn('execution: implicit, of Task, via digest')
-        return execution(basenode=self,kwds=K)
+
+        return execution( basenode=self, kwds=get_kwds(args) )
 
 
 
