@@ -251,39 +251,6 @@ def get_parser_defaults( populate ):
     return D
 
 
-
-
-_EXTRA_KWD = '_ARGPEXT_EXTRA_KWD'
-
-class Binding(object):
-    """Binding gets executed when functions variables are set by the
-    parser, hence resulting in a namespace"""
-
-    def __init__(self,funcobject):
-        self._funcobject = funcobject
-
-    def __call__(self,namespace):
-        "Implicit execution, by parser."
-
-        def key_value_extract(namespace):
-            if not isinstance(namespace,argparse.Namespace): raise TypeError
-            q = vars( namespace )
-            del q[ _EXTRA_KWD ]
-            return q
-
-        prn('execution: implicit via node')
-
-        H,isstatic = self._funcobject.get_hook()
-        A = ((self._funcobject,) if not isstatic else ())+()
-        K = key_value_extract(namespace)
-
-        r = H(*A,**K)
-        prn('hook returns:',r,type(r))
-        if isstatic: r = layover(r,self._funcobject._display)
-        return r
-
-
-
 def display_element(dspl,r):
     if dspl == False:
         return
@@ -344,6 +311,39 @@ def hook(function,display=False):
     return wrapper if not display else globals()['display'](wrapper)
 
 
+def execution(basenode,kwds):
+    H,isstatic = basenode.get_hook()
+    args = ((basenode,) if not isstatic else ())+()
+    r = H(*args,**kwds)
+    prn('hook returns:',r,type(r))
+    if isstatic: r = layover(r,basenode._display)
+    return r
+
+
+
+_EXTRA_KWD = '_ARGPEXT_EXTRA_KWD'
+
+class Binding(object):
+    """Binding gets executed when functions variables are set by the
+    parser, hence resulting in a namespace"""
+
+    def __init__(self,funcobject):
+        self._funcobject = funcobject
+
+    def __call__(self,namespace):
+        "Implicit execution, by parser."
+
+        def key_value_extract(namespace):
+            if not isinstance(namespace,argparse.Namespace): raise TypeError
+            q = vars( namespace )
+            del q[ _EXTRA_KWD ]
+            return q
+
+        prn('execution: implicit via node')
+
+        return execution(basenode=self._funcobject,kwds=key_value_extract(namespace))
+
+
 
 class Task(BaseNode):
     """Base class for command line interface to a Python function."""
@@ -386,13 +386,8 @@ class Task(BaseNode):
         # Explicit execution: invoked from a python script.
         prn('execution: explicit, in script')
 
-        H,isstatic = self.get_hook()
-        A = ((self,) if not isstatic else ())+args
+        return execution(basenode=self,kwds=K)
 
-        r = H(*A,**K)
-        prn('hook returns:',r,type(r))
-        if isstatic: r = layover(r,self._display)
-        return r
 
     def digest(self,prog=None,args=None):
         """Execute the reference function based on command line arguments
@@ -419,14 +414,8 @@ class Task(BaseNode):
 
         # How are the default used?
 
-        # Execute the reference function, for Task.digest()
         prn('execution: implicit, of Task, via digest')
-        H,isstatic = self.get_hook()
-        A = ((self,) if not isstatic else ()) + ()
-        r = H(*A, **K )
-        prn('hook returns:',r,type(r))
-        if isstatic: r = layover(r,self._display)
-        return r
+        return execution(basenode=self,kwds=K)
 
 
 
@@ -510,8 +499,8 @@ class Node(BaseNode):
                     return getattr(q,_EXTRA_KWD)( q )
                 elif issubclass(node,Node):
                     q = argparse.ArgumentParser.parse_args( parser, [word] )
-                    return getattr(q,_EXTRA_KWD).digest( prog='%s %s' % (prog,word) # chaining
-                                                         , args=args[1:] )
+                    # Chaining
+                    return getattr(q,_EXTRA_KWD).digest( prog='%s %s' % (prog,word), args=args[1:] )
                 else:
                     raise TypeError
 
