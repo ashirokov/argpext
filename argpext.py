@@ -54,10 +54,7 @@ class KeyWords(object):
         return len(self._dct)
 
     def __iter__(self):
-        return reversed(list(self._dct.keys()))
-
-    def __reversed__(self):
-        return self._dct.keys().__reversed__()
+        return self._dct.keys().__iter__()
 
     def __contains__(self,key):
         return self._dct.__contains__(key)
