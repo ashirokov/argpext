@@ -65,7 +65,6 @@ class KeyWords(object):
         else: raise KeyError('invalid key: "%s"' % key)
 
     def __str__(self):
-        #prn( chainref() )
         f = frameref(up=1)
         brief = (f['basename'] == 'argparse.py' and f['name'] == '_expand_help')
         if not brief:
@@ -105,7 +104,7 @@ def frameref(up=0):
     }
 
 
-def chainref(fstr='%(name)s[%(pybasename)s:%(lineno)s]',sep=' < ',up=0):
+def chainref(fstr='%(name)s[%(pybasename)s:%(lineno)s]',sep=' < ',up=0,limit=None):
     "Return chain reference."
     i = 0
     L = []
@@ -116,6 +115,7 @@ def chainref(fstr='%(name)s[%(pybasename)s:%(lineno)s]',sep=' < ',up=0):
             break
         L += [f]
         i += 1
+        if limit is not None and i == limit: break
     return sep.join(L)
 
 class DebugPrint(object):
@@ -132,7 +132,7 @@ class DebugPrintOn(DebugPrint):
         print(*a,**kwds)
 
 
-prn = DebugPrintOff(prefix='DB: %(pybasename)s:%(lineno)s: ')
+pre = DebugPrintOff(prefix='EXECUTION: %(pybasename)s:%(lineno)s: ')
 
 
 class Doc(object):
@@ -278,7 +278,7 @@ def layover(r,display):
     if inspect.isgenerator(r):
         def wrapper():
             for rr in r:
-                prn( chainref() )
+                pre( chainref() )
                 display_element(display, rr)
                 yield rr
         return wrapper()
@@ -294,7 +294,7 @@ def display(function):
         self = args[0]
         display = self._display
         r = function(*args,**kwds)
-        prn('display', r)
+        pre('display', r)
         return layover(r,display)
 
     return wrapper
@@ -312,8 +312,9 @@ def execution(basenode,args,kwds):
     H,isstatic = basenode.get_hook()
     args = ((basenode,) if not isstatic else ())+args
     r = H(*args,**kwds)
-    prn('hook returns:',r,type(r))
+    pre('hook returns:',r,type(r))
     if isstatic: r = layover(r,basenode._display)
+    pre('layover returns:',r,type(r),chainref(limit=2))
     return r
 
 
@@ -336,7 +337,7 @@ class Binding(object):
             del q[ _EXTRA_KWD ]
             return q
 
-        prn('execution: implicit via node')
+        pre('execution: implicit via node')
 
         return execution( basenode=self._funcobject, args=(), kwds=get_kwds(namespace) )
 
@@ -384,7 +385,7 @@ class Task(BaseNode):
             return K
 
         # Explicit execution: invoked from a python script.
-        prn('execution: explicit, in script')
+        pre('execution: explicit, in script')
 
         return execution( basenode=self, args=args, kwds=get_kwds(kwds) )
 
@@ -416,7 +417,7 @@ class Task(BaseNode):
 
         # How are the default used?
 
-        prn('execution: implicit, of Task, via digest')
+        pre('execution: implicit, of Task, via digest')
 
         return execution( basenode=self, args=(), kwds=get_kwds(args) )
 

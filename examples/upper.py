@@ -24,10 +24,8 @@ class Main(argpext.Node):
     "Get the data and process."
     SUBS = [
         ('get-data', GetData),
-        #('process-data', process ),
-        ('process-1', Process ),
-        #('process-2', process ),
+        ('process', Process ),
         ]
 
 if __name__ == '__main__':
-    Main().digest()
+    Main(display=True).digest()
