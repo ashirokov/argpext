@@ -13,22 +13,27 @@ class GetData(argpext.Task):
                             type=argpext.KeyWords(['stock','bond']),
                             help='Data identifier. Choose from %(type)s. Default:"%(default)s".')
 
-def process(n):
-    print('Processing data (%s)...' % n)
+def process():
+    print('Processing data ...' )
 
 
-class Process(argpext.Task):
+class Process1(argpext.Task):
     "Process data"
     hook = argpext.hook(process,display=True)
-    def populate(self,parser):
-        parser.add_argument('-n',type=int,help="Enter the number ")
+
+class Process2(argpext.Task):
+    "Process data"
+    hook = process
+
 
 
 class Main(argpext.Node):
     "Get the data and process."
     SUBS = [
         ('get-data', GetData),
-        ('process', Process ),
+        ('process', process ),
+        ('process1', Process1 ),
+        ('process2', Process2 ), # Does not work
         ]
 
 if __name__ == '__main__':

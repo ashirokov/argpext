@@ -133,6 +133,7 @@ class DebugPrintOn(DebugPrint):
 
 
 pre = DebugPrintOff(prefix='EXECUTION: %(pybasename)s:%(lineno)s: ')
+prt = DebugPrintOn(prefix='Task management: %(pybasename)s:%(lineno)s: ')
 
 
 class Doc(object):
@@ -459,10 +460,12 @@ class Node(BaseNode):
                 if subparsers is None: subparsers = parser.add_subparsers(help='Description')
 
                 if inspect.isfunction(subtask):
+                    prt("subtask is a function")
+                    # Find: subtask, the class of the task.
                     subtask = type(subtask.__name__.capitalize(), 
                                 (Task,) , 
                                 {'hook' : hook(subtask)
-                                })()
+                                })
 
                 if issubclass(subtask,Task):
 
