@@ -13,12 +13,16 @@ class GetData(argpext.Task):
                             type=argpext.KeyWords(['stock','bond']),
                             help='Data identifier. Choose from %(type)s. Default:"%(default)s".')
 
-def process():
-    print('Processing data...')
+def process(n):
+    print('Processing data (%s)...' % n)
+
 
 class Process(argpext.Task):
     "Process data"
     hook = argpext.hook(process,display=True)
+    def populate(self,parser):
+        parser.add_argument('-n',type=int,help="Enter the number ")
+
 
 class Main(argpext.Node):
     "Get the data and process."
@@ -29,3 +33,4 @@ class Main(argpext.Node):
 
 if __name__ == '__main__':
     Main(display=True).digest()
+

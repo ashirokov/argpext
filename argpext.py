@@ -248,7 +248,7 @@ def get_parser_defaults( populate ):
     return D
 
 
-def display_element(dspl,r):
+def display_element(dspl,r,ignore_none):
     if dspl == False:
         return
     elif dspl == True:
@@ -263,15 +263,13 @@ def display_element(dspl,r):
         s = dspl.get('str',None)
         if s is not None: r = s( r )
 
-        # Make sure output is converter to a string
-        if not isinstance(r,str): r = str(r)
-
         stream = dspl.get('stream',sys.stdout)
     else:
         raise TypeError('invalid type of display argument (neither bool not dict)')
 
-    #stream.write( ('%s{%s}' % (r, chainref()))+'\n' )
-    stream.write( str(r)+'\n' )
+    if r is None and ignore_none: pass
+    else:
+        stream.write( ('%s' % r)+'\n' )
 
 
 def layover(r,display):
@@ -279,11 +277,11 @@ def layover(r,display):
         def wrapper():
             for rr in r:
                 pre( chainref() )
-                display_element(display, rr)
+                display_element(display, rr,ignore_none=False)
                 yield rr
         return wrapper()
     else:
-        display_element(display, r)
+        display_element(display, r, ignore_none=True)
         return r
 
 
