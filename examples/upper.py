@@ -16,15 +16,17 @@ class GetData(argpext.Task):
 def process():
     print('Processing data...')
 
-#class process(argpext.Task):
-#    "Process data"
-#    hook = argpext.hook(process)
+class Process(argpext.Task):
+    "Process data"
+    hook = argpext.hook(process,display=True)
 
 class Main(argpext.Node):
     "Get the data and process."
     SUBS = [
         ('get-data', GetData),
-        ('process-data', argpext.hook(process,display=True) )
+        #('process-data', process ),
+        ('process-1', Process ),
+        #('process-2', process ),
         ]
 
 if __name__ == '__main__':
