@@ -23,7 +23,7 @@ class Process1(argpext.Task):
 
 class Process2(argpext.Task):
     "Process data"
-    hook = process
+    hook = process  # Illegal use
 
 
 
@@ -33,7 +33,7 @@ class Main(argpext.Node):
         ('get-data', GetData),
         ('process', process ),
         ('process1', Process1 ),
-        ('process2', Process2 ), # Does not work
+        ('process2', Process2 ),
         ]
 
 if __name__ == '__main__':
