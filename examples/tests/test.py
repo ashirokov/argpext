@@ -37,9 +37,11 @@ def tasktest():
         x = dict(x)
 
         if x['isstatic']:
-            t = type('T',(argpext.Task,), {'HOOK' : x['task']})(display=x['display'])
+            T = type('T',(argpext.Task,), {'HOOK' : x['task']})
         else:
-            t = type('T',(argpext.Task,), {'hook' : argpext.hook(x['task'],display=x['display'])})(display=x['display'])
+            T = type('T',(argpext.Task,), {'hook' : argpext.hook(x['task'],display=x['display'])})
+
+        t = T(display=x['display'])
 
         for i in t():
             prn( i )
