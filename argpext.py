@@ -291,6 +291,11 @@ def make_hook(function,display=False):
         r = function(*args,**kwargs)
         return r
     if display: wrapper = globals()['display'](wrapper)
+
+    # Propagate the doc
+    q = getattr(function,'__doc__',None)
+    if q is not None: wrapper.__doc__ = q
+
     return wrapper
 
 
