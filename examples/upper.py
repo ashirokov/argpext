@@ -15,11 +15,11 @@ class GetData(argpext.Task):
 
 def process():
     print('Processing data ...' )
-
+    return 1
 
 class Process1(argpext.Task):
     "Process data"
-    hook = argpext.hook(process,display=True)
+    hook = argpext.make_hook(process,display=True)
 
 class Process2(argpext.Task):
     "Process data"
@@ -37,5 +37,5 @@ class Main(argpext.Node):
         ]
 
 if __name__ == '__main__':
-    Main(display=True).digest()
+    Main(verb=True).digest()
 

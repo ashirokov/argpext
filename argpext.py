@@ -351,7 +351,7 @@ class Binding(object):
 class Task(BaseNode):
     """Base class for command line interface to a Python function."""
 
-    def __init__(self,verb=False,bare=False):
+    def __init__(self,verb=True,bare=False):
         BaseNode.__init__(self,verb=verb,bare=bare)
 
     # Members to be overloaded by the user
@@ -431,7 +431,7 @@ class Task(BaseNode):
 class Node(BaseNode):
     """Command line interface for a node."""
 
-    def __init__(self,verb=False,bare=False):
+    def __init__(self,verb=True,bare=False):
         BaseNode.__init__(self,verb=verb,bare=bare)
 
     # Members to be redefined by a user
@@ -470,7 +470,7 @@ class Node(BaseNode):
                     # Find: subtask, the class of the task.
                     subtask = type(subtask.__name__.capitalize(), 
                                 (Task,) , 
-                                {'hook' : hook(subtask)
+                                {'hook' : make_hook(subtask,display=True)
                                 })
 
                 if issubclass(subtask,Task):
