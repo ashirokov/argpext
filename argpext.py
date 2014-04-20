@@ -127,9 +127,11 @@ class DebugPrintOff(DebugPrint):
 
 class DebugPrintOn(DebugPrint):
     def __call__(self,*args,**kwds): 
-        prefix = self.prefix % frameref(up=1)
-        a = (prefix,)+args
-        print(*a,**kwds)
+        frm = frameref(up=1)
+        prefix = self.prefix % frm
+        args = [ (str(a) % frm) for a in args ]
+        args = [prefix]+args
+        print(*args,**kwds)
 
 
 pre = DebugPrintOff(prefix='EXECUTION: %(pybasename)s:%(lineno)s: ')
@@ -308,6 +310,7 @@ def hook(function,display=False):
 
 
 def execution(basenode,args,kwds):
+    pre('%(name)s started')
     H,isstatic = basenode.get_hook()
     args = ((basenode,) if not isstatic else ())+args
     r = H(*args,**kwds)
