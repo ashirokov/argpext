@@ -280,7 +280,7 @@ def display(function):
     return function
 
 
-def hook(function,display=False):
+def make_hook(function,display=False):
     def wrapper(*args,**kwargs):
         self = args[0]
         args = args[1:]

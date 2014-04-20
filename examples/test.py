@@ -40,7 +40,7 @@ def tasktest():
         if x['isstatic']:
             T = type('Type0',(argpext.Task,), {'HOOK' : x['task']})
         else:
-            T = type('Type1',(argpext.Task,), {'hook' : argpext.hook(x['task'],display=True) })
+            T = type('Type1',(argpext.Task,), {'hook' : argpext.make_hook(x['task'],display=True) })
 
         t = T(verb=x['verb'])
 
