@@ -134,9 +134,9 @@ class DebugPrintOn(DebugPrint):
         print(*args,**kwds)
 
 
-pre = DebugPrintOff(prefix='EXECUTION: %(pybasename)s:%(lineno)s: ')
+pre = DebugPrintOn(prefix='EXECUTION: %(pybasename)s:%(lineno)s: ')
 prt = DebugPrintOn(prefix='Task management: %(pybasename)s:%(lineno)s: ')
-
+prd = DebugPrintOn(prefix='Debug: %(pybasename)s:%(lineno)s: ')
 
 class Doc(object):
     def __init__(self,value):
@@ -158,13 +158,13 @@ class Doc(object):
         return R
 
 
-DISPLAY_KWDS = KeyWords(['stream','str'])
+VERB_KWDS = KeyWords(['stream','str'])
 
 class BaseNode(object):
 
-    def __init__(self,bare,display):
+    def __init__(self,bare,verb):
         self._bare = bare
-        self._display = display
+        self._verb = verb
 
     def history_update(self,prog,args):
         "Update the history log file, if the latter is defined."
@@ -251,16 +251,16 @@ def get_parser_defaults( populate ):
     return D
 
 
-def display_element(dspl,r,ignore_none):
+def verb_element(dspl,r,ignore_none):
     if dspl == False:
         return
     elif dspl == True:
         stream = sys.stdout
     elif isinstance(dspl,dict):
         try:
-            for k in dspl: DISPLAY_KWDS(k)
+            for k in dspl: VERB_KWDS(k)
         except KeyError:
-            raise KeyError('invalid key ("%s") in the the "dspl=" argument; allowed keys: %s' % (k, ",".join(['"%s"' % q for q in DISPLAY_KWDS]) ))
+            raise KeyError('invalid key ("%s") in the the "dspl=" argument; allowed keys: %s' % (k, ",".join(['"%s"' % q for q in VERB_KWDS]) ))
 
         # Conditional convertion
         s = dspl.get('str',None)
@@ -275,16 +275,16 @@ def display_element(dspl,r,ignore_none):
         stream.write( ('%s' % r)+'\n' )
 
 
-def layover(r,display):
+def layover(r,verb):
     if inspect.isgenerator(r):
         def wrapper():
             for rr in r:
                 pre( chainref() )
-                display_element(display, rr,ignore_none=False)
+                verb_element(verb, rr,ignore_none=False)
                 yield rr
         return wrapper()
     else:
-        display_element(display, r, ignore_none=True)
+        verb_element(verb, r, ignore_none=True)
         return r
 
 
@@ -293,30 +293,39 @@ def display(function):
     # The function argument should be a non-class member function.
     def wrapper(*args,**kwds):
         self = args[0]
-        display = self._display
+        pre('|d',self)
+        verb = self._verb
         r = function(*args,**kwds)
-        pre('display', r)
-        return layover(r,display)
+        pre('verb', r)
+        return layover(r,verb)
 
     return wrapper
 
-def hook(function,display=False):
+def hook(function,verb=False):
     def wrapper(*args,**kwargs):
         self = args[0]
+        pre('|h',self)
         args = args[1:]
         r = function(*args,**kwargs)
         return r
-    return wrapper if not display else globals()['display'](wrapper)
+    return wrapper if not verb else display(wrapper)
 
 
 def execution(basenode,args,kwds):
     pre('%(name)s started')
+
     H,isstatic = basenode.get_hook()
+
     args = ((basenode,) if not isstatic else ())+args
+
     r = H(*args,**kwds)
+
     pre('hook returns:',r,type(r))
-    if isstatic: r = layover(r,basenode._display)
+
+    if isstatic: r = layover(r,basenode._verb)
+
     pre('layover returns:',r,type(r),chainref(limit=2))
+
     return r
 
 
@@ -348,8 +357,8 @@ class Binding(object):
 class Task(BaseNode):
     """Base class for command line interface to a Python function."""
 
-    def __init__(self,display=False,bare=False):
-        BaseNode.__init__(self,display=display,bare=bare)
+    def __init__(self,verb=False,bare=False):
+        BaseNode.__init__(self,verb=verb,bare=bare)
 
     # Members to be overloaded by the user
     def hook(self):
@@ -428,8 +437,8 @@ class Task(BaseNode):
 class Node(BaseNode):
     """Command line interface for a node."""
 
-    def __init__(self,display=False,bare=False):
-        BaseNode.__init__(self,display=display,bare=bare)
+    def __init__(self,verb=False,bare=False):
+        BaseNode.__init__(self,verb=verb,bare=bare)
 
     # Members to be redefined by a user
 
@@ -472,7 +481,7 @@ class Node(BaseNode):
 
                 if issubclass(subtask,Task):
 
-                    X = subtask(display=self._display,bare=self._bare)
+                    X = subtask(verb=self._verb,bare=self._bare)
 
                     q = getattr(subtask,'__doc__',None)
                     if q is None: q = X.get_hook()[0].__doc__
@@ -483,7 +492,7 @@ class Node(BaseNode):
                     subparser.set_defaults( ** { _EXTRA_KWD : Binding(funcobject=X) } )
 
                 elif issubclass(subtask,Node):
-                    X = subtask(display=self._display,bare=self._bare)
+                    X = subtask(verb=self._verb,bare=self._bare)
                     X._disable_history = True
 
                     docstr = Doc(getattr(subtask,'__doc__',None))
