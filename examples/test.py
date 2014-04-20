@@ -29,11 +29,12 @@ def tasktest():
 
     print('Test order: ', ', '.join(keys) )
 
-    for item in itertools.product(*[options[k] for k in keys]):
+    for itest,item in enumerate(itertools.product(*[options[k] for k in keys])):
 
         print('-'*120)
+        print('itest:',itest)
         x = [(key, item[i]) for i,key in enumerate(keys)]
-        print( x )
+        print('Parameters:', ', '.join(['%s:%s' % (a,b)  for a,b in x]) )
         x = dict(x)
 
         if x['isstatic']:
