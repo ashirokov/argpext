@@ -162,9 +162,13 @@ VERB_KWDS = KeyWords(['stream','str'])
 
 class BaseNode(object):
 
-    def __init__(self,bare,verb):
+    def __init__(self,bare,verb,upper={}):
         self._bare = bare
         self._verb = verb
+        self._upper = upper
+
+    def upper(self):
+        return self._upper
 
     def history_update(self,prog,args):
         "Update the history log file, if the latter is defined."
@@ -351,8 +355,8 @@ class Binding(object):
 class Task(BaseNode):
     """Base class for command line interface to a Python function."""
 
-    def __init__(self,verb=True,bare=False):
-        BaseNode.__init__(self,verb=verb,bare=bare)
+    def __init__(self,verb=True,bare=False,upper={}):
+        BaseNode.__init__(self,verb=verb,bare=bare,upper=upper)
 
     # Members to be overloaded by the user
     def hook(self):
@@ -431,15 +435,15 @@ class Task(BaseNode):
 class Node(BaseNode):
     """Command line interface for a node."""
 
-    def __init__(self,verb=True,bare=False):
-        BaseNode.__init__(self,verb=verb,bare=bare)
+    def __init__(self,verb=True,bare=False,upper={}):
+        BaseNode.__init__(self,verb=verb,bare=bare,upper=upper)
 
     # Members to be redefined by a user
 
     SUBS = []
 
     def populate(self,parser):
-        """This may be overloaded to define global variables at hte frame
+        """This may be overloaded to define global variables at the frame
         where class is being defined."""
         pass
 
@@ -475,7 +479,7 @@ class Node(BaseNode):
 
                 if issubclass(subtask,Task):
 
-                    X = subtask(verb=self._verb,bare=self._bare)
+                    X = subtask(verb=self._verb,bare=self._bare,upper=self._upper)
 
                     q = getattr(subtask,'__doc__',None)
                     if q is None: q = X.get_hook()[0].__doc__
@@ -486,7 +490,7 @@ class Node(BaseNode):
                     subparser.set_defaults( ** { _EXTRA_KWD : Binding(funcobject=X) } )
 
                 elif issubclass(subtask,Node):
-                    X = subtask(verb=self._verb,bare=self._bare)
+                    X = subtask(verb=self._verb,bare=self._bare,upper=self._upper)
                     X._disable_history = True
 
                     docstr = Doc(getattr(subtask,'__doc__',None))
@@ -551,12 +555,10 @@ class Node(BaseNode):
         # Populate left parser with flat level tasks
         self.populate( leftparser )
 
-        # Execute flat level tasks (setting the global variables)
+        # Find: upper, by executing flat level tasks
         namespace = argparse.ArgumentParser.parse_args( leftparser, leftargs )
         for variable,value in vars(namespace).items():
-            module = inspect.getmodule(self)
-            setattr(module,variable,value)
-
+            self._upper[variable] = value
 
         # Execute delegation level tasks.
         return delegation(args=rightargs,parser=rightparser,nodes=rightnodes)

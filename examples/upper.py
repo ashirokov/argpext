@@ -13,7 +13,13 @@ class GetData(argpext.Task):
                             type=argpext.KeyWords(['stock','bond']),
                             help='Data identifier. Choose from %(type)s. Default:"%(default)s".')
 
+
+pre = argpext.DebugPrintOff(prefix='script: %(pybasename)s:%(lineno)s: ')
+
+
+
 def process():
+    "Process the data"
     print('Processing data ...' )
     return 1
 
@@ -25,6 +31,12 @@ class Process2(argpext.Task):
     "Process data"
     hook = process  # Illegal use
 
+class Process3(argpext.Task):
+    "Process data"
+    def hook(self):
+        pre('|',self.upper() )
+        return process()
+
 
 
 class Main(argpext.Node):
@@ -34,7 +46,12 @@ class Main(argpext.Node):
         ('process', process ),
         ('process1', Process1 ),
         ('process2', Process2 ),
+        ('process3', Process3 ),
         ]
+    def populate(self,parser):
+        parser.add_argument('-w', metavar='DIR', type=argpext.ChDir, help="Change to a directory")
+        parser.add_argument('--debug', default=False, action='store_true',help="Enable the debug mode")
+
 
 if __name__ == '__main__':
     Main(verb=True).digest()
