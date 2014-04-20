@@ -275,7 +275,21 @@ def verb_element(dspl,r,ignore_none):
         stream.write( ('%s' % r)+'\n' )
 
 
-def interwine(r,verb):
+def display(function):
+    function._display = display
+    return function
+
+
+def hook(function):
+    def wrapper(*args,**kwargs):
+        self = args[0]
+        args = args[1:]
+        r = function(*args,**kwargs)
+        return r
+    return wrapper
+
+
+def interwine(verb,r):
     if inspect.isgenerator(r):
         def wrapper():
             for rr in r:
@@ -288,17 +302,8 @@ def interwine(r,verb):
         return r
 
 
-
-def hook(function):
-    def wrapper(*args,**kwargs):
-        self = args[0]
-        args = args[1:]
-        r = function(*args,**kwargs)
-        return r
-    return wrapper
-
-
 def execution(basenode,args,kwds):
+
     pre('%(name)s started')
 
     H,isstatic = basenode.get_hook()
@@ -308,10 +313,11 @@ def execution(basenode,args,kwds):
     r = H(*args,**kwds)
 
     pre('hook returns:',r,type(r))
+    pre( getattr(H,'_display',None) )
 
-    r = interwine(r,basenode._verb)
-
-    pre('interwine returns:',r,type(r),chainref(limit=2))
+    if getattr(H,'_display',None) == display or isstatic:
+        r = interwine(basenode._verb,r)
+        pre('interwine returns:',r,type(r),chainref(limit=2))
 
     return r
 
