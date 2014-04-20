@@ -134,9 +134,9 @@ class DebugPrintOn(DebugPrint):
         print(*args,**kwds)
 
 
-pre = DebugPrintOn(prefix='EXECUTION: %(pybasename)s:%(lineno)s: ')
-prt = DebugPrintOn(prefix='Task management: %(pybasename)s:%(lineno)s: ')
-prd = DebugPrintOn(prefix='Debug: %(pybasename)s:%(lineno)s: ')
+pre = DebugPrintOff(prefix='EXECUTION: %(pybasename)s:%(lineno)s: ')
+prt = DebugPrintOff(prefix='Task management: %(pybasename)s:%(lineno)s: ')
+prd = DebugPrintOff(prefix='Debug: %(pybasename)s:%(lineno)s: ')
 
 class Doc(object):
     def __init__(self,value):
@@ -289,26 +289,13 @@ def interwine(r,verb):
 
 
 
-def display(function):
-    # The function argument should be a non-class member function.
-    def wrapper(*args,**kwds):
-        self = args[0]
-        pre('|d',self)
-        verb = self._verb
-        r = function(*args,**kwds)
-        pre('verb', r)
-        return interwine(r,verb)
-
-    return wrapper
-
-def hook(function,verb=False):
+def hook(function):
     def wrapper(*args,**kwargs):
         self = args[0]
-        pre('|h',self)
         args = args[1:]
         r = function(*args,**kwargs)
         return r
-    return wrapper if not verb else display(wrapper)
+    return wrapper
 
 
 def execution(basenode,args,kwds):
@@ -322,7 +309,7 @@ def execution(basenode,args,kwds):
 
     pre('hook returns:',r,type(r))
 
-    if isstatic: r = interwine(r,basenode._verb)
+    r = interwine(r,basenode._verb)
 
     pre('interwine returns:',r,type(r),chainref(limit=2))
 

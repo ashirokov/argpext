@@ -30,7 +30,7 @@ def tasktest():
     print('Test order: ', ', '.join(keys) )
 
     for itest,item in enumerate(itertools.product(*[options[k] for k in keys])):
-        if (itest != 2): continue
+        #if (itest != 2): continue
         print('-'*120)
         print('itest:',itest)
         x = [(key, item[i]) for i,key in enumerate(keys)]
@@ -40,7 +40,7 @@ def tasktest():
         if x['isstatic']:
             T = type('Type0',(argpext.Task,), {'HOOK' : x['task']})
         else:
-            T = type('Type1',(argpext.Task,), {'hook' : argpext.hook(x['task'],verb=x['verb'])})
+            T = type('Type1',(argpext.Task,), {'hook' : argpext.hook(x['task'])})
 
         t = T(verb=x['verb'])
 
