@@ -275,7 +275,7 @@ def verb_element(dspl,r,ignore_none):
         stream.write( ('%s' % r)+'\n' )
 
 
-def layover(r,verb):
+def interwine(r,verb):
     if inspect.isgenerator(r):
         def wrapper():
             for rr in r:
@@ -297,7 +297,7 @@ def display(function):
         verb = self._verb
         r = function(*args,**kwds)
         pre('verb', r)
-        return layover(r,verb)
+        return interwine(r,verb)
 
     return wrapper
 
@@ -322,9 +322,9 @@ def execution(basenode,args,kwds):
 
     pre('hook returns:',r,type(r))
 
-    if isstatic: r = layover(r,basenode._verb)
+    if isstatic: r = interwine(r,basenode._verb)
 
-    pre('layover returns:',r,type(r),chainref(limit=2))
+    pre('interwine returns:',r,type(r),chainref(limit=2))
 
     return r
 
