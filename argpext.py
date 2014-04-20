@@ -280,12 +280,13 @@ def display(function):
     return function
 
 
-def hook(function):
+def hook(function,display=False):
     def wrapper(*args,**kwargs):
         self = args[0]
         args = args[1:]
         r = function(*args,**kwargs)
         return r
+    if display: wrapper = globals()['display'](wrapper)
     return wrapper
 
 
