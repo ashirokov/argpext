@@ -125,24 +125,42 @@ def chainref(fstr='%(name)s[%(pybasename)s:%(lineno)s]',sep=' < ',up=0,limit=Non
     return sep.join(L)
 
 class DebugPrint(object):
-    def __init__(self,prefix):
+    KEYS = KeyWords(['sep','end','file','flush'])
+    def __init__(self,active=False,prefix=''):
         self.prefix = prefix
-
-class DebugPrintOff(DebugPrint):
-    def __call__(self,*args,**kwds): pass
-
-class DebugPrintOn(DebugPrint):
+        if not isinstance(active,(bool,int)): raise TypeError()
+        self.active = active
     def __call__(self,*args,**kwds): 
-        frm = frameref(up=1)
-        prefix = self.prefix % frm
-        args = [ (str(a) % frm) for a in args ]
-        args = [prefix]+args
-        print(*args,**kwds)
+        if self.active:
+
+            def get_args(args):
+                frm = frameref(up=2)
+                A = []
+                for i,a in enumerate(args):
+                    if i == 0: a = self.prefix+a
+                    A += [ str(a) % frm ]
+                return A
+
+            self.KEYS.verify( kwds.keys() )
+
+            args = get_args(args)
+            sep = kwds.get('sep',' ')
+            end = kwds.get('end','\n')
+            file = kwds.get('file',sys.stdout)
+            flush = kwds.get('flush',False)
+
+            line = sep.join(args)+end
+
+            file.write(line)
+            if flush: file.flush()
 
 
-pre = DebugPrintOff(prefix='EXECUTION: %(pybasename)s:%(lineno)s: ')
-prt = DebugPrintOff(prefix='Task management: %(pybasename)s:%(lineno)s: ')
-prd = DebugPrintOff(prefix='Debug: %(pybasename)s:%(lineno)s: ')
+
+pre = DebugPrint(0,'EXECUTION: %(pybasename)s:%(lineno)s: ')
+prt = DebugPrint(0,'Task management: %(pybasename)s:%(lineno)s: ')
+prd = DebugPrint(0,'Debug: %(pybasename)s:%(lineno)s: ')
+
+#prd('ok',sep='')
 
 class Doc(object):
     def __init__(self,value):
