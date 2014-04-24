@@ -64,6 +64,12 @@ class KeyWords(object):
         if key in self._dct: return key
         else: raise KeyError('invalid key: "%s"' % key)
 
+    def verify(self,keys):
+        for key in keys:
+            if key not in self: 
+                raise KeyError("unrecognized key: '%s'" % key)
+
+
     def __str__(self):
         f = frameref(up=1)
         brief = (f['basename'] == 'argparse.py' and f['name'] == '_expand_help')
