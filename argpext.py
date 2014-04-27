@@ -88,6 +88,8 @@ class KeyWords(object):
 ENVVARS = KeyWords(['ARGPEXT_HISTORY'])
 
 
+#> Position 
+
 def frameref(up=0):
     "returns frame reference string"
     frame = sys._getframe(1+up)
@@ -151,7 +153,7 @@ class DebugPrint(object):
 
 
     KEYS = KeyWords(['sep','end','file','flush',
-                     's','e'])
+                     's','e','n'])
 
     def __call__(self,*args,**kwds): 
 
@@ -172,11 +174,14 @@ class DebugPrint(object):
 
                 s = kwds.get('s')
                 e = kwds.get('e')
+                n = kwds.get('n')
                 # If none of the above arguments are specified, we do not need the count.
 
-                live = True
-                if s is not None and count < s: live = False
-                if e is not None and count >= e: live = False
+                live = False
+                if s is not None and count >= s: live = True
+                if e is not None and count < e: live = True
+                if n is not None and count == n: live = True
+                if all([ q is None for q in (a,b,c,)]): live = True
                 return count,live
 
             count,live = active()
