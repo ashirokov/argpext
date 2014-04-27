@@ -92,7 +92,7 @@ def frameref(up=0):
     "returns frame reference string"
     frame = sys._getframe(1+up)
     code = frame.f_code
-    lineno = frame.f_lineno
+    line = frame.f_lineno
     path = code.co_filename
     name = code.co_name
     basename = os.path.basename(path)
@@ -105,12 +105,12 @@ def frameref(up=0):
         'path' : path,
         'basename' : basename,
         'pybasename' : pybasename,
-        'lineno' : lineno,
+        'line' : line,
         'name' : name
     }
 
 
-def chainref(fstr='%(name)s[%(pybasename)s:%(lineno)s]',sep=' < ',up=0,limit=None):
+def chainref(fstr='%(name)s[%(pybasename)s:%(line)s]',sep=' < ',up=0,limit=None):
     "Return chain reference."
     i = 0
     L = []
@@ -125,24 +125,73 @@ def chainref(fstr='%(name)s[%(pybasename)s:%(lineno)s]',sep=' < ',up=0,limit=Non
     return sep.join(L)
 
 class DebugPrint(object):
-    KEYS = KeyWords(['sep','end','file','flush'])
-    def __init__(self,active=False,prefix=''):
-        self.prefix = prefix
+
+    def __init__(self,active=False,prefix=None, tr=False):
         if not isinstance(active,(bool,int)): raise TypeError()
         self.active = active
+
+        if not isinstance(tr,(bool,int)): raise TypeError()
+        self.tr = tr
+
+        def get_prefix():
+            if prefix is None:
+                if tr:
+                    return '%(pybasename)s:%(line)s [%(count)s]: '
+                else:
+                    return '%(pybasename)s:%(line)s:'
+            else:
+                if not isinstance(prefix,str): raise TypeError()
+                return prefix
+
+        self.prefix = get_prefix()
+            
+
+
+    KEYS = KeyWords(['sep','end','file','flush',
+                     's','e'])
+
     def __call__(self,*args,**kwds): 
+
+        self.KEYS.verify( kwds.keys() )
+
+        if self.tr:
+            def active():
+                # Update the count
+                F = sys._getframe(2)
+                line = F.f_lineno
+                key = '__argpext_DebugPrint_%s' % line
+                count = F.f_globals.setdefault(key,-1)
+                count += 1
+                F.f_globals[key] = count
+
+                s = kwds.get('s')
+                e = kwds.get('e')
+                # If none of the above arguments are specified, we do not need the count.
+
+                live = True
+                if s is not None and count < s: live = False
+                if e is not None and count >= e: live = False
+                return count,live
+
+            count,live = active()
+            if not live: return
+        else:
+            count = None
+
+
         if self.active:
 
             def get_args(args):
                 frm = frameref(up=2)
+                frm['count'] = count
+
                 A = []
                 for i,a in enumerate(args):
                     if i == 0: a = self.prefix+a
                     A += [ str(a) % frm ]
                 return A
 
-            self.KEYS.verify( kwds.keys() )
-
+            # print arguments
             args = get_args(args)
             sep = kwds.get('sep',' ')
             end = kwds.get('end','\n')
@@ -156,9 +205,9 @@ class DebugPrint(object):
 
 
 
-pre = DebugPrint(0,'EXECUTION: %(pybasename)s:%(lineno)s: ')
-prt = DebugPrint(0,'Task management: %(pybasename)s:%(lineno)s: ')
-prd = DebugPrint(0,'Debug: %(pybasename)s:%(lineno)s: ')
+pre = DebugPrint(0,'EXECUTION: %(pybasename)s:%(line)s: ')
+prt = DebugPrint(0,'Task management: %(pybasename)s:%(line)s: ')
+prd = DebugPrint(0,'Debug: %(pybasename)s:%(line)s: ')
 
 #prd('ok',sep='')
 
@@ -175,7 +224,7 @@ class Doc(object):
         debug = False
         if debug:
             R += '[%(position)s%(label)s]' % \
-                 { 'position' : '%(basename)s:%(lineno)s' % frameref(up=1)
+                 { 'position' : '%(basename)s:%(line)s' % frameref(up=1)
                    ,'label' : ('(%s)' % label  if label is not None else '') 
                  }
 
