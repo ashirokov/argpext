@@ -11,7 +11,7 @@ def func():
     return list([i for i in gnr()])
 
 
-prn = argpext.DebugPrintOn('# %(pybasename)s %(lineno)s:')
+prn = argpext.DebugPrint()
 
 def tasktest():
 

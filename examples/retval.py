@@ -21,6 +21,6 @@ print( y )
 y = Square()()
 print( y )
 
-y = Square(bare=True)()
+y = Square()() # Todo: add custom execution
 print( y )
 

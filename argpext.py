@@ -101,18 +101,18 @@ def frameref(up=0):
 
     dirbasename = os.path.basename(os.path.abspath(os.path.dirname(path)))
 
-    pybasename = os.path.join( * (([dirbasename] if basename.lower() == '__init__.py' else [])+[basename]) )
+    basenamepy = os.path.join( * (([dirbasename] if basename.lower() == '__init__.py' else [])+[basename]) )
 
     return {
         'path' : path,
         'basename' : basename,
-        'pybasename' : pybasename,
+        'basenamepy' : basenamepy,
         'line' : line,
         'name' : name
     }
 
 
-def chainref(fstr='%(name)s[%(pybasename)s:%(line)s]',sep=' < ',up=0,limit=None):
+def chainref(fstr='%(name)s[%(basenamepy)s:%(line)s]',sep=' < ',up=0,limit=None):
     "Return chain reference."
     i = 0
     L = []
@@ -128,22 +128,22 @@ def chainref(fstr='%(name)s[%(pybasename)s:%(line)s]',sep=' < ',up=0,limit=None)
 
 class DebugPrint(object):
 
-    def __init__(self,active=False,prefix=None, tr=False):
+    def __init__(self,active=True,prefix=None):
 
         # First thing off, check the highest priority argument.
         if not isinstance(active,(bool,int)): raise TypeError()
         self.active = active
         if not active: return
 
-        if not isinstance(tr,(bool,int)): raise TypeError()
-        self.tr = tr
+        self.tr = True
+        if not isinstance(self.tr,(bool,int)): raise TypeError()
 
         def get_prefix():
             if prefix is None:
-                if tr:
-                    return '%(pybasename)s:%(line)s [%(count)s]: '
+                if self.tr:
+                    return '%(basenamepy)s:%(line)s [%(count)s]: '
                 else:
-                    return '%(pybasename)s:%(line)s: '
+                    return '%(basenamepy)s:%(line)s: '
             else:
                 if not isinstance(prefix,str): raise TypeError()
                 return prefix
@@ -207,12 +207,6 @@ class DebugPrint(object):
 
 
 
-pre = DebugPrint(0,'EXECUTION: %(pybasename)s:%(line)s: ')
-prt = DebugPrint(0,'Task management: %(pybasename)s:%(line)s: ')
-prd = DebugPrint(0,'Debug: %(pybasename)s:%(line)s: ')
-
-#prd('ok',sep='')
-
 class Doc(object):
     def __init__(self,value):
         self.value = value
@@ -237,8 +231,7 @@ VERB_KWDS = KeyWords(['stream','str'])
 
 class BaseNode(object):
 
-    def __init__(self,bare,verb,upper={}):
-        self._bare = bare
+    def __init__(self,verb,upper={}):
         self._verb = verb
         self._upper = upper
 
@@ -299,53 +292,54 @@ class BaseNode(object):
 
 
 
-def get_func_defaults(func):
-    "Populate D with the default values from the function"
-    D = {}
-    vs = func.__defaults__
-    if vs is not None and len(vs):
-        ns = func.__code__.co_varnames
-        offset = len(ns)-len(vs)
-        for i in range(offset,len(ns)):
-            name = ns[i]
-            value = vs[i-offset]
-            D[name] = value
-    return D
+#def get_func_defaults(func):
+#    "Populate D with the default values from the function"
+#    D = {}
+#    vs = func.__defaults__
+#    if vs is not None and len(vs):
+#        ns = func.__code__.co_varnames
+#        offset = len(ns)-len(vs)
+#        for i in range(offset,len(ns)):
+#            name = ns[i]
+#            value = vs[i-offset]
+#            D[name] = value
+#    return D
+#
+#def get_parser_defaults( populate, argument_default):
+#    "Populate D with the default values from parser, except for those None."
+#    D = {}
+#
+#    parser = argparse.ArgumentParser(argument_default=argument_default)
+#
+#    populate( parser )
+#
+#    # Populate the default values
+#    for k,v in parser._option_string_actions.items():
+#        if issubclass(type(v),argparse.Action):
+#            if isinstance(v,argparse._HelpAction): continue
+#            key = v.dest
+#            value = v.default
+#            D[key] = value
+#
+#    return D
+#
 
-def get_parser_defaults( populate ):
-    "Populate D with the default values from parser, except for those None."
-    D = {}
-    parser = argparse.ArgumentParser()
-
-    populate( parser )
-
-    # Populate the default values
-    for k,v in parser._option_string_actions.items():
-        if issubclass(type(v),argparse.Action):
-            if isinstance(v,argparse._HelpAction): continue
-            key = v.dest
-            value = v.default
-            D[key] = value
-
-    return D
-
-
-def verb_element(dspl,r,ignore_none):
-    if dspl == False:
+def verb_element(verb,r,ignore_none):
+    if verb == False:
         return
-    elif dspl == True:
+    elif verb == True:
         stream = sys.stdout
-    elif isinstance(dspl,dict):
+    elif isinstance(verb,dict):
         try:
-            for k in dspl: VERB_KWDS(k)
+            for k in verb: VERB_KWDS(k)
         except KeyError:
-            raise KeyError('invalid key ("%s") in the the "dspl=" argument; allowed keys: %s' % (k, ",".join(['"%s"' % q for q in VERB_KWDS]) ))
+            raise KeyError('invalid key ("%s") in the the "verb=" argument; allowed keys: %s' % (k, ",".join(['"%s"' % q for q in VERB_KWDS]) ))
 
         # Conditional convertion
-        s = dspl.get('str',None)
+        s = verb.get('str',None)
         if s is not None: r = s( r )
 
-        stream = dspl.get('stream',sys.stdout)
+        stream = verb.get('stream',sys.stdout)
     else:
         raise TypeError('invalid type of display argument (neither bool not dict)')
 
@@ -378,7 +372,6 @@ def interwine(verb,r):
     if inspect.isgenerator(r):
         def wrapper():
             for rr in r:
-                pre( chainref() )
                 verb_element(verb, rr,ignore_none=False)
                 yield rr
         return wrapper()
@@ -389,20 +382,14 @@ def interwine(verb,r):
 
 def execution(basenode,args,kwds):
 
-    pre('%(name)s started')
-
     H,isstatic = basenode.get_hook()
 
-    args = ((basenode,) if not isstatic else ())+args
+    args = ((basenode,) if not isstatic else ())+tuple(args)
 
     r = H(*args,**kwds)
 
-    pre('hook returns:',r,type(r))
-    pre( getattr(H,'_display',None) )
-
     if getattr(H,'_display',None) == display or isstatic:
         r = interwine(basenode._verb,r)
-        pre('interwine returns:',r,type(r),chainref(limit=2))
 
     return r
 
@@ -426,8 +413,6 @@ class Binding(object):
             del q[ _EXTRA_KWD ]
             return q
 
-        pre('execution: implicit via node')
-
         return execution( basenode=self._funcobject, args=(), kwds=get_kwds(namespace) )
 
 
@@ -435,8 +420,8 @@ class Binding(object):
 class Task(BaseNode):
     """Base class for command line interface to a Python function."""
 
-    def __init__(self,verb=True,bare=False,upper={}):
-        BaseNode.__init__(self,verb=verb,bare=bare,upper=upper)
+    def __init__(self,verb=True,upper={}):
+        BaseNode.__init__(self,verb=verb,upper=upper)
 
     # Members to be overloaded by the user
     def hook(self):
@@ -464,19 +449,74 @@ class Task(BaseNode):
 
     def __call__(self,*args,**kwds):
         """Direct execution, using Task class object"""
-        #print('direct execution')
 
-        def get_kwds(kwds):
-            K = {}
-            if not self._bare: K.update( get_parser_defaults( self.populate ) )
-            # functions defaults will apply at this point
-            K.update( kwds )
-            return K
+        def get_parser_summary():
+            summary = collections.OrderedDict()
+            parser = argparse.ArgumentParser()
+            self.populate(parser)
+            """
+            _HelpAction,_StoreAction,_StoreFalseAction,_StoreTrueAction
 
-        # Explicit execution: invoked from a python script.
-        pre('execution: explicit, in script')
+            _StoreConstAction,_AppendAction,_AppendConstAction,_CountAction,_Ver
+            """
+            for action in parser._actions:
+                actype = type(action).__name__
+                q = summary
+                q = q.setdefault(actype,[])
+                q += [ action ]
+            return summary
 
-        return execution( basenode=self, args=args, kwds=get_kwds(kwds) )
+        def split_saopts():
+            def pop(actype):
+                spas = []
+                for act in summary.pop(actype,[]):
+                    for s in act.option_strings:
+                        while 1:
+                            try:
+                                args.remove(s)
+                            except ValueError:
+                                break
+                            spas += [s]
+                return spas
+
+            q = []
+            q += pop('_StoreFalseAction')
+            q += pop('_StoreTrueAction')
+            saopts = q
+            posargs = args
+            return posargs,saopts
+
+        def get_args_pass():
+            pos = []
+            opts = []
+            for act in summary.pop('_StoreAction',[]):
+                option_strings = act.option_strings
+                if not len(option_strings):
+                    # This is a required positional argument action.
+                    # Populate either from the args or from kwds.
+                    pos += [ args_pos.pop(0) if len(args_pos) else kwds.pop(act.dest) ]
+                else:
+                    if act.dest in kwds:
+                        opts += [ option_strings[0], kwds.pop(act.dest) ]
+
+            #print('pos:', pos )
+            #print('opts:', opts )
+            args_pass = [ str(q) for q in pos+args_saopts+opts]
+            return args_pass
+
+
+        args = list(args)
+
+        summary = get_parser_summary()
+
+        # Find: positional and stand-alone arguments
+        args_pos,args_saopts = split_saopts()
+
+        # Identify positional arguments in parser and feed args_pos into them
+        args_pass = get_args_pass()
+
+        return self.digest(args=args_pass)
+
 
 
     def digest(self,prog=None,args=None):
@@ -506,8 +546,6 @@ class Task(BaseNode):
 
         # How are the default used?
 
-        pre('execution: implicit, of Task, via digest')
-
         return execution( basenode=self, args=(), kwds=get_kwds(args) )
 
 
@@ -515,8 +553,8 @@ class Task(BaseNode):
 class Node(BaseNode):
     """Command line interface for a node."""
 
-    def __init__(self,verb=True,bare=False,upper={}):
-        BaseNode.__init__(self,verb=verb,bare=bare,upper=upper)
+    def __init__(self,verb=True,upper={}):
+        BaseNode.__init__(self,verb=verb,upper=upper)
 
     # Members to be redefined by a user
 
@@ -527,121 +565,130 @@ class Node(BaseNode):
         where class is being defined."""
         pass
 
-    # Other members
+    def _get_deleg(self,prog):
+
+        parser = argparse.ArgumentParser( prog=prog, description=Doc(self.__doc__)(label='description')  )
+
+        nodes = {}
+        Y = None
+
+        subs = getattr(self,'SUBS',[])
+
+        for name,subtask in subs:
+            nodes[name] = subtask
+
+            if Y is None: Y = parser.add_subparsers(help='Description')
+
+            if inspect.isfunction(subtask):
+                # Find: subtask, the class of the task.
+                subtask = type(subtask.__name__.capitalize(), 
+                            (Task,) , 
+                            {'hook' : make_hook(subtask,display=True)
+                            })
+
+            if issubclass(subtask,Task):
+
+                X = subtask(verb=self._verb,upper=self._upper)
+
+                q = getattr(subtask,'__doc__',None)
+                if q is None: q = X.get_hook()[0].__doc__
+                docstr = Doc(q)
+
+                S = Y.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
+                X.populate( S )
+                S.set_defaults( ** { _EXTRA_KWD : Binding(funcobject=X) } )
+
+            elif issubclass(subtask,Node):
+                X = subtask(verb=self._verb,upper=self._upper)
+                X._disable_history = True
+
+                docstr = Doc(getattr(subtask,'__doc__',None))
+
+                S = Y.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
+                S.set_defaults( ** { _EXTRA_KWD : X } )
+            else:
+                raise TypeError('invalid type (%s) for sub-command "%s" of %s' % ( subtask.__name__, name, type(self).__name__ ) )
+
+        return dict(parser=parser,nodes=nodes)
+
+    @staticmethod
+    def _delegation(key,node,args,parser):
+        if inspect.isfunction(node) or issubclass(node,Task):
+            q = argparse.ArgumentParser.parse_args( parser, [key]+args )
+            # Execute bound function.
+            return getattr(q,_EXTRA_KWD)( q )
+        elif issubclass(node,Node):
+            q = argparse.ArgumentParser.parse_args( parser, [key] )
+            # Chaining
+            return getattr(q,_EXTRA_KWD).digest( prog='%s %s' % (prog,key), args=args )
+        else:
+            raise TypeError
+
+    @staticmethod
+    def _argsplit(args,keys):
+        # Find: L,R: argument splitting into shallow and deleg parts
+        L = []
+        R = []
+        ptr = L
+        for i,arg in enumerate(args):
+            if len(R) or arg in keys:
+                ptr = R
+            ptr += [arg]
+        return L,R
+
+    def _parserdict(self,prog,args,kwds):
+        deleg = self._get_deleg(prog=prog)
+        self.populate( deleg['parser'] )
+        namespace = argparse.ArgumentParser.parse_args( deleg['parser'], args )
+        D = vars(namespace)
+        # Overwrite values defined by parser with explicitly given keyword arguments.
+        for key,val in kwds.items():
+            if key not in D: raise ValueError("dest='%s' is not defined by parser" % key)
+            D[key] = str(val)
+        return D
 
     def digest(self,prog=None,args=None):
-        """Execute the node based on command line
-        argument *args*, which must be 
-        :py:class:`list`, :py:class:`tuple`, or *None* (in
-        which case it is automatically assigned to
-        `=sys.argv[1:]`). The return value is identical to
-        the return value of the reference function.
+        """Execute a node, given the command line arguments.
         """
-
-        def add_subtasks(parser):
-            subtasks = {}
-            subparsers = None
-
-            subs = getattr(self,'SUBS',[])
-
-            for name,subtask in subs:
-                subtasks[name] = subtask
-
-                if subparsers is None: subparsers = parser.add_subparsers(help='Description')
-
-                if inspect.isfunction(subtask):
-                    prt("subtask is a function")
-                    # Find: subtask, the class of the task.
-                    subtask = type(subtask.__name__.capitalize(), 
-                                (Task,) , 
-                                {'hook' : make_hook(subtask,display=True)
-                                })
-
-                if issubclass(subtask,Task):
-
-                    X = subtask(verb=self._verb,bare=self._bare,upper=self._upper)
-
-                    q = getattr(subtask,'__doc__',None)
-                    if q is None: q = X.get_hook()[0].__doc__
-                    docstr = Doc(q)
-
-                    subparser = subparsers.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
-                    X.populate( subparser )
-                    subparser.set_defaults( ** { _EXTRA_KWD : Binding(funcobject=X) } )
-
-                elif issubclass(subtask,Node):
-                    X = subtask(verb=self._verb,bare=self._bare,upper=self._upper)
-                    X._disable_history = True
-
-                    docstr = Doc(getattr(subtask,'__doc__',None))
-
-                    subparser = subparsers.add_parser(name,help=docstr(label='help',short=True),description=docstr(label='description') )
-                    subparser.set_defaults( ** { _EXTRA_KWD : X } )
-                else:
-                    raise TypeError('invalid type (%s) for sub-command "%s" of %s' % ( subtask.__name__, name, type(self).__name__ ) )
-
-            return subtasks
-
-
-        def delegation(args,parser,nodes):
-            if len(args):
-                word = args[0]
-                node = nodes[word]
-
-                if inspect.isfunction(node) or issubclass(node,Task):
-                    q = argparse.ArgumentParser.parse_args( parser, args )
-                    # Execute bound function.
-                    return getattr(q,_EXTRA_KWD)( q )
-                elif issubclass(node,Node):
-                    q = argparse.ArgumentParser.parse_args( parser, [word] )
-                    # Chaining
-                    return getattr(q,_EXTRA_KWD).digest( prog='%s %s' % (prog,word), args=args[1:] )
-                else:
-                    raise TypeError
-
-
 
         if prog is None: prog = os.path.basename( sys.argv[0] )
         if args is None: args = sys.argv[1:]
 
-
-        # Write history file
         if not hasattr(self,'_disable_history'):
             BaseNode.history_update(self,prog=prog,args=args)
 
+        deleg = self._get_deleg(prog=prog)
 
-        # Find: rightparser, the parser for delegation tasks
-        docstr = Doc(self.__doc__)
+        # Split arguments into two parts: shallow, and deep.
+        shallowargs,rightargs = Node._argsplit(args=args,keys=deleg['nodes'].keys())
 
-        rightparser = argparse.ArgumentParser( prog=prog, description=docstr(label='description')  )
+        self._upper.update( self._parserdict(prog=prog,args=shallowargs,kwds={}) )
 
-        # Find: rightnodes, the lookup dict for delegation tasks
-        rightnodes = add_subtasks(rightparser)
+        if len(rightargs):
+            key = rightargs[0]
+            delegargs = rightargs[1:]
+            node = deleg['nodes'][ key ]
+            parser = deleg['parser']
+            return Node._delegation(key=key,node=node,args=delegargs,parser=parser)
 
-        # Find: leftargs,rightargs: argument splitting
-        leftargs = []
-        rightargs = []
-        current = leftargs
-        for i,arg in enumerate(args):
-            if len(rightargs) or arg in rightnodes: current = rightargs
-            current += [arg]
 
-        # Find: leftparser, parser for flat level tasks: either before delegation or to print help.
-        docstr = Doc(self.__doc__)
+    def __call__(self,*args,**kwds):
 
-        leftparser = argparse.ArgumentParser( prog=prog, description=docstr(label='description')  )
-        add_subtasks(leftparser)
+        prog = None
 
-        # Populate left parser with flat level tasks
-        self.populate( leftparser )
+        deleg = self._get_deleg(prog=prog)
 
-        # Find: upper, by executing flat level tasks
-        namespace = argparse.ArgumentParser.parse_args( leftparser, leftargs )
-        for variable,value in vars(namespace).items():
-            self._upper[variable] = value
+        args = [str(q) for q in args]
 
-        # Execute delegation level tasks.
-        return delegation(args=rightargs,parser=rightparser,nodes=rightnodes)
+        if len(args):
+            key = args[-1]
+            node = deleg['nodes'][ key ]
+            shallowargs = args[:-1]
+
+            self._upper.update( self._parserdict(prog=prog,args=shallowargs,kwds=kwds) )
+
+            return node(verb=self._verb,upper=self._upper)
+
 
 
 def histfile():
@@ -690,7 +737,7 @@ if __name__ == '__main__':
 class Function(Task):
     def __init__(self,*args,**kwds):
         warnings.warn("Please rename all 'argpext.Function' into 'argpext.Task'. "\
-                      "The support for argpext.Function may terminate starting from argpext Version 2.0"
+                      "The support for 'argpext.Function' may terminate starting from argpext Version 2.0"
                       , UserWarning)
         Task.__init__(self,*args,**kwds)
 
@@ -759,3 +806,7 @@ class Categorical(object):
             else:
                 return self.__typeothers(key)
 
+__all__ = ['ChDir','KeyWords',
+           'frameref','chainref','DebugPrint',
+           'VERB_KWDS','display','make_hook','Task','Node','Main',
+           'Function','Unit','Categorical']
