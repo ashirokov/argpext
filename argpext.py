@@ -127,8 +127,11 @@ def chainref(fstr='%(name)s[%(pybasename)s:%(line)s]',sep=' < ',up=0,limit=None)
 class DebugPrint(object):
 
     def __init__(self,active=False,prefix=None, tr=False):
+
+        # First thing off, check the highest priority argument.
         if not isinstance(active,(bool,int)): raise TypeError()
         self.active = active
+        if not active: return
 
         if not isinstance(tr,(bool,int)): raise TypeError()
         self.tr = tr
@@ -151,6 +154,9 @@ class DebugPrint(object):
                      's','e'])
 
     def __call__(self,*args,**kwds): 
+
+        # First thing off, check the highest priority argument.
+        if not self.active: return
 
         self.KEYS.verify( kwds.keys() )
 
@@ -179,29 +185,27 @@ class DebugPrint(object):
             count = None
 
 
-        if self.active:
+        def get_args(args):
+            frm = frameref(up=2)
+            frm['count'] = count
 
-            def get_args(args):
-                frm = frameref(up=2)
-                frm['count'] = count
+            A = []
+            for i,a in enumerate(args):
+                if i == 0: a = self.prefix+a
+                A += [ str(a) % frm ]
+            return A
 
-                A = []
-                for i,a in enumerate(args):
-                    if i == 0: a = self.prefix+a
-                    A += [ str(a) % frm ]
-                return A
+        # print arguments
+        args = get_args(args)
+        sep = kwds.get('sep',' ')
+        end = kwds.get('end','\n')
+        file = kwds.get('file',sys.stdout)
+        flush = kwds.get('flush',False)
 
-            # print arguments
-            args = get_args(args)
-            sep = kwds.get('sep',' ')
-            end = kwds.get('end','\n')
-            file = kwds.get('file',sys.stdout)
-            flush = kwds.get('flush',False)
+        line = sep.join(args)+end
 
-            line = sep.join(args)+end
-
-            file.write(line)
-            if flush: file.flush()
+        file.write(line)
+        if flush: file.flush()
 
 
 
