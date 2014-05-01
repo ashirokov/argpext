@@ -196,8 +196,8 @@ class DebugPrint(object):
 
             A = []
             for i,a in enumerate(args):
-                if i == 0: a = self.prefix+a
-                A += [ str(a) % frm ]
+                if i == 0: a = (self.prefix % frm)+str(a)
+                A += [ str(a) ]
             return A
 
         # print arguments
