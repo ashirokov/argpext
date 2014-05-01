@@ -143,7 +143,7 @@ class DebugPrint(object):
                 if tr:
                     return '%(pybasename)s:%(line)s [%(count)s]: '
                 else:
-                    return '%(pybasename)s:%(line)s:'
+                    return '%(pybasename)s:%(line)s: '
             else:
                 if not isinstance(prefix,str): raise TypeError()
                 return prefix
@@ -181,7 +181,7 @@ class DebugPrint(object):
                 if s is not None and count >= s: live = True
                 if e is not None and count < e: live = True
                 if n is not None and count == n: live = True
-                if all([ q is None for q in (a,b,c,)]): live = True
+                if all([ q is None for q in (s,e,n)]): live = True
                 return count,live
 
             count,live = active()
@@ -190,24 +190,17 @@ class DebugPrint(object):
             count = None
 
 
-        def get_args(args):
-            frm = frameref(up=2)
-            frm['count'] = count
-
-            A = []
-            for i,a in enumerate(args):
-                if i == 0: a = (self.prefix % frm)+str(a)
-                A += [ str(a) ]
-            return A
-
         # print arguments
-        args = get_args(args)
         sep = kwds.get('sep',' ')
         end = kwds.get('end','\n')
         file = kwds.get('file',sys.stdout)
         flush = kwds.get('flush',False)
 
-        line = sep.join(args)+end
+        frm = frameref(up=1)
+        frm['count'] = count
+        prefix = self.prefix % frm
+
+        line = prefix+sep.join([str(q) for q in args])+end
 
         file.write(line)
         if flush: file.flush()
