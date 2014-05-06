@@ -6,7 +6,7 @@ import sheepactions # Module sheepactions is provided by previous example.
 
 
 
-class FeedWolf(argpext.Function):
+class FeedWolf(argpext.Task):
     "Feed the wolf"
 
     def hook(self,prey):
@@ -20,7 +20,7 @@ class Main(argpext.Node):
     "Top level sheepgame options"
     SUBS = [
         ('sheep', sheepactions.Sheep), # Attaching another Node
-        ('feed-wolf', FeedWolf), # Attaching a Function
+        ('feed-wolf', FeedWolf), # Attaching a Task
         # Add more subcommands here
         ]
 

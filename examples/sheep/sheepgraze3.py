@@ -6,7 +6,7 @@ def sheep_graze(feed):
     print('Sheep grazes on %s' % feed)
 
 
-class SheepGraze(argpext.Function):
+class SheepGraze(argpext.Task):
     "Let sheep graze"
 
     hook = argpext.hook(sheep_graze)

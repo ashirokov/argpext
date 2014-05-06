@@ -7,7 +7,7 @@ def sheep_graze(quantity,feed,hours):
     print( ('%s of sheep grazes on %s for %.1f hours.' \
               % (quantity, feed, hours) ).capitalize() )
 
-class SheepGraze(argpext.Function):
+class SheepGraze(argpext.Task):
     "Let sheep graze"
     hook = argpext.hook(sheep_graze)
     def populate(self,parser):

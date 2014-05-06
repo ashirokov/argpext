@@ -2,7 +2,7 @@
 
 import argpext
 
-class SheepGraze(argpext.Function):
+class SheepGraze(argpext.Task):
     "Let sheep graze"
 
     def hook(self,feed):
