@@ -28,17 +28,22 @@ class Task2(argpext.Task):
         parser.add_argument('-y',help='Specify parameter y')
 
 
+def func():
+    print('executing func..')
+    return 3
+
 #Task()(a=1,b=2,c="des")
 
 class Main(argpext.Node):
     SUBS = [('task1', Task1),
-            ('task2', Task2)
+            ('task2', Task2),
+            ('task3', func) # Passing a simple function
             ]
     def populate(self,parser):
         parser.add_argument('-n',type=int,help='Specify n')
         parser.add_argument('--debug',action='store_true',help='Specify debug mode')
         
-if 0:
+if 1:
     if __name__ == '__main__':
         Main().digest()
 else:

@@ -6,6 +6,8 @@ import argpext
 pre = argpext.DebugPrint()
 
 class Task(argpext.Task):
+
+    @argpext.display
     def hook(self,a,debug,b="hooks default for b",c="hooks default for c",dest="dest value"):
         print('Executing task 1..')
         print('a:',a)
@@ -13,6 +15,7 @@ class Task(argpext.Task):
         print('c:',c)
         print('dest:',dest)
         print('debug:',debug)
+        return 2
 
     def populate(self,parser):
         parser.add_argument('a', help="Value of a")
@@ -24,7 +27,7 @@ class Task(argpext.Task):
 
 if 1:
 
-    Task()('dest value','--debug',dest=2343)
+    Task(verb=True)('dest value','--debug',dest=2343)
 
 else:
 
