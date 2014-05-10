@@ -71,7 +71,7 @@ class KeyWords(object):
 
 
     def __str__(self):
-        f = frameref(up=1)
+        f = FrameRef(up=1)
         brief = (f['basename'] == 'argparse.py' and f['name'] == '_expand_help')
         if not brief:
             q = list([ ("'%s'" % k) for k in self._dct.keys() ])
@@ -89,36 +89,43 @@ ENVVARS = KeyWords(['ARGPEXT_HISTORY'])
 
 
 #> Position 
+class FrameRef:
+    KEYS = KeyWords(['line','path','name','basename','smart_basename'])
 
-def frameref(up=0):
-    "returns frame reference string"
-    frame = sys._getframe(1+up)
-    code = frame.f_code
-    line = frame.f_lineno
-    path = code.co_filename
-    name = code.co_name
-    basename = os.path.basename(path)
+    def __init__(self,up=0):
+        self.frame = sys._getframe(1+up)
 
-    dirbasename = os.path.basename(os.path.abspath(os.path.dirname(path)))
+    def keys(self):
+        return self.KEYS
 
-    basenamepy = os.path.join( * (([dirbasename] if basename.lower() == '__init__.py' else [])+[basename]) )
+    def __getitem__(self,key):
+        "returns frame reference string"
+        if self.KEYS(key) == 'line':
+            return self.frame.f_lineno
+        elif key == 'path':
+            return self.frame.f_code.co_filename
+        elif key == 'name':
+            return self.frame.f_code.co_name
+        elif key == 'basename':
+            return os.path.basename(self['path'])
+        elif key == 'smart_basename':
+            basename = self['basename']
+            q = self['path']
+            q = os.path.dirname(q)
+            q = os.path.basename(q)
+            dirbasename = q
+            return os.path.join( * (([dirbasename] if basename.lower() == '__init__.py' else [])+[basename]) )
+        else:
+            raise KeyError()
 
-    return {
-        'path' : path,
-        'basename' : basename,
-        'basenamepy' : basenamepy,
-        'line' : line,
-        'name' : name
-    }
 
-
-def chainref(fstr='%(name)s[%(basenamepy)s:%(line)s]',sep=' < ',up=0,limit=None):
+def chainref(fstr='%(name)s[%(smart_basename)s:%(line)s]',sep=' < ',up=0,limit=None):
     "Return chain reference."
     i = 0
     L = []
     while 1:
         try:
-            f = fstr % frameref(up=1+up+i)
+            f = fstr % FrameRef(up=1+up+i)
         except ValueError:
             break
         L += [f]
@@ -128,28 +135,14 @@ def chainref(fstr='%(name)s[%(basenamepy)s:%(line)s]',sep=' < ',up=0,limit=None)
 
 class DebugPrint(object):
 
-    def __init__(self,active=True,prefix=None):
+    def __init__(self,active=True,format_spec='{smart_basename}:{line} [{count}]: {string}'):
 
         # First thing off, check the highest priority argument.
         if not isinstance(active,(bool,int)): raise TypeError()
         self.active = active
         if not active: return
 
-        self.tr = True
-        if not isinstance(self.tr,(bool,int)): raise TypeError()
-
-        def get_prefix():
-            if prefix is None:
-                if self.tr:
-                    return '%(basenamepy)s:%(line)s [%(count)s]: '
-                else:
-                    return '%(basenamepy)s:%(line)s: '
-            else:
-                if not isinstance(prefix,str): raise TypeError()
-                return prefix
-
-        self.prefix = get_prefix()
-            
+        self.format_spec = format_spec
 
 
     KEYS = KeyWords(['sep','end','file','flush',
@@ -160,47 +153,50 @@ class DebugPrint(object):
         # First thing off, check the highest priority argument.
         if not self.active: return
 
-        self.KEYS.verify( kwds.keys() )
+        def active():
+            # Update the count
+            F = sys._getframe(2)
+            line = F.f_lineno
+            key = '__argpext_DebugPrint_%s' % line
+            count = F.f_globals.setdefault(key,-1)
+            count += 1
+            F.f_globals[key] = count
 
-        if self.tr:
-            def active():
-                # Update the count
-                F = sys._getframe(2)
-                line = F.f_lineno
-                key = '__argpext_DebugPrint_%s' % line
-                count = F.f_globals.setdefault(key,-1)
-                count += 1
-                F.f_globals[key] = count
+            live = True
+            # Process the restrictions
+            s = kwds.pop('s')
+            e = kwds.pop('e')
+            if s is not None and count < s: live = False
+            if e is not None and count >= e: live = False
 
-                s = kwds.get('s')
-                e = kwds.get('e')
-                n = kwds.get('n')
-                # If none of the above arguments are specified, we do not need the count.
+            # Process the permissions
+            n = kwds.pop('n')
+            if n is not None and count == n: live = True
 
-                live = False
-                if s is not None and count >= s: live = True
-                if e is not None and count < e: live = True
-                if n is not None and count == n: live = True
-                if all([ q is None for q in (s,e,n)]): live = True
-                return count,live
+            return count,live
 
-            count,live = active()
-            if not live: return
-        else:
-            count = None
+        count,live = active()
+        if not live: return
 
 
         # print arguments
-        sep = kwds.get('sep',' ')
-        end = kwds.get('end','\n')
-        file = kwds.get('file',sys.stdout)
-        flush = kwds.get('flush',False)
+        sep = kwds.pop('sep',' ')
+        end = kwds.pop('end','\n')
+        file = kwds.pop('file',sys.stdout)
+        flush = kwds.pop('flush',False)
 
-        frm = frameref(up=1)
+        if len(kwds): raise KeyError('unrecognized keys: %s' % ( ','.join(kwds.keys()) ) )
+
+        frm = {}
+        frm.update( FrameRef(up=1) )
         frm['count'] = count
-        prefix = self.prefix % frm
 
-        line = prefix+sep.join([str(q) for q in args])+end
+
+        string = sep.join([str(q) for q in args])+end
+
+        q = frm
+        q.update(dict(string=string))
+        line = self.format_spec.format(**q)
 
         file.write(line)
         if flush: file.flush()
@@ -220,7 +216,7 @@ class Doc(object):
         debug = False
         if debug:
             R += '[%(position)s%(label)s]' % \
-                 { 'position' : '%(basename)s:%(line)s' % frameref(up=1)
+                 { 'position' : '%(basename)s:%(line)s' % FrameRef(up=1)
                    ,'label' : ('(%s)' % label  if label is not None else '') 
                  }
 
@@ -807,6 +803,6 @@ class Categorical(object):
                 return self.__typeothers(key)
 
 __all__ = ['ChDir','KeyWords',
-           'frameref','chainref','DebugPrint',
+           'FrameRef','chainref','DebugPrint',
            'VERB_KWDS','display','make_hook','Task','Node','Main',
            'Function','Unit','Categorical']

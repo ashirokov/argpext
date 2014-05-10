@@ -2,10 +2,10 @@
 
 import argpext
 
-pri = argpext.DebugPrint(1,tr=1)
+pri = argpext.DebugPrint()
 
 
-for i in range(1000):
-    pri('here i=%d' % i,s=99)
+for i in range(100000):
+    pri('here i=%d' % i,s=300,e=305,n=7)
 
 
