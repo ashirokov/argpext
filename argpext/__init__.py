@@ -22,7 +22,7 @@ import inspect
 import argparse
 import collections
 
-VERSION = (1,2)
+VERSION = (1,2,0)
 
 from . import aux
 from . import keywords

@@ -4,11 +4,11 @@ from distutils.core import setup
 
 setup(
     name='argpext'
-    , version='1.2'
+    , version='1.2.0'
     , description = 'Argpext: hierarchical extension of sub-commands in argparse.'
     , author='Alexander Shirokov'
-    , author_email='alexvso@gmail.com'
-    #, packages=['argpext']
+    , author_email='alexander.shirokov@gmail.com'
+    , packages=['argpext']
     #, scripts = ['argpext.py']
     , py_modules=['argpext']
     , license='OSI Approved'
