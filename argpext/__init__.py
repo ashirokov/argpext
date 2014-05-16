@@ -30,12 +30,6 @@ from . import debug
 from . import tasks
 from . import backward
 
-
-if __name__ == '__main__':
-    Main().digest()
-
-
-
 from argpext.aux import ChDir
 from argpext.keywords import KeyWords
 from argpext.debug import FrameRef,chainref,DebugPrint
@@ -43,8 +37,24 @@ from argpext.tasks import display,make_hook,Task,Node,Main
 from argpext.backward import Function,Unit,Categorical
 
 
-__all__ = ['ChDir','KeyWords',
-           'FrameRef','chainref','DebugPrint',
-           'display','make_hook','Task','Node','Main',
-           'Function','Unit','Categorical']
+__all__ = [
+
+    # Global variable
+    'VERSION',
+
+    # aux
+    'ChDir',
+
+    # keywords
+    'KeyWords',
+
+    # debug
+    'FrameRef','chainref','DebugPrint',
+
+    # tasks
+    'display','make_hook','Task','Node','Main',
+
+    # backward
+    'Function','Unit','Categorical'
+    ]
 
