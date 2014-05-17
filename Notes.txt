@@ -13,6 +13,8 @@ python setup.py sdist
 
 #> Uploading code
 
+python setup.py sdist upload
+
 python setup.py sdist bdist_wininst upload
 
 #> Uploading docs:
