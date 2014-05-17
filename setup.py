@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='argpext'
-    , version='1.2.0'
+    , version='1.2.1'
     , description = 'Argpext: hierarchical extension of sub-commands in argparse.'
     , author='Alexander Shirokov'
     , author_email='alexander.shirokov@gmail.com'

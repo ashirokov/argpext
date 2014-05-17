@@ -22,15 +22,15 @@ import inspect
 import argparse
 import collections
 
-VERSION = (1,2,0)
+VERSION = (1,2,1)
 
-from . import aux
+from . import tools
 from . import keywords
 from . import debug
 from . import tasks
 from . import backward
 
-from argpext.aux import ChDir
+from argpext.tools import ChDir
 from argpext.keywords import KeyWords
 from argpext.debug import FrameRef,chainref,DebugPrint
 from argpext.tasks import display,make_hook,Task,Node,Main
@@ -42,7 +42,7 @@ __all__ = [
     # Global variable
     'VERSION',
 
-    # aux
+    # tools
     'ChDir',
 
     # keywords

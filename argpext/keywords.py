@@ -49,7 +49,7 @@ class KeyWords(object):
 
 
     def __str__(self):
-        f = FrameRef(up=1)
+        f = argpext.debug.FrameRef(up=1)
         brief = (f['basename'] == 'argparse.py' and f['name'] == '_expand_help')
         if not brief:
             q = list([ ("'%s'" % k) for k in self._dct.keys() ])

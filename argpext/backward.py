@@ -24,7 +24,7 @@ class Function(tasks.Task):
         warnings.warn("Please rename all 'argpext.Function' into 'argpext.Task'. "\
                       "The support for 'argpext.Function' may terminate starting from argpext Version 2.0"
                       , UserWarning)
-        Task.__init__(self,*args,**kwds)
+        tasks.Task.__init__(self,*args,**kwds)
 
 class Unit(object):
     "Value unit for Categorical variables."
