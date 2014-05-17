@@ -52,25 +52,52 @@ functions.
 Bare bones example
 ^^^^^^^^^^^^^^^^^^
 
-Consider a toy model of a sheep. 
+Let us further consider as an example, how the following simplistic
+game involving sheep and wolves may be designed.
 
-As the bare bones example, suppose there is a function
+Suppose there is a function
 called :func:`sheep_graze` that lets the sheep graze.  Here
 is how we can use the standard :mod:`argparse` module in
 order to connect this function to the command line:
 
-.. literalinclude:: examples/sheepgraze0.py
-   :language: python3
-   :lines: 3-
+<input content="python" action="show">
+import argparse
+
+def sheep_graze(feed):
+    print('Sheep grazes on %s' % feed)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Let sheep graze')
+    parser.add_argument('-f', dest='feed', default='grass', 
+                        help='Specify the feed. Default: %(default)s.')
+    argv = parser.parse_args()
+
+    sheep_graze(feed=argv.feed)
+</input>
+
 
 
 The identical functionality is now achieved with our Argpext as follows:
 
 .. _sheepgraze:
 
-.. literalinclude:: examples/sheepgraze.py
-   :language: python3
-   :lines: 3-
+<input content="python" save_as="sheepgraze.py" action="show">
+import argpext
+
+def sheep_graze(feed):
+    print('Sheep grazes on %s' % feed)
+
+class SheepGraze(argpext.Task):
+    "Let sheep graze"
+    hook = argpext.make_hook(sheep_graze)
+    def populate(self,parser):
+        parser.add_argument('-f', dest='feed', default='grass', 
+                            help='Specify the feed. Default: %(default)s.')
+
+if __name__ == '__main__':
+    SheepGraze().digest()
+</input>
+
 
 Class :class:`SheepGraze`, constructed by inheritance from
 :class:`argpext.Task`, establishes the interface between
@@ -86,22 +113,28 @@ switches, we have:
 
 .. _sheepgraze_usage:
 
-.. literalinclude:: examples/sheepgraze_help.tmp
+<input content="shell" action="execute">
+sheepgraze.py -h
+</input>
 
-..
-  
   Examples of execution
 
   Task :func:`sheep_graze` can be executed from the
   command line as follows:
   
-  .. literalinclude:: examples/sheepgraze.tmp
-  .. literalinclude:: examples/sheepgraze_daisies.tmp
+  <input content="shell" action="execute">
+sheepgraze.py
+sheepgraze.py -f daisies
+</input>
 
   Equivalently, in Python interpreter:
 
-  .. literalinclude:: examples/sheepgraze_cmd.tmp
-  .. literalinclude:: examples/sheepgraze_daisies_cmd.tmp
+  <input content="python" action="execute">
+import sheepgraze
+sheepgraze.SheepGraze()()
+sheepgraze.SheepGraze()(feed='daisies')
+</input>
+
 
 
 
@@ -133,14 +166,52 @@ interface.
 
 
 .. _sheepactions:
-.. literalinclude:: examples/sheepactions.py
-   :language: python3
-   :lines: 3-
+<input content="python" save_as="sheepactions.py" action="show">
+import argpext
+
+def sheep_graze(feed):
+    print('Sheep grazes on %s' % feed)
+
+class SheepGraze(argpext.Task):
+    "Let sheep graze"
+    hook = argpext.make_hook(sheep_graze)
+    def populate(self,parser):
+        parser.add_argument('-f', dest='feed', default='grass', 
+                            help='Specify the feed. Default: %(default)s.')
+
+
+def sheep_jump(n):
+    print('Sheep jumps %d times' % n)
+
+class SheepJump(argpext.Task):
+    "Let sheep jump"
+    hook = argpext.make_hook(sheep_jump)
+    def populate(self,parser):
+        parser.add_argument('-n', dest='n', default=2, type=int, 
+                            help='Specify the number of jumps')
+
+
+class Sheep(argpext.Node):
+    "Sheep-related tasks"
+    SUBS = [('graze', SheepGraze),  # Link subcommand 'graze' to class SheepGraze
+            ('jump', SheepJump),    # Link subcommand 'jump'  to class SheepJump
+            # Add more subcommands here
+            ]
+
+
+if __name__ == '__main__':
+    Sheep().digest()
+</input>
+
+
 
 When the above program is saved as file
 ``sheepactions.py`` and executed, we have:
 
-.. literalinclude:: examples/sheepactions_help.tmp
+<input content="shell" action="execute">
+sheepactions.py -h
+</input>
+
 
 The sub-commands ``graze`` and ``jump`` are clearly shown in
 the help message.  In order to display their individual
@@ -148,23 +219,29 @@ usage one should pass any of these sub-commands followed by
 the ``--help/-h`` switch. For example, to display the usage
 for ``graze``:
 
-.. literalinclude:: examples/sheepactions_graze_help.tmp
+<input content="shell" action="execute">
+sheepactions.py graze -h
+</input>
 
 ..
 
-  Example of execution: 
+  Examples of execution: 
   
   In command line:
   
-  .. literalinclude:: examples/sheepactions_graze_daisies.tmp
-  .. literalinclude:: examples/sheepactions_jump_j5.tmp
+  <input content="shell" action="execute">
+sheepactions.py graze -f daisies
+sheepactions.py jump -n 5
+</input>
   
   Equivalently, in Python interpreter:
 
-  .. literalinclude:: examples/sheepactions_graze_daisies_cmd.tmp
-  .. literalinclude:: examples/sheepactions_jump_j5_cmd.tmp
-
-
+  <input content="python" action="execute">
+import sheepactions
+from sheepactions import *
+SheepGraze()(feed='daisies')
+SheepJump()(n=5)
+</input>
 
 .. _fullexample:
 
@@ -175,10 +252,35 @@ In addition to attaching functions to a node, it is also
 possible to attach nodes to another node, as demonstrated by
 lines 18 and 19 of the following example
 
-.. literalinclude:: examples/sheepgame.py
-   :language: python3
-   :lines: 3-
-   :linenos:
+<input content="python" save_as="sheepgame.py" action="show">
+import argpext
+
+import sheepactions # Module sheepactions is provided by previous example.
+
+
+
+class FeedWolf(argpext.Task):
+    "Feed the wolf"
+
+    def hook(self,prey):
+        print('Wolf eats %s' % prey)
+
+    def populate(self,parser):
+        parser.add_argument('-p', dest='prey', default='sheep', 
+                            help='Specify the food. Default:"%(default)s".')
+
+class Main(argpext.Node):
+    "Top level sheepgame options"
+    SUBS = [
+        ('sheep', sheepactions.Sheep), # Attaching another Node
+        ('feed-wolf', FeedWolf), # Attaching a Task
+        # Add more subcommands here
+        ]
+
+if __name__ == '__main__':
+    Main().digest()
+</input>
+
 
 This methodology allows one to build a rather general
 hierarchical tree-like structure of subcommands of
@@ -190,21 +292,25 @@ non-uniform height.
 When the above program is saved as file ``sheepgame.py``,
 the top level help message is invoked as follows:
 
-.. literalinclude:: examples/sheepgame_help.tmp
+<input content="shell" action="execute">
+sheepgame.py -h
+</input>
 
 
 To display sheep-related usage of ``sheepgame.py``, 
 pass the ``sheep`` subcommand:
 
-.. literalinclude:: examples/sheepgame_sheep_help.tmp
+<input content="shell" action="execute">
+sheepgame.py sheep -h
+</input>
 
 To display even lower level help messages, additional
 sub-commands are passed:
 
-.. literalinclude:: examples/sheepgame_sheep_jump_help.tmp
-
-
-.. literalinclude:: examples/sheepgame_sheep_graze_help.tmp
+<input content="shell" action="execute">
+sheepgame.py sheep jump -h
+sheepgame.py sheep graze -h
+</input>
 
 ..
   
@@ -212,34 +318,48 @@ sub-commands are passed:
 
   In the command line:
 
-  .. literalinclude:: examples/sheepgame_sheep_jump5.tmp
-  .. literalinclude:: examples/sheepgame_sheep_graze.tmp
-  .. literalinclude:: examples/sheepgame_sheep_graze_daisies.tmp
+  <input content="shell" action="execute">
+sheepgame.py sheep jump -n 5
+sheepgame.py sheep graze
+sheepgame.py sheep graze -f daisies
+</input>
+
 
   Equivalently, in Python interpreter:
 
-  .. literalinclude:: examples/sheepgame_sheep_jump5_cmd.tmp
-  .. literalinclude:: examples/sheepgame_sheep_graze_cmd.tmp
-  .. literalinclude:: examples/sheepgame_sheep_graze_daisies_cmd.tmp
-  
+  <input content="python" action="execute">
+import sheepgame
+from sheepgame import sheepactions
+sheepactions.SheepJump()(n=5)
+sheepactions.SheepGraze()()
+sheepactions.SheepGraze()(feed='daisies')
+</input>
+
 
 Wolf-related usage of ``sheepgame.py``:
 
-.. literalinclude:: examples/sheepgame_wolf_help.tmp
+<input content="shell" action="execute">
+sheepgame.py feed-wolf -h
+</input>
 
 .. _fullexample_execution:
 
 ..
   
-  Example of execution:
+  Examples of execution:
   
   In the command line:
 
-  .. literalinclude:: examples/sheepgame_wolf_feed.tmp
+  <input content="shell" action="execute">
+sheepgame.py feed-wolf
+</input>
 
   Equivalently, in Python interpreter
 
-  .. literalinclude:: examples/sheepgame_wolf_feed_cmd.tmp
+  <input content="python" action="execute">
+import sheepgame
+sheepgame.FeedWolf()()
+</input>
   
 
 
@@ -263,13 +383,33 @@ Here is an example, where the three arguments ``quantity``,
 :meth:`add_argument` calls with ``dest='quantity'``,
 ``dest='feed'`` and ``dest='hours'``:
 
-.. literalinclude:: examples/sheepgraze2.py
-   :language: python3
-   :lines: 3-
+<input content="python" save_as="sheepgraze2.py" action="show">
+import argpext
+
+def sheep_graze(quantity,feed,hours):
+    print( ('%s of sheep grazes on %s for %.1f hours.' \
+              % (quantity, feed, hours) ).capitalize() )
+
+class SheepGraze(argpext.Task):
+    "Let sheep graze"
+    hook = argpext.make_hook(sheep_graze)
+    def populate(self,parser):
+        parser.add_argument(dest='quantity', help='Quantity of sheep.')
+        parser.add_argument('-f', dest='feed', default='grass', 
+                            help='Specify the feed. Default: %(default)s.')
+        parser.add_argument('-t', dest='hours', default=2.5, type=float,
+                            help='Specify number of hours. Default: %(default)s.')
+
+if __name__ == '__main__':
+    SheepGraze().digest()
+</input>
 
 The usage is as follows:
 
-.. literalinclude:: examples/sheepgraze2_help.tmp
+<input content="shell" action="execute">
+sheepgraze2.py -h
+</input>
+
 
 ..
 
@@ -277,15 +417,21 @@ The usage is as follows:
 
   In command line
 
-  .. literalinclude:: examples/sheepgraze2_exe1.tmp
-  .. literalinclude:: examples/sheepgraze2_exe2.tmp
-  .. literalinclude:: examples/sheepgraze2_exe3.tmp
+  <input content="shell" action="execute">
+sheepgraze2.py dosen
+sheepgraze2.py herd -t 5
+sheepgraze2.py herd -f hay
+</input>
+
 
   Equivalently, in Python interpreter
 
-  .. literalinclude:: examples/sheepgraze2_exe1_cmd.tmp
-  .. literalinclude:: examples/sheepgraze2_exe2_cmd.tmp
-  .. literalinclude:: examples/sheepgraze2_exe3_cmd.tmp
+  <input content="python" action="execute">
+import sheepgraze2
+sheepgraze2.SheepGraze()('dosen')
+sheepgraze2.SheepGraze()('herd',hours=5)
+sheepgraze2.SheepGraze()('herd',feed='hay')
+</input>
 
   Notice the agreement between the default values
   (e.g. ``hour=2.5``) applied when an optional argument is
@@ -299,8 +445,23 @@ Static :meth:`hook` methods
 Our :ref:`bare bones example<sheepgraze>` can be
 equivalently rewritten in a different style, as follows
 
-.. literalinclude:: examples/sheepgraze_hook.py
-  :lines: 3-
+<input content="python" action="show">
+import argpext
+
+class SheepGraze(argpext.Task):
+    "Let sheep graze"
+
+    def hook(self,feed):
+        print('Sheep grazes on %s' % feed)
+
+    def populate(self,parser):
+        parser.add_argument('-f', dest='feed', default='grass', 
+                            help='Specify the feed. Default: %(default)s.')
+
+if __name__ == '__main__':
+    SheepGraze().digest()
+</input>
+
 
 Return values
 ^^^^^^^^^^^^^
@@ -309,8 +470,33 @@ The :meth:`Node.digest`, :meth:`Task.digest` and
 :meth:`Task.__call__` methods return the value of the
 corresponding reference function. For example:
 
-.. literalinclude:: examples/retval.tmp
-  :lines: 3-
+
+<input content="python" action="execute">
+import argpext
+
+def square(x=1):
+    "Calculate the square of an argument"
+    return x*x
+
+class Square(argpext.Task):
+    hook = argpext.make_hook(square)
+    def populate(self,parser):
+        parser.add_argument('-x', default=2, type=float,
+                            help='Specify the value of x.')
+
+y = Square().digest(prog=None,args=['-x','2'])
+print( y )
+
+y = Square()(x=4)
+print( y )
+
+y = Square()()
+print( y )
+
+y = Square()() # Todo: add custom execution
+print( y )
+</input>
+
 
 
 
@@ -341,9 +527,34 @@ Consider the following possible mnemonic choices for
 specifying a date: "1977-02-04", "Lisas birthday", "y2kday",
 "today", and their implementation:
 
-.. literalinclude:: examples/categdate.tmp
-   :linenos:
-   :lines: 3-
+<input content="python" action="execute">
+import argpext
+
+from argpext import *
+import time
+
+def today():
+    "Return todays date in YYYY-MM-DD representation"
+    return time.strftime('%Y-%m-%d', time.localtime())
+
+dates = KeyWords([
+    '1977-02-04',
+    'Lisas birthday',
+    'y2kday',
+    'today'
+])
+
+
+
+str(dates)
+
+dates('1977-02-04')
+dates('Lisas birthday') 
+dates('y2kday') 
+dates('today') # Function today() is implicitly invoked at this line.
+dates('2012-01-11') # Value not predefined
+</input>
+
 
 The three predefined values of date are declared in lines
 9-11; whereas line 12 declares a predefined method for
@@ -383,7 +594,9 @@ argument. Indeed, consider this:
 
 .. _categ_example1_program:
 
-.. literalinclude:: examples/sheepgraze_money.tmp
+<input content="shell" action="execute">
+sheepgraze.py -f money
+</input>
 
 
 The :class:`KeyWords` class allows one to limit the
@@ -394,7 +607,30 @@ following:
 
 .. _sheepgraze3:
 
-.. literalinclude:: examples/sheepgraze3.py
+<input content="python" save_as="sheepgraze3.py" action="show">
+import argpext
+
+def sheep_graze(feed):
+    print('Sheep grazes on %s' % feed)
+
+
+class SheepGraze(argpext.Task):
+    "Let sheep graze"
+
+    hook = argpext.make_hook(sheep_graze)
+
+    def populate(self,parser):
+        parser.add_argument('-f', dest='feed', default='grass'
+                            , type=argpext.KeyWords(['hay',
+                                                     'grass',
+                                                     'daisies'])
+                            , help='Specify the feed. '\
+                                'Choose from: %(type)s. '\
+                                'Default: %(default)s.')
+
+if __name__ == '__main__':
+    SheepGraze().digest()
+</input>
    :lines: 3-
    :emphasize-lines: 12-14,16
    :linenos:
@@ -406,21 +642,27 @@ After this modification, the valid values (``hay``,
 ``grass``, and ``daisies``) of input become visible within
 the help message. Indeed:
 
-.. literalinclude:: examples/sheepgraze3_help.tmp
+<input content="shell" action="execute">
+sheepgraze3.py -h
+</input>
 
 ..
   
   Examples of execution:
 
   Passing any of the valid values results in proper execution:
-  
-  .. literalinclude:: examples/sheepgraze3_hay.tmp
-  .. literalinclude:: examples/sheepgraze3_daisies.tmp
+
+  <input content="shell" action="execute">
+sheepgraze3.py -f hay
+sheepgraze3.py -f daisies
+</input>
 
   Attempt to pass an erroneous argument leads to an
   error message:
   
-  .. literalinclude:: examples/sheepgraze3_money.tmp
+  <input content="shell" action="execute">
+sheepgraze3.py -f money
+</input>
 
 
 .. _argpext_exe:
@@ -432,133 +674,11 @@ In addition to providing a Python module, program
 :program:`argpext.py` can be ran as an executable; its
 current usage is as follows:
 
-.. literalinclude:: examples/argpext_help.tmp
-
+<input content="shell" action="execute">
+python -m argpext -h
+</input>
 
 .. _reference:
-
-Reference
------------------------------------------
-
-
-Sub-command hierarchy
-^^^^^^^^^^^^^^^^^^^^^
-
-.. class:: Task
-
-   Base class for a callable function-like object that is
-   capable of behaving like a script.  The object can be
-   evaluated in two ways. As a script-like object, it can be
-   evaluated on a sequence of command line arguments, using
-   method :meth:`digest`. As function-like object it can be
-   evaluated directly, using the function call operator; See
-   method :meth:`__call__` for details. The object is
-   attached to a regular Python function (also called the
-   *reference function*) by the :meth:`hook` method.
-
-   .. staticmethod:: Task.hook(*args,**kwds)
-
-	Specifies the reference Python function. If
-	:meth:`hook` takes positive number of arguments,
-	:meth:`Task.populate` must be properly
-	overloaded as well.
-
-   .. method:: Task.populate(parser)
-
-	This method should be overloaded if :meth:`hook`
-	takes positive number of arguments. For each argument *X* of
-	the :meth:`hook` method there must be a call (or its
-	equivalent) to :py:meth:`add_argument` with *dest='X'*.
-        The *parser* argument should be assumed  to be of type
-	:py:class:`argparse.ArgumentParser`.
-
-
-
-
-   .. method:: Task.__call__(*args,**kwds)
-
-	Execute the reference function; its return value is
-	returned. The arguments of the reference function
-	are given by *args* and *kwds*. If an argument of is
-	missing, the command line default values, defined
-	:meth:`Task.populate` are substituted. Notice
-	that the default values, if any, defined in the
-	arguments of :meth:`Task.hook` are not used. If
-	too many arguments are given or some arguments
-	remain missing, a standard built-in exception is
-	raised.
-
-   .. method:: Task.digest(prog=None,args=None)
-
-	Execute the reference function; its return value is
-	returned.  Task :meth:`Task.populate` is
-	used to convert command line arguments given by
-	*args* into the arguments of the reference
-	function. Using the default value *args=None* is
-	equivalent to setting *args=sys.argv[1:]*. The
-	*prog* argument is the program name that appears in
-	the command line help message when invoked. Using
-	the default value *prog=None* is equivaent to
-	setting *prog=sys.argv[0]*.
-
-.. class:: Node
-
-   Base class for hierarchical script-like object that can
-   be executed on a complete list of command line
-   arguments. The list starts with the mandatory sequence of
-   sub-commands that identifies the leaf :func:`Task`
-   class. The rest of the command line arguments are used to
-   execute the reference function of that class, as
-   specified in the documentation for
-   :meth:`Task.digest` method.
-
-
-   .. attribute:: SUBS
-
-      Specifies the list of child nodes along with their
-      assigned sub-commands. This attribute, if defined,
-      must be a :py:class:`list` or a :py:class:`tuple`
-      of *(key,basenode)* items, where the *basenode* is an
-      instance of either of :class:`Node` or
-      :class:`Task` class, and the *key* is the
-      sub-command assigned to it.
-
-   .. method:: Node.digest(prog=None,args=None)
-
-      Execute the node based the sequence of sub-commands
-      given by *args*. If *args=None*, it is automatically
-      reassigned to `sys.argv[1:]`. Returns the value
-      returned by the reference function corresponding to
-      the sequence of sub-commands given by *args*.
-
-      The *prog* argument is the program name that appears
-      in the command line help message when invoked, the
-      default value *None* translates to *sys.argv[0]*.
-
-
-KeyWords variable type
-^^^^^^^^^^^^^^^^^^^^^
-
-.. class:: KeyWords(keywords=[])
-
-   KeyWords variable type. A callable object that
-   converts input key into itself, if one is defined,
-   throwing a :py:exc:`KeyError` exception otherwise
-
-   * keywords - a list-like object *[item1,item2,...]*, that defined ordered sequence of unique keys
-
-   KeyWords variable type.
-
-   .. method:: KeyWords.__str__()
-
-      Returns string representation for the object showing
-      all the available keys.
-
-   .. method:: KeyWords.__call__(key)
-
-      Returns the *key* itself, if *key* matches any of keys defined
-      by the *keywords*. Otherwise, raises the
-      :py:exc:`KeyError` exception.
 
 Environment variables
 ^^^^^^^^^^^^^^^^^^^^^
@@ -570,22 +690,6 @@ Environment variables
    if this variable is unset.
 
 
-
-Porting from the earlier Argpext versions
------------------------------------------
-
-Compared to the previous releases (0.1 and 0.2) of argpext,
-version 1.0 is a very substantial update. For consistency
-with the "Style Guide for Python Code" (PEP 8), class
-:class:`comm_cls` is renamed into :class:`Task` and
-class :class:`node_cls` is renamed into :class:`Node`.
-Class :class:`keyval` is renamed into
-:class:`KeyWords`. Interface to those classes have also
-been changed.  
-
-Version 1.1 is a bugfix version that addresses minor issues.
-
-Version 1.2 introduces introduces multiple new features.
 
 See also
 --------
@@ -608,7 +712,7 @@ Contents:
 Indices and tables
 ==================
 
-* :ref:`genindex`
+* :ref:`genindex`  
 * :ref:`modindex`
 * :ref:`search`
 

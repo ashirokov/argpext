@@ -1,11 +1,3 @@
-#> 
-
-./docxml.py doc.xml 
-
-make html
-
-
-
 #> Creating dist 
 
 rm -rf dist
@@ -17,7 +9,14 @@ python setup.py sdist upload
 
 python setup.py sdist bdist_wininst upload
 
-#> Uploading docs:
+
+
+#> Creating docs
+
+python -m argpext rst
+
+make html
+
 
 
 zip -r ../docs.zip .

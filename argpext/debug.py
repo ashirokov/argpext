@@ -102,7 +102,7 @@ class DebugPrint(object):
 
 
     KEYS = keywords.KeyWords(['sep','end','file','flush',
-                                      's','e','n'])
+                                      's','e','n','exit'])
 
     def __call__(self,*args,**kwds):
 
@@ -116,6 +116,7 @@ class DebugPrint(object):
         # print arguments
         sep = kwds.pop('sep',' ')
         end = kwds.pop('end','\n')
+        exit = kwds.pop('exit',None)
         file = kwds.pop('file',sys.stdout)
         flush = kwds.pop('flush',False)
 
@@ -126,12 +127,26 @@ class DebugPrint(object):
         frm['count'] = A['count']
 
 
-        string = sep.join([str(q) for q in args])+end
+        string = sep.join([str(q) for q in args])
+
+        def manage_multiline(string):
+            q = string.splitlines()
+            if len(q) > 1:
+                q = '\n'.join(['multiline...']+q)
+                return q
+            return string
+
+        string = manage_multiline(string)
 
         q = frm
         q.update(dict(string=string))
-        line = self.format_spec.format(**q)
+        line = self.format_spec.format(**q)+end
+
+
 
         file.write(line)
         if flush: file.flush()
 
+        if exit is not None and A['count'] >= exit:
+            file.write('Exit: %s' % ('{smart_basename}:{line}'.format(**frm)) +'\n')
+            sys.exit()

@@ -424,7 +424,7 @@ class Node(BaseNode):
         return dict(parser=parser,nodes=nodes)
 
     @staticmethod
-    def _delegation(key,node,args,parser):
+    def _delegation(key,node,args,parser,prog):
         if inspect.isfunction(node) or issubclass(node,Task):
             q = argparse.ArgumentParser.parse_args( parser, [key]+args )
             # Execute bound function.
@@ -452,11 +452,24 @@ class Node(BaseNode):
         deleg = self._get_deleg(prog=prog)
         self.populate( deleg['parser'] )
         namespace = argparse.ArgumentParser.parse_args( deleg['parser'], args )
+
+        def type_info():
+            T = {}
+            for a in deleg['parser']._actions:
+                if isinstance(a,argparse._StoreAction):
+                    if a.type is not None:
+                        T[a.dest] = a.type
+            return T
+
+        T = type_info()
+
         D = vars(namespace)
         # Overwrite values defined by parser with explicitly given keyword arguments.
+
         for key,val in kwds.items():
             if key not in D: raise ValueError("dest='%s' is not defined by parser" % key)
-            D[key] = str(val)
+            D[key] = T.get(key,str)(val)
+
         return D
 
     def digest(self,prog=None,args=None):
@@ -481,7 +494,7 @@ class Node(BaseNode):
             delegargs = rightargs[1:]
             node = deleg['nodes'][ key ]
             parser = deleg['parser']
-            return Node._delegation(key=key,node=node,args=delegargs,parser=parser)
+            return Node._delegation(key=key,node=node,args=delegargs,parser=parser,prog=prog)
 
 
     def __call__(self,*args,**kwds):
@@ -511,7 +524,7 @@ def histfile():
 
 
 
-class History(Task):
+class Main(Task):
     "Display command line history."
 
     def hook(self,unique):
@@ -530,11 +543,6 @@ class History(Task):
     def populate(self,parser):
         parser.add_argument('-u',dest='unique',default=False,action='store_true',
                             help='Do not show repeating commands')
-
-class Main(Node):
-    "Hierarchical extension of argparse"
-    SUBS = [('history', History)
-            ]
 
 
 
