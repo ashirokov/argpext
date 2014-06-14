@@ -424,7 +424,7 @@ class Node(BaseNode):
         return dict(parser=parser,nodes=nodes)
 
     @staticmethod
-    def _delegation(key,node,args,parser):
+    def _delegation(key,node,args,parser,prog):
         if inspect.isfunction(node) or issubclass(node,Task):
             q = argparse.ArgumentParser.parse_args( parser, [key]+args )
             # Execute bound function.
@@ -481,7 +481,7 @@ class Node(BaseNode):
             delegargs = rightargs[1:]
             node = deleg['nodes'][ key ]
             parser = deleg['parser']
-            return Node._delegation(key=key,node=node,args=delegargs,parser=parser)
+            return Node._delegation(key=key,node=node,args=delegargs,parser=parser,prog=prog)
 
 
     def __call__(self,*args,**kwds):
