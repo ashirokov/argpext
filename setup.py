@@ -12,27 +12,38 @@ setup(
     , scripts = ['argpext.py']
     , py_modules=['argpext']
     , license='OSI Approved'
-    , long_description="""Argpext is a package that provides a collection of tools centred at
-research and infrastructure development.
+    , long_description="""Argpext is a Python package that provides a collection of tools centred on
+research infrastructure development.
 
-It allows one to quickly expose any selected Python functions to command
-line interface for DOS or Linux-like shells. The user is responsible for organizing 
-the required Python functions into a hierarchical tree-like structure, according to their logic
-with tools provided by the package. Any such function then corresponds to a specific sequence of 
-command line arguments which, when executed 
-from the command line followed by the "--help" flag produces a detailed
-help message. In order to execute the function, the rest of the command 
-line arguments are filled based on the help message. 
+Argpext provides hierarchical (multilevel) subcommand implementation that
+allows one to quickly expose any required callable objects, such as functions, 
+generators, or any other Python's callable objects 
+to the DOS/Linux command line. 
 
-A detailed documentation is currently available only for version 1.1.
-Version 1.2.X will be documented within the next few weeks.
+Hierarchical sub-commands implementation: 
+Class "Task" is used to define the interface
+between a specific callable object and the command line. Class "Node"
+may be used in order to populate all the required "tasks" onto a tree structure,
+whose design follows the intended execution patterns.
+Any such task may then individually be executed by passing a specific
+sequence of command line arguments to the top level script, followed
+by the command line arguments used to specify the arguments, if required by the task. 
+When followed by the "--help" flag,  such sequence simply outputs
+the help message that provides short description of the task and directions
+for populating task arguments. Passing the sequence of command 
+complete with task arguments results in the actual execution of the task.
+Hierarchical subcommands feature internally relies on the standard Pythons standard module.
+
+
+A detailed documentation is currently available only for version 1.1; see link above.
+
+Documentation for Version 1.2.X will be released approximately by the mid June 2014.
 
 Release v1.1 - multiple new features. Detailed documentation is provided.
 
 Release v1.2.0 - multiple new features
 
-Release v1.2.1 - bug fixes for v1.2.0
-"""
+Release v1.2.1 - bug fixes for v1.2.0"""
     , classifiers = [
         'Development Status :: 4 - Beta'
         ,'Environment :: Console'
