@@ -211,7 +211,7 @@ When the above program is saved as file
 
 <input content="shell">
 sheepactions.py -h
-</command>
+</input>
 
 
 The sub-commands ``graze`` and ``jump`` are clearly shown in
@@ -241,7 +241,7 @@ sheepactions.py jump -n 5
 from sheepactions import *
 SheepGraze()(feed='daisies')
 SheepJump()(n=5)
-</interp>
+</input>
 
 .. _fullexample:
 
