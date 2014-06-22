@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import argparse
+import shlex
+import stat
 import shutil
 import os
 import io
@@ -41,20 +43,17 @@ def filter_out_tr(q):
 
 
 
-def scriptrun(command,outputfile,interpreter_flags):
+def node_shell(node):
+    command = node.childNodes[0].data.strip()
 
 
     def prn(line,file):
         file.write(line)
         file.write(os.linesep)
 
-    interpreter = sys.executable
+    cmd = shlex.split(command)
 
-    cmd = [interpreter]+interpreter_flags+command.split()
-
-    #print(cmd,file=sys.__stdout__)
-
-    proc = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE )
+    proc = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True )
     proc.wait()
 
     L = []
@@ -75,36 +74,33 @@ def scriptrun(command,outputfile,interpreter_flags):
     for line in q.splitlines():
         se += (line+os.linesep)
 
-    prefix = '' if not interpreter_flags else ' '.join([os.path.basename(interpreter)]+interpreter_flags)+' '
 
-    prm = '$ '+prefix+command+os.linesep
+    prm = '$ '+command+os.linesep
 
     output = prm+so+se
 
-    fho = open(outputfile,'w')
-
-    #sys.stdout.write('Writing file: %s\n' % outputfile)
-    #print( sys.path )
-
-    fho.write( output )
-    print( output )
-
-    fho.close()
+    return output
 
 
 
+def node_python(node):
+    attr = (lambda *x: getattr(x[0].attributes.get(x[1]),'value',x[2]) )
+    save_as = attr(node,'save_as',None)
 
-def interp(fhi,outputfile):
+    text = '#!/usr/bin/env python'+os.linesep+node.childNodes[0].data.strip()
 
+    if save_as is not None:
+        with open(save_as,'w') as fho:
+            fho.write( text )
+        os.chmod(save_as,stat.S_IXUSR|stat.S_IRUSR|stat.S_IWUSR)
+
+
+    R = []
     def pnl(q):
         if len(q): q += os.linesep
         return q
 
-    sys.__stdout__.write('Writing the file: %s\n' % outputfile)
-
     cons = code.InteractiveConsole()
-
-    fho = open(outputfile,'w')
 
     start = [
         "__name__ = '__main__'"
@@ -116,7 +112,7 @@ def interp(fhi,outputfile):
         cons.push(q)
 
 
-    for line in fhi:
+    for line in text.splitlines():
 
         line = line.rstrip()
 
@@ -135,83 +131,59 @@ def interp(fhi,outputfile):
         so = pnl(str(stdout.read()))
         se = pnl(filter_out_tr(str(stderr.read())))
         output = prm+so+se
-        
-        fho.write( output )
-        sys.__stdout__.write( output )
+        #print('[%s]' % output)
+        R += [output]
 
-    fho.close()
-
+    return ''.join(R)
 
 
-def xmlgen(filename):
 
-    attr = (lambda *x: getattr(x[0].attributes.get(x[1]),'value',x[2]) )
+def xmlgen(filename,outputfile):
 
-    dom = xml.dom.minidom.parse( filename )
-    dom = dom.childNodes[0]
+    input_file_text = open(filename).read()
 
-    outputdir = attr(dom,'outputdir',os.getcwd())
-    if not os.path.exists(outputdir): os.makedirs(outputdir)
 
-    for cn in dom.childNodes:
+    def process(text):
+        try:
+            dom = xml.dom.minidom.parseString(text)
+        except:
+            print( text, file=sys.stderr )
+            raise ValueError('XML not well-formed, see above')
+        q = dom
+        node = q.childNodes[0]
+        content = node.attributes.get('content').value
+        text = {'shell' :  node_shell, 'python' : node_python }[content](node)
+        return text
 
-        if isinstance(cn,xml.dom.minidom.Text) : continue
 
-        def parse_interp(dom):
-            q = attr(dom,'output',None)
-            outputfile = os.path.join(outputdir,q)
 
-            q = attr(dom,'source',None)
-            if q is not None:
-                q = open(q)
+    def simple_parse():
+        key = 'input'
+        q = input_file_text
+        C = q.split('</%s>' % key)
+        N = len(C)
+        T = []
+        for i,c in enumerate(C):
+            if i > 0 and i < N-1:
+                left,right = c.split('<%s ' % key,1)
+                T += [ left ]
+                X = '<%s %s</%s>' % ( key, right, key )
+                X = process(X)
+                T += [X]
+                print( X )
             else:
-                q = dom.childNodes[0].data.strip()
-                q = io.StringIO(q)
-            interp(fhi=q,outputfile=outputfile)
-            q.close()
+                T += [ c ]
 
-        def parse_script(dom):
-            q = attr(dom,'output',None)
-            outputfile = os.path.join(outputdir,q)
+    simple_parse()
 
-            command = attr(dom,'command',None)
-            q = attr(dom,'interpreter_flags',None)
-            interpreter_flags = q.split() if q is not None else []
 
-            scriptrun(command,outputfile,interpreter_flags)
-            return outputfile
-
-        def parse_copy(dom):
-            path = attr(dom,'output',None)
-            if os.path.samefile(os.getcwd(),path): return
-            inputfile = path
-            outputfile = os.path.join(outputdir,path)
-            shutil.copy(src=inputfile,dst=outputfile)
-            return outputfile
-
-        def pad(ch,title):
-            nleftpad = 5
-            nmax = 70
-            s = '%s %s ' % (ch*nleftpad, title )
-            nrem = nmax-len(s)
-            if nrem > 0:
-                s += ch*nrem 
-            return s
-
-        print( pad('#', ("processing: %s" % cn.tagName) ) )
-
-        outputfile = {'interp' : parse_interp, 
-                      'script' : parse_script,
-                      'copy' : parse_copy
-                      }[ cn.tagName ](cn)
-
-        print( pad(':', ('wrote: %s' % outputfile) ) )
-        print()
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('xmlfile',help="xml file")
+    parser.add_argument('-o',dest='outputfile',help="Output file")
     a = parser.parse_args()
-    xmlgen( a.xmlfile )
+    os.environ['PATH'] = '%s:%s' % (os.getcwd(), os.environ['PATH'])
+    xmlgen( a.xmlfile, a.outputfile )
 

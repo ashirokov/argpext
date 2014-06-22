@@ -88,7 +88,7 @@ def sheep_graze(feed):
 
 class SheepGraze(argpext.Task):
     "Let sheep graze"
-    hook = argpext.hook(sheep_graze)
+    hook = argpext.make_hook(sheep_graze)
     def populate(self,parser):
         parser.add_argument('-f', dest='feed', default='grass', 
                             help='Specify the feed. Default: %(default)s.')
@@ -391,7 +391,7 @@ def sheep_graze(quantity,feed,hours):
 
 class SheepGraze(argpext.Task):
     "Let sheep graze"
-    hook = argpext.hook(sheep_graze)
+    hook = argpext.make_hook(sheep_graze)
     def populate(self,parser):
         parser.add_argument(dest='quantity', help='Quantity of sheep.')
         parser.add_argument('-f', dest='feed', default='grass', 
@@ -478,7 +478,7 @@ def square(x=1):
     return x*x
 
 class Square(argpext.Function):
-    hook = argpext.hook(square)
+    hook = argpext.make_hook(square)
     def populate(self,parser):
         parser.add_argument('-x', default=2, type=float,
                             help='Specify the value of x.')
@@ -616,7 +616,7 @@ def sheep_graze(feed):
 class SheepGraze(argpext.Task):
     "Let sheep graze"
 
-    hook = argpext.hook(sheep_graze)
+    hook = argpext.make_hook(sheep_graze)
 
     def populate(self,parser):
         parser.add_argument('-f', dest='feed', default='grass'
