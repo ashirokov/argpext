@@ -140,10 +140,9 @@ def node_python(node):
 
 def xmlgen(inputfile,outputfile):
 
-    input_file_text = open(inputfile).read()
-
 
     def process(text):
+        print('processing....')
         try:
             dom = xml.dom.minidom.parseString(text)
         except:
@@ -158,21 +157,24 @@ def xmlgen(inputfile,outputfile):
 
 
     def simple_parse():
+        chunk = []
         key = 'input'
-        q = input_file_text
-        C = q.split('</%s>' % key)
-        N = len(C)
-        T = []
-        for i,c in enumerate(C):
-            if i > 0 and i < N-1:
-                left,right = c.split('<%s ' % key,1)
-                T += [ left ]
-                X = '<%s %s</%s>' % ( key, right, key )
-                X = process(X)
-                T += [X]
-                print( X )
+        for iline,line in enumerate(open(inputfile),1):
+            line = line.rstrip('\r\n')
+            process_text = None
+            if not len(chunk):
+                if line.startswith('<%s' % key):
+                    chunk += [line]
             else:
-                T += [ c ]
+                chunk += [line]
+                if line.startswith('</%s>' % key):
+                    process_text = '\n'.join(chunk)
+                    chunk = []
+
+
+            print('[%d %s]' % ( iline, line) )
+            if process_text is not None: process(process_text)
+
 
     simple_parse()
 
