@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import argparse
 import shlex
 import stat
 import shutil
@@ -11,6 +10,7 @@ import subprocess
 import code
 import xml, xml.dom.minidom
 
+import argpext
 
 
 
@@ -138,9 +138,9 @@ def node_python(node):
 
 
 
-def xmlgen(filename,outputfile):
+def xmlgen(inputfile,outputfile):
 
-    input_file_text = open(filename).read()
+    input_file_text = open(inputfile).read()
 
 
     def process(text):
@@ -177,13 +177,21 @@ def xmlgen(filename,outputfile):
     simple_parse()
 
 
+class Main(argpext.Task):
+
+    def hook(self,inputfile,outputfile):
+        with argpext.ChDir('doc.tmp') as workdir:
+            xmlgen( inputfile=os.path.join(workdir.initdir,inputfile), 
+                    outputfile=os.path.join(workdir.initdir,outputfile) )
+
+    def populate(self,parser):
+        parser.add_argument('inputfile',help="Input rst file")
+        parser.add_argument('outputfile',help="Output file")
+
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('xmlfile',help="xml file")
-    parser.add_argument('-o',dest='outputfile',help="Output file")
-    a = parser.parse_args()
-    os.environ['PATH'] = '%s:%s' % (os.getcwd(), os.environ['PATH'])
-    xmlgen( a.xmlfile, a.outputfile )
+    Main().digest()
+
+
 
