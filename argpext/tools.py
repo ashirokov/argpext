@@ -20,6 +20,7 @@ class ChDir(object):
         self.initdir = os.getcwd()
         if not os.path.exists(path): os.makedirs(path)
         os.chdir(path)
+        self.targetdir = os.getcwd()
 
     def __enter__(self):
         return self
