@@ -12,6 +12,18 @@ import xml, xml.dom.minidom
 
 import argpext
 
+ACTIONS = argpext.KeyWords(['show','execute'])
+
+
+class __NoDefault: pass
+
+def get_nodeattr(node,key,default=__NoDefault()):
+    if isinstance(default,__NoDefault):
+        q = node.attributes.get(key)
+        if q is None: raise ValueError('mandatory key value missing for %s' % key)
+        return getattr(q,'value')
+    else:
+        return getattr(node.attributes.get(key),'value', default)
 
 
 class Reconnect(object):
@@ -43,9 +55,11 @@ def filter_out_tr(q):
 
 
 
-def node_shell(node):
-    command = node.childNodes[0].data.strip()
+def process_shell(text):
+    PATH_INI = os.getenv('PATH')
+    os.environ['PATH'] = '%s%s%s' % (os.path.curdir,os.path.pathsep,PATH_INI)
 
+    command = text
 
     def prn(line,file):
         file.write(line)
@@ -79,21 +93,15 @@ def node_shell(node):
 
     output = prm+so+se
 
+    os.environ['PATH'] = PATH_INI
+
     return output
 
 
 
-def node_python(node):
-    attr = (lambda *x: getattr(x[0].attributes.get(x[1]),'value',x[2]) )
-    save_as = attr(node,'save_as',None)
-
-    text = '#!/usr/bin/env python'+os.linesep+node.childNodes[0].data.strip()
-
-    if save_as is not None:
-        with open(save_as,'w') as fho:
-            fho.write( text )
-        os.chmod(save_as,stat.S_IXUSR|stat.S_IRUSR|stat.S_IWUSR)
-
+def process_python(text):
+    SYS_PATH_INI = sys.path
+    sys.path = [os.path.curdir]+sys.path
 
     R = []
     def pnl(q):
@@ -134,24 +142,63 @@ def node_python(node):
         #print('[%s]' % output)
         R += [output]
 
+    sys.path = SYS_PATH_INI
+
     return ''.join(R)
 
 
+def parse_node(node):
+    content = get_nodeattr(node,'content')
+    action = ACTIONS(get_nodeattr(node,'action'))
 
-def xmlgen(inputfile,outputfile):
+    text = node.childNodes[0].data.strip()
+
+    save_as = get_nodeattr(node,'save_as',None)
+    if save_as is not None:
+        with open(save_as,'w') as fho:
+            fho.write( text )
+        os.chmod(save_as,stat.S_IXUSR|stat.S_IRUSR|stat.S_IWUSR)
 
 
-    def process(text):
+    if action == "show":
+        pass
+    elif action == "execute":
+        text = {'shell' :  process_shell, 
+                'python' : process_python,
+                }[content](text)
+    return text
+
+
+
+def xmlgen(inputfile,outputfile,debug):
+
+
+    def process(iline,text):
         print('processing....')
         try:
             dom = xml.dom.minidom.parseString(text)
         except:
             print( text, file=sys.stderr )
             raise ValueError('XML not well-formed, see above')
-        q = dom
-        node = q.childNodes[0]
-        content = node.attributes.get('content').value
-        text = {'shell' :  node_shell, 'python' : node_python }[content](node)
+
+        node = dom.childNodes[0]
+
+        text = parse_node(node)
+
+        def f(text):
+            T = []
+            T = ['::']
+            T += ['']
+            for line in text.splitlines():
+                T += ['    '+line]
+            if debug:
+                T += ['    ']
+                T += ['    # File %s, line %d' % (os.path.basename(inputfile), iline)]
+            T = '\n'.join(T)
+            return T
+
+        text = f(text)
+
         return text
 
 
@@ -159,34 +206,51 @@ def xmlgen(inputfile,outputfile):
     def simple_parse():
         chunk = []
         key = 'input'
-        for iline,line in enumerate(open(inputfile),1):
-            line = line.rstrip('\r\n')
-            process_text = None
-            if not len(chunk):
-                if line.startswith('<%s' % key):
+
+
+        with open(outputfile,'w') as fho:
+
+            write = (lambda x: print(x,file=fho))
+
+            for iline,line in enumerate(open(inputfile),1):
+                line = line.rstrip('\r\n')
+                dump = None
+                textline = None
+                if len(chunk) == 0:
+                    if line.startswith('<%s' % key):
+                        chunk += [line]
+                    else:
+                        textline = line
+                else:
                     chunk += [line]
-            else:
-                chunk += [line]
-                if line.startswith('</%s>' % key):
-                    process_text = '\n'.join(chunk)
-                    chunk = []
+                    if line.startswith('</%s>' % key):
+                        dump = '\n'.join(chunk)
+                        chunk = []
 
 
-            print('[%d %s]' % ( iline, line) )
-            if process_text is not None: process(process_text)
+                print('[%d %s]' % ( iline, line) )
+
+                if dump is not None:
+                    q = process(iline,dump)
+                    write( q )
+
+                if textline is not None:
+                    write(line)
 
 
-    simple_parse()
+    with argpext.ChDir('doc.tmp') as workdir:
+        inputfile=os.path.join(workdir.initdir,inputfile)
+        outputfile=os.path.join(workdir.initdir,outputfile)
+        simple_parse()
+
 
 
 class Main(argpext.Task):
 
-    def hook(self,inputfile,outputfile):
-        with argpext.ChDir('doc.tmp') as workdir:
-            xmlgen( inputfile=os.path.join(workdir.initdir,inputfile), 
-                    outputfile=os.path.join(workdir.initdir,outputfile) )
+    hook = argpext.make_hook(xmlgen)
 
     def populate(self,parser):
+        parser.add_argument('-d',dest='debug',action='store_true',help="Debug mode")
         parser.add_argument('inputfile',help="Input rst file")
         parser.add_argument('outputfile',help="Output file")
 

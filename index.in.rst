@@ -59,7 +59,7 @@ called :func:`sheep_graze` that lets the sheep graze.  Here
 is how we can use the standard :mod:`argparse` module in
 order to connect this function to the command line:
 
-<input content="python">
+<input content="python" action="show">
 import argparse
 
 def sheep_graze(feed):
@@ -80,7 +80,7 @@ The identical functionality is now achieved with our Argpext as follows:
 
 .. _sheepgraze:
 
-<input content="python" save_as="sheepgraze.py">
+<input content="python" save_as="sheepgraze.py" action="show">
 import argpext
 
 def sheep_graze(feed):
@@ -112,7 +112,7 @@ switches, we have:
 
 .. _sheepgraze_usage:
 
-<input content="shell">
+<input content="shell" action="execute">
 sheepgraze.py -h
 </input>
 
@@ -124,14 +124,14 @@ sheepgraze.py -h
   Task :func:`sheep_graze` can be executed from the
   command line as follows:
   
-<input content="shell">
+<input content="shell" action="execute">
 sheepgraze.py
 sheepgraze.py -f daisies
 </input>
 
   Equivalently, in Python interpreter:
 
-<input content="python">
+<input content="python" action="execute">
 import sheepgraze
 sheepgraze.SheepGraze()()
 sheepgraze.SheepGraze()(feed='daisies')
@@ -167,7 +167,7 @@ interface.
 
 
 .. _sheepactions:
-<input content="python" save_as="sheepactions.py">
+<input content="python" save_as="sheepactions.py" action="show">
 import argpext
 
 def sheep_graze(feed):
@@ -209,7 +209,7 @@ if __name__ == '__main__':
 When the above program is saved as file
 ``sheepactions.py`` and executed, we have:
 
-<input content="shell">
+<input content="shell" action="execute">
 sheepactions.py -h
 </input>
 
@@ -220,7 +220,7 @@ usage one should pass any of these sub-commands followed by
 the ``--help/-h`` switch. For example, to display the usage
 for ``graze``:
 
-<input content="shell">
+<input content="shell" action="execute">
 sheepactions.py graze -h
 </input>
 
@@ -230,14 +230,14 @@ sheepactions.py graze -h
   
   In command line:
   
-<input content="shell">
+<input content="shell" action="execute">
 sheepactions.py graze -f daisies
 sheepactions.py jump -n 5
 </input>
   
   Equivalently, in Python interpreter:
 
-<input content="python">
+<input content="python" action="execute">
 from sheepactions import *
 SheepGraze()(feed='daisies')
 SheepJump()(n=5)
@@ -252,7 +252,7 @@ In addition to attaching functions to a node, it is also
 possible to attach nodes to another node, as demonstrated by
 lines 18 and 19 of the following example
 
-<input content="python" save_as="sheepgame.py">
+<input content="python" save_as="sheepgame.py" action="show">
 import argpext
 
 import sheepactions # Module sheepactions is provided by previous example.
@@ -292,7 +292,7 @@ non-uniform height.
 When the above program is saved as file ``sheepgame.py``,
 the top level help message is invoked as follows:
 
-<input content="shell">
+<input content="shell" action="execute">
 sheepgame.py -h
 </input>
 
@@ -300,14 +300,14 @@ sheepgame.py -h
 To display sheep-related usage of ``sheepgame.py``, 
 pass the ``sheep`` subcommand:
 
-<input content="shell">
+<input content="shell" action="execute">
 sheepgame.py sheep -h
 </input>
 
 To display even lower level help messages, additional
 sub-commands are passed:
 
-<input content="shell">
+<input content="shell" action="execute">
 sheepgame.py sheep jump -h
 sheepgame.py sheep graze -h
 </input>
@@ -318,7 +318,7 @@ sheepgame.py sheep graze -h
 
   In the command line:
 
-<input content="shell">
+<input content="shell" action="execute">
 sheepgame.py sheep jump -n 5
 sheepgame.py sheep graze
 sheepgame.py sheep graze -f daisies
@@ -327,7 +327,7 @@ sheepgame.py sheep graze -f daisies
 
   Equivalently, in Python interpreter:
 
-<input content="python">
+<input content="python" action="execute">
 from sheepgame import sheepactions
 sheepactions.SheepJump()(n=5)
 sheepactions.SheepGraze()()
@@ -337,7 +337,7 @@ sheepactions.SheepGraze()(feed='daisies')
 
 Wolf-related usage of ``sheepgame.py``:
 
-<input content="shell">
+<input content="shell" action="execute">
 sheepgame.py feed-wolf -h
 </input>
 
@@ -349,13 +349,13 @@ sheepgame.py feed-wolf -h
   
   In the command line:
 
-<input content="shell">
+<input content="shell" action="execute">
 sheepgame.py feed-wolf
 </input>
 
   Equivalently, in Python interpreter
 
-<input content="python">
+<input content="python" action="execute">
 import sheepgame
 sheepgame.FeedWolf()()
 </input>
@@ -382,7 +382,7 @@ Here is an example, where the three arguments ``quantity``,
 :meth:`add_argument` calls with ``dest='quantity'``,
 ``dest='feed'`` and ``dest='hours'``:
 
-<input content="python" save_as="sheepgraze2.py">
+<input content="python" save_as="sheepgraze2.py" action="show">
 import argpext
 
 def sheep_graze(quantity,feed,hours):
@@ -405,7 +405,7 @@ if __name__ == '__main__':
 
 The usage is as follows:
 
-<input content="shell">
+<input content="shell" action="execute">
 sheepgraze2.py -h
 </input>
 
@@ -416,7 +416,7 @@ sheepgraze2.py -h
 
   In command line
 
-<input content="shell">
+<input content="shell" action="execute">
 sheepgraze2.py dosen
 sheepgraze2.py herd -t 5
 sheepgraze2.py herd -f hay
@@ -425,7 +425,7 @@ sheepgraze2.py herd -f hay
 
   Equivalently, in Python interpreter
 
-<input content="python">
+<input content="python" action="execute">
 import sheepgraze2
 sheepgraze2.SheepGraze()('dosen')
 sheepgraze2.SheepGraze()('herd',hours=5)
@@ -444,7 +444,7 @@ Static :meth:`hook` methods
 Our :ref:`bare bones example<sheepgraze>` can be
 equivalently rewritten in a different style, as follows
 
-<input content="python">
+<input content="python" action="show">
 import argpext
 
 class SheepGraze(argpext.Task):
@@ -470,7 +470,7 @@ The :meth:`Node.digest`, :meth:`Task.digest` and
 corresponding reference function. For example:
 
 
-<input content="python">
+<input content="python" action="execute">
 import argpext
 
 def square(x=1):
@@ -526,7 +526,7 @@ Consider the following possible mnemonic choices for
 specifying a date: "1977-02-04", "Lisas birthday", "y2kday",
 "today", and their implementation:
 
-<input content="python">
+<input content="python" action="execute">
 import argpext
 
 from argpext import *
@@ -593,9 +593,9 @@ argument. Indeed, consider this:
 
 .. _categ_example1_program:
 
-<command>
+<input content="shell" action="execute">
 sheepgraze.py -f money
-</command>
+</input>
 
 
 The :class:`KeyWords` class allows one to limit the
@@ -606,7 +606,7 @@ following:
 
 .. _sheepgraze3:
 
-<input content="python" save_as="sheepgraze3.py">
+<input content="python" save_as="sheepgraze3.py" action="show">
 import argpext
 
 def sheep_graze(feed):
@@ -641,7 +641,7 @@ After this modification, the valid values (``hay``,
 ``grass``, and ``daisies``) of input become visible within
 the help message. Indeed:
 
-<input content="shell">
+<input content="shell" action="execute">
 sheepgraze3.py -h
 </input>
 
@@ -651,7 +651,7 @@ sheepgraze3.py -h
 
   Passing any of the valid values results in proper execution:
   
-<input content="shell">
+<input content="shell" action="execute">
 sheepgraze3.py -f hay
 sheepgraze3.py -f daisies
 </input>
@@ -659,7 +659,7 @@ sheepgraze3.py -f daisies
   Attempt to pass an erroneous argument leads to an
   error message:
   
-<input content="shell">
+<input content="shell" action="execute">
 sheepgraze3.py -f money
 </input>
 
@@ -673,7 +673,7 @@ In addition to providing a Python module, program
 :program:`argpext.py` can be ran as an executable; its
 current usage is as follows:
 
-<input content="shell">
+<input content="shell" action="execute">
 argpext -h
 </input>
 
