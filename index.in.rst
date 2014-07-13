@@ -129,13 +129,14 @@ sheepgraze.py
 sheepgraze.py -f daisies
 </input>
 
-  Equivalently, in Python interpreter:
+   Equivalently, in Python interpreter:
 
 <input content="python" action="execute">
 import sheepgraze
 sheepgraze.SheepGraze()()
 sheepgraze.SheepGraze()(feed='daisies')
 </input>
+
 
 
 

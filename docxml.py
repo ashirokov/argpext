@@ -17,11 +17,12 @@ CONTENT = argpext.KeyWords(['python','shell'])
 ACTIONS = argpext.KeyWords(['show','execute'])
 
 class Debug(object):
-    KEYS = argpext.KeyWords(['x','k'])
-    def __init__(self,key):
-        K = set([Debug.KEYS(k) for k in key.split(',')])
+    KEYS = argpext.KeyWords(['p','x','k'])
+    def __init__(self,key=None):
+        K = set([Debug.KEYS(k) for k in key]) if key is not None else set()
+        self.show_position = 'p' in K
         self.exit_on_error = 'x' in K
-        self.save_as_disable = 'k' in K
+        self.disable_save_as = 'k' in K
 
 
 class __NoDefault: pass
@@ -65,43 +66,45 @@ def filter_out_tr(q):
 
 
 def process_shell(text):
-    command = text
 
-    def prn(line,file):
-        file.write(line)
-        file.write(os.linesep)
+    output_all = []
+    for command in text.splitlines():
 
-    cmd = shlex.split(command)
+        def prn(line,file):
+            file.write(line)
+            file.write(os.linesep)
 
-    pri(cmd)
-    proc = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True )
-    proc.wait()
-    ierr = proc.returncode
+        # When passing with shell=True, you do not need to split the command into list.
+        proc = subprocess.Popen(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True )
+        proc.wait()
+        ierr = proc.returncode
 
-    L = []
+        L = []
 
-    # Deal with stdout
-    so = ''
-    q = proc.stdout.read().decode()
-    if len(q):
-        q = q.splitlines()
-        for q in q:
-            q = q.replace('usage: ./','usage: ')
-            so += (q+os.linesep)
+        # Deal with stdout
+        so = ''
+        q = proc.stdout.read().decode()
+        if len(q):
+            q = q.splitlines()
+            for q in q:
+                q = q.replace('usage: ./','usage: ')
+                so += (q+os.linesep)
 
-    # Deal with stderr
-    se = ''
-    q = proc.stderr.read().decode()
-    q = filter_out_tr(q)
-    for line in q.splitlines():
-        se += (line+os.linesep)
+        # Deal with stderr
+        se = ''
+        q = proc.stderr.read().decode()
+        q = filter_out_tr(q)
+        for line in q.splitlines():
+            se += (line+os.linesep)
 
 
-    prm = '$ '+command+os.linesep
+        prm = '$ '+command+os.linesep
 
-    output = prm+so+se
+        output = prm+so+se
+        output_all += [output]
 
-    return dict(ierr=ierr,output=output)
+
+    return dict(ierr=ierr,output='\n'.join(output_all))
 
 
 
@@ -155,13 +158,18 @@ def parse_node(node,debug):
 
     text = node.childNodes[0].data.strip()
 
-    save_as = get_nodeattr(node,'save_as',None)
-    if save_as is not None:
-        with open(save_as,'w') as fho:
-            if content == 'python':
-                fho.write('#!/usr/bin/env python\n\n')
-            fho.write( text )
-        os.chmod(save_as,stat.S_IXUSR|stat.S_IRUSR|stat.S_IWUSR)
+    def manage_save_as():
+        save_as = get_nodeattr(node,'save_as',None)
+        if save_as is not None:
+            if debug.disable_save_as: return
+            pri('writing file:', save_as)
+            with open(save_as,'w') as fho:
+                if content == 'python':
+                    fho.write('#!/usr/bin/env python\n\n')
+                fho.write( text )
+            os.chmod(save_as,stat.S_IXUSR|stat.S_IRUSR|stat.S_IWUSR)
+
+    manage_save_as()
 
 
     if action == "show":
@@ -183,7 +191,6 @@ def parse_node(node,debug):
 
 def xmlgen(inputfile,outputfile,debug):
 
-
     def process(iline,text):
         print('processing....')
         try:
@@ -202,14 +209,14 @@ def xmlgen(inputfile,outputfile,debug):
             T += ['']
             for line in text.splitlines():
                 T += ['    '+line]
-            if debug:
+            if debug.show_position:
                 T += ['    ']
                 T += ['    # File %s, line %d' % (os.path.basename(inputfile), iline)]
             T = '\n'.join(T)
             return T
 
         text = f(text)
-        pri(text)
+        #pri(text,exit=2)
         return text
 
 
@@ -278,7 +285,7 @@ class Main(argpext.Task):
     hook = argpext.make_hook(xmlgen)
 
     def populate(self,parser):
-        parser.add_argument('-d',dest='debug',type=Debug,help="Debug mode")
+        parser.add_argument('-d',dest='debug',type=Debug,default=Debug(),help="Debug mode")
         parser.add_argument('inputfile',help="Input rst file")
         parser.add_argument('outputfile',help="Output file")
 
