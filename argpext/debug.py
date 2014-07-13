@@ -127,11 +127,22 @@ class DebugPrint(object):
         frm['count'] = A['count']
 
 
-        string = sep.join([str(q) for q in args])+end
+        string = sep.join([str(q) for q in args])
+
+        def manage_multiline(string):
+            q = string.splitlines()
+            if len(q):
+                q = '\n'.join(['multiline...']+q)
+            return q
+
+        string = manage_multiline(string)
+
 
         q = frm
         q.update(dict(string=string))
-        line = self.format_spec.format(**q)
+        line = self.format_spec.format(**q)+end
+
+
 
         file.write(line)
         if flush: file.flush()
