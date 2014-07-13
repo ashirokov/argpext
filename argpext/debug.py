@@ -133,10 +133,10 @@ class DebugPrint(object):
             q = string.splitlines()
             if len(q) > 1:
                 q = '\n'.join(['multiline...']+q)
-            return q
+                return q
+            return string
 
         string = manage_multiline(string)
-
 
         q = frm
         q.update(dict(string=string))
