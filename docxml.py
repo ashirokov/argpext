@@ -11,8 +11,17 @@ import code
 import xml, xml.dom.minidom
 
 import argpext
+from argpext.prints import *
 
+CONTENT = argpext.KeyWords(['python','shell'])
 ACTIONS = argpext.KeyWords(['show','execute'])
+
+class Debug(object):
+    KEYS = argpext.KeyWords(['x','k'])
+    def __init__(self,key):
+        K = set([Debug.KEYS(k) for k in key.split(',')])
+        self.exit_on_error = 'x' in K
+        self.save_as_disable = 'k' in K
 
 
 class __NoDefault: pass
@@ -56,9 +65,6 @@ def filter_out_tr(q):
 
 
 def process_shell(text):
-    PATH_INI = os.getenv('PATH')
-    os.environ['PATH'] = '%s%s%s' % (os.path.curdir,os.path.pathsep,PATH_INI)
-
     command = text
 
     def prn(line,file):
@@ -67,8 +73,10 @@ def process_shell(text):
 
     cmd = shlex.split(command)
 
+    pri(cmd)
     proc = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True )
     proc.wait()
+    ierr = proc.returncode
 
     L = []
 
@@ -93,15 +101,11 @@ def process_shell(text):
 
     output = prm+so+se
 
-    os.environ['PATH'] = PATH_INI
-
-    return output
+    return dict(ierr=ierr,output=output)
 
 
 
 def process_python(text):
-    SYS_PATH_INI = sys.path
-    sys.path = [os.path.curdir]+sys.path
 
     R = []
     def pnl(q):
@@ -142,13 +146,11 @@ def process_python(text):
         #print('[%s]' % output)
         R += [output]
 
-    sys.path = SYS_PATH_INI
-
-    return ''.join(R)
+    return dict(ierr=0,output=''.join(R))
 
 
-def parse_node(node):
-    content = get_nodeattr(node,'content')
+def parse_node(node,debug):
+    content = CONTENT(get_nodeattr(node,'content'))
     action = ACTIONS(get_nodeattr(node,'action'))
 
     text = node.childNodes[0].data.strip()
@@ -156,6 +158,8 @@ def parse_node(node):
     save_as = get_nodeattr(node,'save_as',None)
     if save_as is not None:
         with open(save_as,'w') as fho:
+            if content == 'python':
+                fho.write('#!/usr/bin/env python\n\n')
             fho.write( text )
         os.chmod(save_as,stat.S_IXUSR|stat.S_IRUSR|stat.S_IWUSR)
 
@@ -163,9 +167,16 @@ def parse_node(node):
     if action == "show":
         pass
     elif action == "execute":
-        text = {'shell' :  process_shell, 
-                'python' : process_python,
-                }[content](text)
+        q = {'shell' :  process_shell, 
+             'python' : process_python,
+             }[content](text)
+        text = q['output']
+        ierr = q['ierr']
+
+        if ierr and debug.exit_on_error:
+            pri(text,exit=0)
+
+
     return text
 
 
@@ -183,7 +194,7 @@ def xmlgen(inputfile,outputfile,debug):
 
         node = dom.childNodes[0]
 
-        text = parse_node(node)
+        text = parse_node(node,debug)
 
         def f(text):
             T = []
@@ -198,7 +209,7 @@ def xmlgen(inputfile,outputfile,debug):
             return T
 
         text = f(text)
-
+        pri(text)
         return text
 
 
@@ -238,10 +249,27 @@ def xmlgen(inputfile,outputfile,debug):
                     write(line)
 
 
+
+    PYTHONPATH_INI = os.environ.get('PYTHONPATH')
+
     with argpext.ChDir('doc.tmp') as workdir:
+
+        os.environ['PYTHONPATH'] = os.path.pathsep.join([workdir.initdir,os.getcwd()]+([] if PYTHONPATH_INI is None else [PYTHONPATH_INI]))
+
+        PATH_INI = os.environ['PATH']
+        os.environ['PATH'] = os.path.pathsep.join([os.getcwd(),PATH_INI])
+
         inputfile=os.path.join(workdir.initdir,inputfile)
         outputfile=os.path.join(workdir.initdir,outputfile)
         simple_parse()
+        
+        os.environ['PATH'] = PATH_INI
+
+        if PYTHONPATH_INI is not None:
+            os.environ['PYTHONPATH'] = PYTHONPATH_INI
+        else:
+            del os.environ['PYTHONPATH']
+
 
 
 
@@ -250,7 +278,7 @@ class Main(argpext.Task):
     hook = argpext.make_hook(xmlgen)
 
     def populate(self,parser):
-        parser.add_argument('-d',dest='debug',action='store_true',help="Debug mode")
+        parser.add_argument('-d',dest='debug',type=Debug,help="Debug mode")
         parser.add_argument('inputfile',help="Input rst file")
         parser.add_argument('outputfile',help="Output file")
 

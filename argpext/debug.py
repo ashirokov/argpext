@@ -147,6 +147,6 @@ class DebugPrint(object):
         file.write(line)
         if flush: file.flush()
 
-        if exit and A['count'] == exit:
-            file.write('Exiting..'+'\n')
+        if exit is not None and A['count'] >= exit:
+            file.write('Exit: %s' % ('{smart_basename}:{line}'.format(**frm)) +'\n')
             sys.exit()
