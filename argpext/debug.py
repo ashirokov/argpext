@@ -102,7 +102,7 @@ class DebugPrint(object):
 
 
     KEYS = keywords.KeyWords(['sep','end','file','flush',
-                                      's','e','n'])
+                                      's','e','n','exit'])
 
     def __call__(self,*args,**kwds):
 
@@ -116,6 +116,7 @@ class DebugPrint(object):
         # print arguments
         sep = kwds.pop('sep',' ')
         end = kwds.pop('end','\n')
+        exit = kwds.pop('exit',None)
         file = kwds.pop('file',sys.stdout)
         flush = kwds.pop('flush',False)
 
@@ -135,3 +136,6 @@ class DebugPrint(object):
         file.write(line)
         if flush: file.flush()
 
+        if exit and A['count'] == exit:
+            file.write('Exiting..'+'\n')
+            sys.exit()

@@ -27,6 +27,7 @@ VERSION = (1,2,1)
 from . import tools
 from . import keywords
 from . import debug
+from . import prints
 from . import tasks
 from . import backward
 
