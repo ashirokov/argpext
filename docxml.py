@@ -15,6 +15,7 @@ from argpext.prints import *
 
 CONTENT = argpext.KeyWords(['python','shell'])
 ACTIONS = argpext.KeyWords(['show','execute'])
+XMLKEYS = argpext.KeyWords(['input'])
 
 class Debug(object):
     KEYS = argpext.KeyWords(['p','x','k'])
@@ -191,7 +192,7 @@ def parse_node(node,debug):
 
 def xmlgen(inputfile,outputfile,debug):
 
-    def process(iline,text):
+    def process(iline,text,block_ident):
         print('processing....')
         try:
             dom = xml.dom.minidom.parseString(text)
@@ -205,13 +206,16 @@ def xmlgen(inputfile,outputfile,debug):
 
         def f(text):
             T = []
-            T = ['::']
-            T += ['']
+            full_ident = block_ident+' '*2
+            T += [block_ident+'::']
+            T += [block_ident]
             for line in text.splitlines():
-                T += ['    '+line]
+                T += [full_ident+line]
             if debug.show_position:
-                T += ['    ']
-                T += ['    # File %s, line %d' % (os.path.basename(inputfile), iline)]
+                T += [full_ident]
+                T += [full_ident+'# File %s, line %d' % (os.path.basename(inputfile), iline)]
+            T += [block_ident+'..']
+            T += [block_ident]
             T = '\n'.join(T)
             return T
 
@@ -223,7 +227,6 @@ def xmlgen(inputfile,outputfile,debug):
 
     def simple_parse():
         chunk = []
-        key = 'input'
 
 
         with open(outputfile,'w') as fho:
@@ -234,48 +237,62 @@ def xmlgen(inputfile,outputfile,debug):
                 line = line.rstrip('\r\n')
                 dump = None
                 textline = None
+
                 if len(chunk) == 0:
-                    if line.startswith('<%s' % key):
+                    q = line.find('<%s' % XMLKEYS('input'))
+                    if q != -1:
+                        block_ident = ' '*q
+                        pri(q)
+                        pri('BI[%s]' % block_ident)
                         chunk += [line]
                     else:
                         textline = line
                 else:
                     chunk += [line]
-                    if line.startswith('</%s>' % key):
+                    if line.startswith('</%s>' % XMLKEYS('input') ):
                         dump = '\n'.join(chunk)
                         chunk = []
-
 
                 print('[%d %s]' % ( iline, line) )
 
                 if dump is not None:
-                    q = process(iline,dump)
+                    #pri(dump,exit=4)
+                    #pri('[%s]' % block_ident)
+                    q = process(iline,dump,block_ident)
                     write( q )
+                    del block_ident
 
                 if textline is not None:
                     write(line)
 
 
 
+    PATH_INI = os.environ['PATH']
     PYTHONPATH_INI = os.environ.get('PYTHONPATH')
+    SYS_PATH_INI = sys.argv
 
     with argpext.ChDir('doc.tmp') as workdir:
 
-        os.environ['PYTHONPATH'] = os.path.pathsep.join([workdir.initdir,os.getcwd()]+([] if PYTHONPATH_INI is None else [PYTHONPATH_INI]))
+        extra_paths = [workdir.initdir,os.getcwd()]
 
-        PATH_INI = os.environ['PATH']
-        os.environ['PATH'] = os.path.pathsep.join([os.getcwd(),PATH_INI])
+        os.environ['PYTHONPATH'] = os.path.pathsep.join(extra_paths+([] if PYTHONPATH_INI is None else [PYTHONPATH_INI]))
+        os.environ['PATH'] = os.path.pathsep.join(extra_paths+[PATH_INI])
+        sys.path = extra_paths+sys.path
+        
 
         inputfile=os.path.join(workdir.initdir,inputfile)
         outputfile=os.path.join(workdir.initdir,outputfile)
         simple_parse()
-        
-        os.environ['PATH'] = PATH_INI
 
-        if PYTHONPATH_INI is not None:
-            os.environ['PYTHONPATH'] = PYTHONPATH_INI
-        else:
-            del os.environ['PYTHONPATH']
+    # Restore paths
+    os.environ['PATH'] = PATH_INI
+
+    if PYTHONPATH_INI is not None:
+        os.environ['PYTHONPATH'] = PYTHONPATH_INI
+    else:
+        del os.environ['PYTHONPATH']
+
+    
 
 
 

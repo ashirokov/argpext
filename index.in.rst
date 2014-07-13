@@ -116,22 +116,19 @@ switches, we have:
 sheepgraze.py -h
 </input>
 
-
-..
-  
   Examples of execution
 
   Task :func:`sheep_graze` can be executed from the
   command line as follows:
   
-<input content="shell" action="execute">
+  <input content="shell" action="execute">
 sheepgraze.py
 sheepgraze.py -f daisies
 </input>
 
-   Equivalently, in Python interpreter:
+  Equivalently, in Python interpreter:
 
-<input content="python" action="execute">
+  <input content="python" action="execute">
 import sheepgraze
 sheepgraze.SheepGraze()()
 sheepgraze.SheepGraze()(feed='daisies')
@@ -227,18 +224,18 @@ sheepactions.py graze -h
 
 ..
 
-  Example of execution: 
+  Examples of execution: 
   
   In command line:
   
-<input content="shell" action="execute">
+  <input content="shell" action="execute">
 sheepactions.py graze -f daisies
 sheepactions.py jump -n 5
 </input>
   
   Equivalently, in Python interpreter:
 
-<input content="python" action="execute">
+  <input content="python" action="execute">
 from sheepactions import *
 SheepGraze()(feed='daisies')
 SheepJump()(n=5)
@@ -319,7 +316,7 @@ sheepgame.py sheep graze -h
 
   In the command line:
 
-<input content="shell" action="execute">
+  <input content="shell" action="execute">
 sheepgame.py sheep jump -n 5
 sheepgame.py sheep graze
 sheepgame.py sheep graze -f daisies
@@ -328,7 +325,7 @@ sheepgame.py sheep graze -f daisies
 
   Equivalently, in Python interpreter:
 
-<input content="python" action="execute">
+  <input content="python" action="execute">
 from sheepgame import sheepactions
 sheepactions.SheepJump()(n=5)
 sheepactions.SheepGraze()()
@@ -346,17 +343,17 @@ sheepgame.py feed-wolf -h
 
 ..
   
-  Example of execution:
+  Examples of execution:
   
   In the command line:
 
-<input content="shell" action="execute">
+  <input content="shell" action="execute">
 sheepgame.py feed-wolf
 </input>
 
   Equivalently, in Python interpreter
 
-<input content="python" action="execute">
+  <input content="python" action="execute">
 import sheepgame
 sheepgame.FeedWolf()()
 </input>
@@ -417,7 +414,7 @@ sheepgraze2.py -h
 
   In command line
 
-<input content="shell" action="execute">
+  <input content="shell" action="execute">
 sheepgraze2.py dosen
 sheepgraze2.py herd -t 5
 sheepgraze2.py herd -f hay
@@ -426,7 +423,7 @@ sheepgraze2.py herd -f hay
 
   Equivalently, in Python interpreter
 
-<input content="python" action="execute">
+  <input content="python" action="execute">
 import sheepgraze2
 sheepgraze2.SheepGraze()('dosen')
 sheepgraze2.SheepGraze()('herd',hours=5)
@@ -651,8 +648,8 @@ sheepgraze3.py -h
   Examples of execution:
 
   Passing any of the valid values results in proper execution:
-  
-<input content="shell" action="execute">
+
+  <input content="shell" action="execute">
 sheepgraze3.py -f hay
 sheepgraze3.py -f daisies
 </input>
@@ -660,7 +657,7 @@ sheepgraze3.py -f daisies
   Attempt to pass an erroneous argument leads to an
   error message:
   
-<input content="shell" action="execute">
+  <input content="shell" action="execute">
 sheepgraze3.py -f money
 </input>
 
