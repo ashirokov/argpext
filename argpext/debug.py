@@ -131,7 +131,7 @@ class DebugPrint(object):
 
         def manage_multiline(string):
             q = string.splitlines()
-            if len(q):
+            if len(q) > 1:
                 q = '\n'.join(['multiline...']+q)
             return q
 
