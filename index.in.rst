@@ -236,6 +236,7 @@ sheepactions.py jump -n 5
   Equivalently, in Python interpreter:
 
   <input content="python" action="execute">
+import sheepactions
 from sheepactions import *
 SheepGraze()(feed='daisies')
 SheepJump()(n=5)
@@ -326,6 +327,7 @@ sheepgame.py sheep graze -f daisies
   Equivalently, in Python interpreter:
 
   <input content="python" action="execute">
+import sheepgame
 from sheepgame import sheepactions
 sheepactions.SheepJump()(n=5)
 sheepactions.SheepGraze()()
@@ -672,133 +674,10 @@ In addition to providing a Python module, program
 current usage is as follows:
 
 <input content="shell" action="execute">
-argpext -h
+python -m argpext -h
 </input>
 
 .. _reference:
-
-Reference
------------------------------------------
-
-
-Sub-command hierarchy
-^^^^^^^^^^^^^^^^^^^^^
-
-.. class:: Task
-
-   Base class for a callable function-like object that is
-   capable of behaving like a script.  The object can be
-   evaluated in two ways. As a script-like object, it can be
-   evaluated on a sequence of command line arguments, using
-   method :meth:`digest`. As function-like object it can be
-   evaluated directly, using the function call operator; See
-   method :meth:`__call__` for details. The object is
-   attached to a regular Python function (also called the
-   *reference function*) by the :meth:`hook` method.
-
-   .. staticmethod:: Task.hook(*args,**kwds)
-
-	Specifies the reference Python function. If
-	:meth:`hook` takes positive number of arguments,
-	:meth:`Task.populate` must be properly
-	overloaded as well.
-
-   .. method:: Task.populate(parser)
-
-	This method should be overloaded if :meth:`hook`
-	takes positive number of arguments. For each argument *X* of
-	the :meth:`hook` method there must be a call (or its
-	equivalent) to :py:meth:`add_argument` with *dest='X'*.
-        The *parser* argument should be assumed  to be of type
-	:py:class:`argparse.ArgumentParser`.
-
-
-
-
-   .. method:: Task.__call__(*args,**kwds)
-
-	Execute the reference function; its return value is
-	returned. The arguments of the reference function
-	are given by *args* and *kwds*. If an argument of is
-	missing, the command line default values, defined
-	:meth:`Task.populate` are substituted. Notice
-	that the default values, if any, defined in the
-	arguments of :meth:`Task.hook` are not used. If
-	too many arguments are given or some arguments
-	remain missing, a standard built-in exception is
-	raised.
-
-   .. method:: Task.digest(prog=None,args=None)
-
-	Execute the reference function; its return value is
-	returned.  Task :meth:`Task.populate` is
-	used to convert command line arguments given by
-	*args* into the arguments of the reference
-	function. Using the default value *args=None* is
-	equivalent to setting *args=sys.argv[1:]*. The
-	*prog* argument is the program name that appears in
-	the command line help message when invoked. Using
-	the default value *prog=None* is equivaent to
-	setting *prog=sys.argv[0]*.
-
-.. class:: Node
-
-   Base class for hierarchical script-like object that can
-   be executed on a complete list of command line
-   arguments. The list starts with the mandatory sequence of
-   sub-commands that identifies the leaf :func:`Task`
-   class. The rest of the command line arguments are used to
-   execute the reference function of that class, as
-   specified in the documentation for
-   :meth:`Task.digest` method.
-
-
-   .. attribute:: SUBS
-
-      Specifies the list of child nodes along with their
-      assigned sub-commands. This attribute, if defined,
-      must be a :py:class:`list` or a :py:class:`tuple`
-      of *(key,basenode)* items, where the *basenode* is an
-      instance of either of :class:`Node` or
-      :class:`Task` class, and the *key* is the
-      sub-command assigned to it.
-
-   .. method:: Node.digest(prog=None,args=None)
-
-      Execute the node based the sequence of sub-commands
-      given by *args*. If *args=None*, it is automatically
-      reassigned to `sys.argv[1:]`. Returns the value
-      returned by the reference function corresponding to
-      the sequence of sub-commands given by *args*.
-
-      The *prog* argument is the program name that appears
-      in the command line help message when invoked, the
-      default value *None* translates to *sys.argv[0]*.
-
-
-KeyWords variable type
-^^^^^^^^^^^^^^^^^^^^^
-
-.. class:: KeyWords(keywords=[])
-
-   KeyWords variable type. A callable object that
-   converts input key into itself, if one is defined,
-   throwing a :py:exc:`KeyError` exception otherwise
-
-   * keywords - a list-like object *[item1,item2,...]*, that defined ordered sequence of unique keys
-
-   KeyWords variable type.
-
-   .. method:: KeyWords.__str__()
-
-      Returns string representation for the object showing
-      all the available keys.
-
-   .. method:: KeyWords.__call__(key)
-
-      Returns the *key* itself, if *key* matches any of keys defined
-      by the *keywords*. Otherwise, raises the
-      :py:exc:`KeyError` exception.
 
 Environment variables
 ^^^^^^^^^^^^^^^^^^^^^
@@ -810,22 +689,6 @@ Environment variables
    if this variable is unset.
 
 
-
-Porting from the earlier Argpext versions
------------------------------------------
-
-Compared to the previous releases (0.1 and 0.2) of argpext,
-version 1.0 is a very substantial update. For consistency
-with the "Style Guide for Python Code" (PEP 8), class
-:class:`comm_cls` is renamed into :class:`Task` and
-class :class:`node_cls` is renamed into :class:`Node`.
-Class :class:`keyval` is renamed into
-:class:`KeyWords`. Interface to those classes have also
-been changed.  
-
-Version 1.1 is a bugfix version that addresses minor issues.
-
-Version 1.2 introduces introduces multiple new features.
 
 See also
 --------

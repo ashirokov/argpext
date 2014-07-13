@@ -452,11 +452,24 @@ class Node(BaseNode):
         deleg = self._get_deleg(prog=prog)
         self.populate( deleg['parser'] )
         namespace = argparse.ArgumentParser.parse_args( deleg['parser'], args )
+
+        def type_info():
+            T = {}
+            for a in deleg['parser']._actions:
+                if isinstance(a,argparse._StoreAction):
+                    if a.type is not None:
+                        T[a.dest] = a.type
+            return T
+
+        T = type_info()
+
         D = vars(namespace)
         # Overwrite values defined by parser with explicitly given keyword arguments.
+
         for key,val in kwds.items():
             if key not in D: raise ValueError("dest='%s' is not defined by parser" % key)
-            D[key] = str(val)
+            D[key] = T.get(key,str)(val)
+
         return D
 
     def digest(self,prog=None,args=None):
