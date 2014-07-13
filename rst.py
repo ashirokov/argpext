@@ -303,8 +303,10 @@ class Main(argpext.Task):
 
     def populate(self,parser):
         parser.add_argument('-d',dest='debug',type=Debug,default=Debug(),help="Debug mode")
-        parser.add_argument('inputfile',help="Input rst file")
-        parser.add_argument('outputfile',help="Output file")
+        parser.add_argument('-i',dest='inputfile',default='doc.rst',
+                            help='Input .rst file. The default is "%(default)s"')
+        parser.add_argument('-o',dest='outputfile',default='index.rst', 
+                            help='Output file. The default value is "%(default)s".')
 
 
 

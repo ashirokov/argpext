@@ -1,6 +1,6 @@
 #> 
 
-./rst.py index.in.rst index.rst
+./rst.py doc.rst
 
 make html
 
