@@ -52,9 +52,10 @@ functions.
 Bare bones example
 ^^^^^^^^^^^^^^^^^^
 
-Consider a toy model of a sheep. 
+Let us further consider as an example, how the following simplistic
+game involving sheep and wolves may be designed.
 
-As the bare bones example, suppose there is a function
+Suppose there is a function
 called :func:`sheep_graze` that lets the sheep graze.  Here
 is how we can use the standard :mod:`argparse` module in
 order to connect this function to the command line:
@@ -477,7 +478,7 @@ def square(x=1):
     "Calculate the square of an argument"
     return x*x
 
-class Square(argpext.Function):
+class Square(argpext.Task):
     hook = argpext.make_hook(square)
     def populate(self,parser):
         parser.add_argument('-x', default=2, type=float,

@@ -15,10 +15,9 @@ setup(
     , long_description="""Argpext is a Python package that provides a collection of tools centred on
 research infrastructure development.
 
-Argpext provides hierarchical (multilevel) subcommand implementation that
-allows one to quickly expose any required callable objects, such as functions, 
-generators, or any other Python's callable objects 
-to the DOS/Linux command line. 
+Argpext provides hierarchical, or multilevel, subcommand
+implementation that allows one to quickly expose any required callable
+objects, such as functions, generators, to a DOS/Linux command line.
 
 Hierarchical sub-commands implementation: Class "Task" is used to
 define the interface between a specific callable object and the
@@ -35,14 +34,10 @@ sequence of arguments complete with the task arguments results in the
 actual execution of the task.  Hierarchical subcommands feature
 internally relies on the argparse module.
 
-A detailed documentation is currently available only for version 1.1; see link above.
-
-Documentation for Version 1.2.X will be released approximately by the mid June 2014.
+A limited documentation is currently available at link above.
 
 Release v1.1 - multiple new features. Detailed documentation is provided.
-Release v1.2.0 - multiple new features
-Release v1.2.1 - bug fixes for v1.2.0
-Release v1.2.2 - bug fixes for v1.2.0
+Release v1.2.2 - substantial new features
 
 """
     , classifiers = [
