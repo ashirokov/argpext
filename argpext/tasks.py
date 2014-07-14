@@ -524,7 +524,7 @@ def histfile():
 
 
 
-class History(Task):
+class Main(Task):
     "Display command line history."
 
     def hook(self,unique):
@@ -543,11 +543,6 @@ class History(Task):
     def populate(self,parser):
         parser.add_argument('-u',dest='unique',default=False,action='store_true',
                             help='Do not show repeating commands')
-
-class Main(Node):
-    "Hierarchical extension of argparse"
-    SUBS = [('history', History)
-            ]
 
 
 

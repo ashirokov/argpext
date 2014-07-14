@@ -14,6 +14,6 @@ http://www.opencontent.org/openpub ).
 import argpext
 
 if __name__ == '__main__':
-    argpext.tasks.Main().digest()
+    argpext.Main().digest()
 
 

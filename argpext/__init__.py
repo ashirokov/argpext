@@ -64,3 +64,8 @@ __all__ = [
     ]
 
 from . import rst
+
+
+class Main(Node):
+    SUBS = [('tasks', tasks.Main)]
+
