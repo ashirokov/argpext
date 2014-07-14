@@ -25,16 +25,20 @@ import collections
 VERSION = (1,2,1)
 
 from . import tools
-from . import keywords
-from . import debug
-from . import prints
-from . import tasks
-from . import backward
-
 from argpext.tools import ChDir
+
+from . import keywords
 from argpext.keywords import KeyWords
+
+from . import debug
 from argpext.debug import FrameRef,chainref,DebugPrint
+
+from . import prints
+
+from . import tasks
 from argpext.tasks import display,make_hook,Task,Node,Main
+
+from . import backward
 from argpext.backward import Function,Unit,Categorical
 
 
@@ -59,3 +63,4 @@ __all__ = [
     'Function','Unit','Categorical'
     ]
 
+from . import rst
