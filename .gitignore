@@ -1,2 +1,4 @@
-index.rst
 build
+.DS_Store
+MANIFEST
+dist/

@@ -1,716 +1,404 @@
-.. argpext documentation master file, created by
-   sphinx-quick-start on Sun Sep 30 21:12:52 2012.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
+###################################
 Argpext |release| --- Documentation
-===============================================================
+###################################
 
-.. module:: argpext
+.. package:: argpext
 
-Argpext is a module dedicated to improving the command line
-interface with Python module internals.  It allows one to
-quickly expose any selected Python functions to the command
-line within DOS or Linux-like shells. Help messages are
-automatically produced.
+:py:mod:`argpext` is a Python package, originally designed, developed and maintained by Alex Shirokov since 2012.
 
-Argpext provides hierarchical extension to the
-"Sub-commands" utility of the standard :py:mod:`argparse`
-module. It allows one to group any Python functions into a
-hierarchical tree-like structure, e.g.  according to their
-logic. Every such function then corresponds to a certain
-sequence of sub-commands, and can be executed directly from
-the command line by simply passing the sequence as command
-line arguments to the top level script. The rest of the
-command line arguments to the script are used to set up the
-values of function arguments, at which level the standard
-:py:mod:`argparse` interface applies.
+Argpext provides hierarchical, or multilevel, subcommand
+implementation that allows one to quickly expose any required callable
+objects, such as functions, generators, to a DOS/Linux command line.
 
-Argpext provides a special variable type to support command
-line arguments that take predetermined set of
-values. Information about available choices is automatically
-propagated into the usage help message.
 
-The best way to learn Argpext is through an example. We
-introduce Argpext through a series of illustrative examples
-of tested programs. The formal :ref:`reference<reference>`
-is at the bottom.
+###################################
+Command line linking utilities
+###################################
 
-Argpext is an extension of :py:mod:`argparse`; its knowledge
-is assumed in our document. 
+.. _task:
 
-.. _hierarchy_build:
+``Task`` class
+============================
 
-Building the command line hierarchy
-------------------------------------
+We start with two full-featured examples on how to link a standalone
+function or generator to the *SHELL* command line interface.
 
-In this section we build the sub-command hierarchy for an
-application in order to establish the efficient connection
-between the command line arguments and corresponding Python
-functions. 
+Example: linking a standalone function to command line
+----------------------------
 
-Bare bones example
-^^^^^^^^^^^^^^^^^^
 
-Let us further consider as an example, how the following simplistic
-game involving sheep and wolves may be designed.
+In this example, a function *f(m,n)* takes integer arguments *m* and
+*n*.
 
-Suppose there is a function
-called :func:`sheep_graze` that lets the sheep graze.  Here
-is how we can use the standard :mod:`argparse` module in
-order to connect this function to the command line:
+Our objective is to link this function to the command line
+interface. 
 
-<input content="python" action="show">
-import argparse
+We require that using the command line alone we should be able to:
 
-def sheep_graze(feed):
-    print('Sheep grazes on %s' % feed)
+* See the help message documenting the usage of command line interface 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Let sheep graze')
-    parser.add_argument('-f', dest='feed', default='grass', 
-                        help='Specify the feed. Default: %(default)s.')
-    argv = parser.parse_args()
+* Specify the arguments required by the function
 
-    sheep_graze(feed=argv.feed)
+* Execute the function based on the value of argument we have specified
+
+* See the string representation of the value returned by *f(m,n)*
+
+In addition, we should be able to access the full-featured value
+returned by function *f(m,n)* in Python.
+
+The above requirements are implemented in the code below.  
+
+
+.. note:: Code description: we wish to define command line interface
+  for the standalone function *f(m,n)*. To link function *f(m,n)* to
+  the command line, we define class *F*, an instance of ``Task``, as
+  follows. By defining its *hook* member, we establish the linkage
+  between class *F* and function *f*; by defining its *populate*
+  member we specify how to populate function's arguments based on the
+  command line inputs. This function requires the command line
+  *parser* as argument. The *parser* argument should be treated as
+  variable of the ``argparse.ArgumentParser`` type; as such, the
+  parser should be populated exactly as described documentation for
+  the standard Python's *argparse* module. In our case, it is
+  populated by a sequence of ``parser.add_argument( ... )`` calls: one
+  call for each argument.
+
+
+.. _e3:
+<input directory="examples" read="e3.py" content="python" action="show" flags="show_filename"/>
+
+
+Here, ``s2m`` is used to convert the standalone function *f* into the
+bound ``hook`` method, required any instance of the ``Task`` class.
+
+Also, expression ``customize(tostring=str)`` is used to indicate our
+requirement that the default string representation of the return value
+of *f(m,n)* appears within the command line output.
+
+To suppress the appearance of the return value of *f(m,n)* in command
+line output, use ``hook = customize(tostring=None)(s2m( f ))``,
+alternatively use ``hook = customize()(s2m( f ))``, or simply ``hook =
+s2m( f )``; function *f(m,n)* will still be executed.
+
+To test the implementation, we execute from the *SHELL*:
+
+<input directory="examples" content="shell" action="execute">
+python e3.py --help
+
+python e3.py 2
+
+python e3.py 2 -n 5
 </input>
 
+Equivalently, we execute in *Python*:
 
+<input directory="examples" content="python" action="execute">
+import e3
+e3.F().sdigest('-h')
 
-The identical functionality is now achieved with our Argpext as follows:
+a = e3.F().sdigest('2')
+print(a)
 
-.. _sheepgraze:
-
-<input content="python" save_as="sheepgraze.py" action="show">
-import argpext
-
-def sheep_graze(feed):
-    print('Sheep grazes on %s' % feed)
-
-class SheepGraze(argpext.Task):
-    "Let sheep graze"
-    hook = argpext.make_hook(sheep_graze)
-    def populate(self,parser):
-        parser.add_argument('-f', dest='feed', default='grass', 
-                            help='Specify the feed. Default: %(default)s.')
-
-if __name__ == '__main__':
-    SheepGraze().digest()
+a = e3.F().sdigest('2 -n 5')
+print(a)
 </input>
 
+Specifying argument items explicitly
 
-Class :class:`SheepGraze`, constructed by inheritance from
-:class:`argpext.Task`, establishes the interface between
-command line and function :func:`sheep_graze`.
-
-Command line is processed during the call to the
-:meth:`SheepGraze.digest` function.
-
-The docstring ``"Let sheep graze"`` shows up inside the
-usage. Indeed, when the above program is saved as file
-``sheepgraze.py`` and executed with the ``--help`` or ``-h``
-switches, we have:
-
-.. _sheepgraze_usage:
-
-<input content="shell" action="execute">
-sheepgraze.py -h
-</input>
-
-  Examples of execution
-
-  Task :func:`sheep_graze` can be executed from the
-  command line as follows:
-  
-  <input content="shell" action="execute">
-sheepgraze.py
-sheepgraze.py -f daisies
-</input>
-
-  Equivalently, in Python interpreter:
-
-  <input content="python" action="execute">
-import sheepgraze
-sheepgraze.SheepGraze()()
-sheepgraze.SheepGraze()(feed='daisies')
+<input directory="examples" content="python" action="execute">
+import e3
+a = e3.F().sdigest(['2', '-n', '5'])
+print(a)
 </input>
 
 
 
 
-Adding a new sub-command
-^^^^^^^^^^^^^^^^^^^^^^^^
+Example: linking a standalone generator to command line
+----------------------------
 
-Suppose we now wish to add another function
-:func:`sheep_jump` to the :ref:`example<sheepgraze>` above.
+In this example, a standalone generator *g(m,n)* takes integer
+arguments *m* and *n*.
 
-First we should add a new class :class:`SheepJump` which is
-completely analogous to the previously described
-:class:`SheepGraze`.
+Our objective is to link this generator to the command line interface.
 
-Let us then introduce sub-commands ``graze`` and ``jump``. In
-order to differentiate between the two different tasks on
-the level of command line.
+We require that using the command line alone we should be able to:
 
-To provide the mapping between sub-commands ``graze`` and
-``jump`` and their respective implementations
-:func:`SheepGraze` and :func:`SheepJump` we declare class
-:class:`Sheep` (subclass of :class:`argpext.Node`) and
-assign the mapping to its :attr:`SUBS` attribute, as shown
-in the example below. Tasks :func:`SheepGraze` and
-:func:`SheepJump` are now attached to node :class:`Sheep`.
+* See the help message documenting the usage of command line interface 
 
-The next key thing is to include :meth:`Sheep.digest()` at
-the bottom in order to execute command line on our new
-interface.
+* Specify the arguments required by the function
+
+* Execute the function based on the value of argument we have specified
+
+* See the string representations of the values yielded by the
+  generator immediately as they get provided.
+
+In addition, we should be able to access the full-featured values
+yielded by the generator *g(m,n)* in the Python session, immediately
+as they get provided.
 
 
-.. _sheepactions:
-<input content="python" save_as="sheepactions.py" action="show">
-import argpext
+The above requirements are implemented as follows
 
-def sheep_graze(feed):
-    print('Sheep grazes on %s' % feed)
+.. _e1:
+<input directory="examples" read="e1.py" content="python" action="show" flags="show_filename"/>
 
-class SheepGraze(argpext.Task):
-    "Let sheep graze"
-    hook = argpext.make_hook(sheep_graze)
-    def populate(self,parser):
-        parser.add_argument('-f', dest='feed', default='grass', 
-                            help='Specify the feed. Default: %(default)s.')
+To test the implementation, we execute from the *SHELL*:
 
+<input directory="examples" content="shell" action="execute">
+python e1.py --help
 
-def sheep_jump(n):
-    print('Sheep jumps %d times' % n)
+python e1.py 2
 
-class SheepJump(argpext.Task):
-    "Let sheep jump"
-    hook = argpext.make_hook(sheep_jump)
-    def populate(self,parser):
-        parser.add_argument('-n', dest='n', default=2, type=int, 
-                            help='Specify the number of jumps')
-
-
-class Sheep(argpext.Node):
-    "Sheep-related tasks"
-    SUBS = [('graze', SheepGraze),  # Link subcommand 'graze' to class SheepGraze
-            ('jump', SheepJump),    # Link subcommand 'jump'  to class SheepJump
-            # Add more subcommands here
-            ]
-
-
-if __name__ == '__main__':
-    Sheep().digest()
+python e1.py 2 -n 5
 </input>
 
+We execute in *Python*:
 
+<input directory="examples" content="python" action="execute">
+import e1
+e1.G().sdigest('-h')
 
-When the above program is saved as file
-``sheepactions.py`` and executed, we have:
+for a in e1.G().sdigest('2'):
+    print(a)
 
-<input content="shell" action="execute">
-sheepactions.py -h
-</input>
-
-
-The sub-commands ``graze`` and ``jump`` are clearly shown in
-the help message.  In order to display their individual
-usage one should pass any of these sub-commands followed by
-the ``--help/-h`` switch. For example, to display the usage
-for ``graze``:
-
-<input content="shell" action="execute">
-sheepactions.py graze -h
-</input>
-
-..
-
-  Examples of execution: 
-  
-  In command line:
-  
-  <input content="shell" action="execute">
-sheepactions.py graze -f daisies
-sheepactions.py jump -n 5
-</input>
-  
-  Equivalently, in Python interpreter:
-
-  <input content="python" action="execute">
-import sheepactions
-from sheepactions import *
-SheepGraze()(feed='daisies')
-SheepJump()(n=5)
-</input>
-
-.. _fullexample:
-
-Attaching one node to another
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-In addition to attaching functions to a node, it is also
-possible to attach nodes to another node, as demonstrated by
-lines 18 and 19 of the following example
-
-<input content="python" save_as="sheepgame.py" action="show">
-import argpext
-
-import sheepactions # Module sheepactions is provided by previous example.
-
-
-
-class FeedWolf(argpext.Task):
-    "Feed the wolf"
-
-    def hook(self,prey):
-        print('Wolf eats %s' % prey)
-
-    def populate(self,parser):
-        parser.add_argument('-p', dest='prey', default='sheep', 
-                            help='Specify the food. Default:"%(default)s".')
-
-class Main(argpext.Node):
-    "Top level sheepgame options"
-    SUBS = [
-        ('sheep', sheepactions.Sheep), # Attaching another Node
-        ('feed-wolf', FeedWolf), # Attaching a Task
-        # Add more subcommands here
-        ]
-
-if __name__ == '__main__':
-    Main().digest()
-</input>
-
-
-This methodology allows one to build a rather general
-hierarchical tree-like structure of subcommands of
-non-uniform height.
-
-
-.. _fullexample_usage:
-
-When the above program is saved as file ``sheepgame.py``,
-the top level help message is invoked as follows:
-
-<input content="shell" action="execute">
-sheepgame.py -h
-</input>
-
-
-To display sheep-related usage of ``sheepgame.py``, 
-pass the ``sheep`` subcommand:
-
-<input content="shell" action="execute">
-sheepgame.py sheep -h
-</input>
-
-To display even lower level help messages, additional
-sub-commands are passed:
-
-<input content="shell" action="execute">
-sheepgame.py sheep jump -h
-sheepgame.py sheep graze -h
-</input>
-
-..
-  
-  Examples of execution:
-
-  In the command line:
-
-  <input content="shell" action="execute">
-sheepgame.py sheep jump -n 5
-sheepgame.py sheep graze
-sheepgame.py sheep graze -f daisies
-</input>
-
-
-  Equivalently, in Python interpreter:
-
-  <input content="python" action="execute">
-import sheepgame
-from sheepgame import sheepactions
-sheepactions.SheepJump()(n=5)
-sheepactions.SheepGraze()()
-sheepactions.SheepGraze()(feed='daisies')
-</input>
-
-
-Wolf-related usage of ``sheepgame.py``:
-
-<input content="shell" action="execute">
-sheepgame.py feed-wolf -h
-</input>
-
-.. _fullexample_execution:
-
-..
-  
-  Examples of execution:
-  
-  In the command line:
-
-  <input content="shell" action="execute">
-sheepgame.py feed-wolf
-</input>
-
-  Equivalently, in Python interpreter
-
-  <input content="python" action="execute">
-import sheepgame
-sheepgame.FeedWolf()()
-</input>
-  
-
-
-Tasks with multiple arguments
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-For simplicity, so far we have only considered functions of
-one argument. In practice, there is no such limitation. 
-
-For each argument of the function pointed to by the
-:attr:`hook` attribute there should be a call to
-:meth:`add_argument` inside :meth:`populate`, whose
-``dest=`` value coincides with the name of the argument.
-
-One should take full advantage of the rich set of options
-provided :mod:`argparse` methods such as
-:meth:`add_argument`.
-
-Here is an example, where the three arguments ``quantity``,
-``feed``, and ``hours`` correspond to the three
-:meth:`add_argument` calls with ``dest='quantity'``,
-``dest='feed'`` and ``dest='hours'``:
-
-<input content="python" save_as="sheepgraze2.py" action="show">
-import argpext
-
-def sheep_graze(quantity,feed,hours):
-    print( ('%s of sheep grazes on %s for %.1f hours.' \
-              % (quantity, feed, hours) ).capitalize() )
-
-class SheepGraze(argpext.Task):
-    "Let sheep graze"
-    hook = argpext.make_hook(sheep_graze)
-    def populate(self,parser):
-        parser.add_argument(dest='quantity', help='Quantity of sheep.')
-        parser.add_argument('-f', dest='feed', default='grass', 
-                            help='Specify the feed. Default: %(default)s.')
-        parser.add_argument('-t', dest='hours', default=2.5, type=float,
-                            help='Specify number of hours. Default: %(default)s.')
-
-if __name__ == '__main__':
-    SheepGraze().digest()
-</input>
-
-The usage is as follows:
-
-<input content="shell" action="execute">
-sheepgraze2.py -h
-</input>
-
-
-..
-
-  Execution examples
-
-  In command line
-
-  <input content="shell" action="execute">
-sheepgraze2.py dosen
-sheepgraze2.py herd -t 5
-sheepgraze2.py herd -f hay
-</input>
-
-
-  Equivalently, in Python interpreter
-
-  <input content="python" action="execute">
-import sheepgraze2
-sheepgraze2.SheepGraze()('dosen')
-sheepgraze2.SheepGraze()('herd',hours=5)
-sheepgraze2.SheepGraze()('herd',feed='hay')
-</input>
-
-  Notice the agreement between the default values
-  (e.g. ``hour=2.5``) applied when an optional argument is
-  missing in the command line examples and those in the
-  corresponding Python interpreter examples.
-
-
-Static :meth:`hook` methods
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Our :ref:`bare bones example<sheepgraze>` can be
-equivalently rewritten in a different style, as follows
-
-<input content="python" action="show">
-import argpext
-
-class SheepGraze(argpext.Task):
-    "Let sheep graze"
-
-    def hook(self,feed):
-        print('Sheep grazes on %s' % feed)
-
-    def populate(self,parser):
-        parser.add_argument('-f', dest='feed', default='grass', 
-                            help='Specify the feed. Default: %(default)s.')
-
-if __name__ == '__main__':
-    SheepGraze().digest()
-</input>
-
-
-Return values
-^^^^^^^^^^^^^
-
-The :meth:`Node.digest`, :meth:`Task.digest` and
-:meth:`Task.__call__` methods return the value of the
-corresponding reference function. For example:
-
-
-<input content="python" action="execute">
-import argpext
-
-def square(x=1):
-    "Calculate the square of an argument"
-    return x*x
-
-class Square(argpext.Task):
-    hook = argpext.make_hook(square)
-    def populate(self,parser):
-        parser.add_argument('-x', default=2, type=float,
-                            help='Specify the value of x.')
-
-y = Square().digest(prog=None,args=['-x','2'])
-print( y )
-
-y = Square()(x=4)
-print( y )
-
-y = Square()()
-print( y )
-
-y = Square()() # Todo: add custom execution
-print( y )
+for a in e1.G().sdigest('2 -n 5'):
+    print(a)
 </input>
 
 
 
 
-Command line history log
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Commands managed by Argpext are optionally saved into a
-local history. The feature is disabled by default; to enable
-it, set the environment variable
-:py:envvar:`ARGPEXT_HISTORY` to specify the name of the
-history file. 
-
-Command line history is available by running
-:program:`argpext.py` as executable with ``history``
-sub-command.
 
 
-KeyWords variable type
--------------------------
+Creating ``hook`` as pure bound method
+----------------------------
 
-This section introduces class :class:`KeyWords` to cover
-the type of variables whose possible values (or methods for
-generating those values) are known in advance; this is an
-alternative to using the ``choices=`` argument of
-:py:meth:`argparse.add_argument`.
+In order to link a code body to the command line it is not required to
+have it encapsulated within a standalone function. The following shows
+an example identical to the :ref:`example<e3>` shown above, except
+that the body of the function *f(m,n)* is now embedded within the
+definition of the ``hook`` method, inside class *F* declaration,
+rather than being a standalone task method:
 
-Consider the following possible mnemonic choices for
-specifying a date: "1977-02-04", "Lisas birthday", "y2kday",
-"today", and their implementation:
+<input directory="examples" read="e4.py" content="python" action="show" flags="show_filename"/>
 
-<input content="python" action="execute">
-import argpext
+<input directory="examples" content="shell" action="test-execute">
+python e4.py --help
 
-from argpext import *
-import time
+python e4.py 2 -n 5
+</input>
 
-def today():
-    "Return todays date in YYYY-MM-DD representation"
-    return time.strftime('%Y-%m-%d', time.localtime())
+<input directory="examples" content="python" action="test-execute">
+import e4
+b = e4.F().sdigest('2 -n 5')
+for a in b:
+    print(a)
+</input>
 
-dates = KeyWords([
-    '1977-02-04',
-    'Lisas birthday',
-    'y2kday',
-    'today'
-])
+Return value display: options and customization
+----------------------------
 
+Return value display can be disable, enabled or customized.
 
+In order to disable the return value display, simply use
+``@customize(tostring=None)``, or ``@customize()``, or avoid using the
+``@customize`` decorator alltogether, as in the following example
 
-str(dates)
+<input directory="examples" read="a1.py" content="python" action="show" flags="show_filename"/>
 
-dates('1977-02-04')
-dates('Lisas birthday') 
-dates('y2kday') 
-dates('today') # Function today() is implicitly invoked at this line.
-dates('2012-01-11') # Value not predefined
+<input directory="examples" read="a3.py" content="python" action="show" flags="show_filename"/>
+
+<input directory="examples" content="shell" action="test-execute">
+python a1.py --help
+python a1.py
+</input>
+
+<input directory="examples" content="python" action="test-execute">
+import a1
+b = a1.C().sdigest(display=True)
+for a in b:
+    print( a )
 </input>
 
 
-The three predefined values of date are declared in lines
-9-11; whereas line 12 declares a predefined method for
-finding the value of date:
-
-| *Line 9*: The value of the item is made identical to its reference key ``1977-02-04``.
-| *Line 10*: The reference key is ``Lisas birthday``; the value is fixed and equal to ``1977-01-01``.
-| *Line 11*: The reference key is ``y2kday``; the value is fixed and equal to ``2000-01-01``.
-| *Line 12*: The reference key is ``today``; the value is computed by function :func:`today` at the time of the actual evaluation (line 21).
-
-Actual evaluations are shown in lines 18-27.
-
-The :class:`KeyWords` type object ``dates``, constructed
-in the above example can be used as ``type=`` argument,
-similar to the case in our next :ref:`example<sheepgraze3>`.
+Customized display of function return value
 
 
-Treatment of unmatched values
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<input directory="examples" content="shell" action="execute">
+python a3.py
+</input>
 
-The last evaluation (line 26) results in an error because
-the argument ``2012-01-11`` does not match any of predefined
-values. 
-
-
-.. _categ_example1:
-
-The bare bones example revisited
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Going back to :ref:`one<sheepgraze>` of our previously
-discussed examples :class:`KeyWords` type values may be
-found particularly useful. Problems may arise because
-:ref:`command line usage<sheepgraze_usage>` for that example
-allows one to pass any erroneous string as an
-argument. Indeed, consider this:
-
-.. _categ_example1_program:
-
-<input content="shell" action="execute">
-sheepgraze.py -f money
+<input directory="examples" content="shell" action="execute">
+python a4.py
 </input>
 
 
-The :class:`KeyWords` class allows one to limit the
-domain of argument values to a limited set of valid values
-and reflect the available choices in the usage. Introducing
-the :class:`KeyWords` class into our example leads to the
-following:
-
-.. _sheepgraze3:
-
-<input content="python" save_as="sheepgraze3.py" action="show">
-import argpext
-
-def sheep_graze(feed):
-    print('Sheep grazes on %s' % feed)
-
-
-class SheepGraze(argpext.Task):
-    "Let sheep graze"
-
-    hook = argpext.make_hook(sheep_graze)
-
-    def populate(self,parser):
-        parser.add_argument('-f', dest='feed', default='grass'
-                            , type=argpext.KeyWords(['hay',
-                                                     'grass',
-                                                     'daisies'])
-                            , help='Specify the feed. '\
-                                'Choose from: %(type)s. '\
-                                'Default: %(default)s.')
-
-if __name__ == '__main__':
-    SheepGraze().digest()
-</input>
-   :lines: 3-
-   :emphasize-lines: 12-14,16
-   :linenos:
-
-The highlighted lines (12-14, and 16) emphasize changes relative to the
-:ref:`original program<sheepgraze>`.
-
-After this modification, the valid values (``hay``,
-``grass``, and ``daisies``) of input become visible within
-the help message. Indeed:
-
-<input content="shell" action="execute">
-sheepgraze3.py -h
+<input directory="examples" content="python" action="execute">
+import a3
+b = a3.C().sdigest(display=True)
+b
 </input>
 
-..
-  
-  Examples of execution:
+It is possible to redirect the output into a customized stream; for
+example
 
-  Passing any of the valid values results in proper execution:
+<input directory="examples" content="python" action="execute">
+import io
+stream = io.StringIO()
 
-  <input content="shell" action="execute">
-sheepgraze3.py -f hay
-sheepgraze3.py -f daisies
-</input>
-
-  Attempt to pass an erroneous argument leads to an
-  error message:
-  
-  <input content="shell" action="execute">
-sheepgraze3.py -f money
+import a3
+b = a3.C().sdigest(stream=stream,display=True)
+stream.getvalue()
+b
 </input>
 
 
-.. _argpext_exe:
+Customized display of values provided by task generator
 
-Argpext as an executable
-------------------------
+<input directory="examples" read="a4.py" content="python" action="show" flags="show_filename"/>
 
-In addition to providing a Python module, program
-:program:`argpext.py` can be ran as an executable; its
-current usage is as follows:
-
-<input content="shell" action="execute">
-python -m argpext -h
+<input directory="examples" content="python" action="execute">
+import a4
+b = a4.C().sdigest(display=True)
+for a in b:
+    print( a )
 </input>
 
-.. _reference:
-
-Environment variables
-^^^^^^^^^^^^^^^^^^^^^
-
-
-.. envvar:: ARGPEXT_HISTORY
-
-   Sub-command history file path. No history file is written
-   if this variable is unset.
 
 
 
-See also
---------
 
-* `Argparse Sub-commands <http://docs.python.org/py3k/library/argparse.html#sub-commands>`_
+*Node* class
+==================
 
-* http://pypi.python.org/pypi/Baker
+In :ref:`previous section<task>` we presented multiple examples of
+linking Python code to command line interface. As the number of tasks
+grows it becomes more and more difficult for the developer to keep
+track of them, especially if there is an implicit relation between
+the tasks.
 
-* https://github.com/anandology/subcommand
+This section presents the *Node* class, -- a tool that allows you to
+integrate all the related tasks into a single *master* script, by
+organizing them elegantly into a *task tree* structure.
 
 
+Building the first level of hierarchy
+----------------------------
+
+For example, we can quickly organize all the tasks we have defined in
+:ref:`previous section<task>` within a single script *n1.py* as
+follows:
+
+<input directory="examples" read="n1.py" content="python" action="show" flags="show_filename"/>
+
+The *master* script, when executed with the ``--help/-h`` flag,
+produces the *master help message*, as follows:
+
+<input directory="examples" content="shell" action="execute">
+python n1.py -h
+</input>
+
+<input directory="examples" content="python" action="execute">
+import n1
+n1.Main().sdigest('-h')
+</input>
+
+The positional arguments shown above indicate the list of all tasks
+available. By passing one of them as an additional positional argument
+to the master script, we descend to the level of the specific task
+selected for the execution. In this manner we can execute any of the
+available tasks.
+
+
+Example: executing sub-task e3
+^^^^^^^^^^^^^^^^^^^^
+
+For example, when selecting task *e3* for execution, we must populate
+the arguments required by the task, which is done by first retrieving
+help message as follows:
+
+<input directory="examples" content="shell" action="execute">
+python n1.py e3 -h
+</input>
+<input directory="examples" content="python" action="execute">
+import n1
+n1.Main().sdigest('e3 -h')
+</input>
+
+
+Having reviewed all the options available for executing the task, we
+populate task arguments according to the usage and execute the task
+twice (once with *m=2,n=3*, and once with *m=3,n=5*) as follows
+
+
+<input directory="examples" content="shell" action="execute">
+python n1.py e3 2
+python n1.py e3 2 -n 5
+</input>
+<input directory="examples" content="python" action="execute">
+import n1
+n1.Main().sdigest('e3 2')
+n1.Main().sdigest('e3 2 -n 5')
+</input>
+
+
+
+Example: executing sub-task a4
+^^^^^^^^^^^^^^^^^^^^
+
+
+Similarly, we may choose to execute task *a4*. The help message for is
+generated as follows:
+
+<input directory="examples" content="shell" action="execute">
+python n1.py a4 -h
+</input>
+
+<input directory="examples" content="python" action="execute">
+import n1
+n1.Main().sdigest('a4 -h')
+</input>
+
+
+
+We recall from the :ref:`section<task>` describing the task class,
+that task *a4* structurally differs from task *e3* in that the former
+starts an iterator, whereas the latter executes a serial task. Using
+the master script, task *a4* is executed as follows
+
+
+<input directory="examples" content="shell" action="execute">
+python n1.py a4
+</input>
+
+<input directory="examples" content="python" action="execute">
+import n1
+for element in n1.Main().sdigest('a4',display=True):
+    print( element )
+</input>
+
+
+The objective of the *Node* class is achieved: as we have demonstrated
+with the examples above each task is accessible by passing command
+line arguments to the master script only.
+
+
+
+
+
+
+###############################
 Contents:
-----------------------------------
+###############################
 
 .. toctree::
    :maxdepth: 2
 
-
-
+###############################
 Indices and tables
-==================
+###############################
+
 
 * :ref:`genindex`  
 * :ref:`modindex`

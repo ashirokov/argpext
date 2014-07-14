@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='argpext'
-    , version='1.2.2' # Fix the version number at conf.py, and argparse/__init__.py too
+    , version='1.3.0' # Fix the version number at conf.py, and argparse/__init__.py too
     , description = 'Argpext: hierarchical extension of sub-commands in argparse.'
     , author='Alexander Shirokov'
     , author_email='alexander.shirokov@gmail.com'
@@ -12,10 +12,7 @@ setup(
     #, scripts = ['argpext.py']
     , py_modules=['argpext']
     , license='OSI Approved'
-    , long_description="""Argpext is a Python package that provides a collection of tools centred on
-research infrastructure development.
-
-Argpext provides hierarchical, or multilevel, subcommand
+    , long_description="""Argpext provides hierarchical, or multilevel, subcommand
 implementation that allows one to quickly expose any required callable
 objects, such as functions, generators, to a DOS/Linux command line.
 
@@ -23,23 +20,16 @@ Hierarchical sub-commands implementation: Class "Task" is used to
 define the interface between a specific callable object and the
 command line. When python module contains more than one "task", class
 "Node" may be used in order to populate all the required "tasks" onto
-a tree structure, whose design follows users preferences.  Any such
-task may then individually be executed from a command line, by passing
-a specific sequence of command line arguments to the script, followed
-by the command line arguments used to specify the arguments of the
-task, if required.  When followed by the "--help" flag, such sequence
-simply outputs the help message that provides short description of the
-task and directions for populating task arguments. Passing the
+a tree structure.  Any such task may then individually be executed from a UNIX/DOS
+command line prompt, by passing a script name followed a sequence of command line arguments, followed by the command line arguments used to specify the arguments of the
+task, if required.  Using the "--help" results in a help message. Passing the
 sequence of arguments complete with the task arguments results in the
-actual execution of the task.  Hierarchical subcommands feature
-internally relies on the argparse module.
+actual execution of the task.
 
-A limited documentation is currently available at link above.
+Acknowledgements: Hierarchical subcommands feature internally relies on the argparse module.
 
-Release v1.1 - multiple new features. Tested on both Python 2 and Python 3.
-
-Release v1.2.2 - substantial new features.
-
+Release v1.3.0 - substantial new features.  This version is only compatible with 
+Python 3 only. Support for Python 2 is currently planned, for versions 1.3.XXX. 
 """
     , classifiers = [
         'Development Status :: 4 - Beta'
