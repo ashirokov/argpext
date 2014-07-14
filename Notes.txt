@@ -1,3 +1,11 @@
+#> Version update:
+
+setup.py, line 7
+argpext/__init__.py, line 27
+conf.py: lines 51,53
+
+Year copyright notices change: conf.py, Alll other python files
+
 #> Creating dist 
 
 rm -rf dist
@@ -13,11 +21,12 @@ python setup.py sdist bdist_wininst upload
 
 #> Creating docs
 
-python -m argpext rst
+python -m argpext rst doc.rst index.rst
 
 make html
 
 
-
+First, change into build/html
+Then
 zip -r ../docs.zip .
 

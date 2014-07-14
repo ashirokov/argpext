@@ -13,17 +13,49 @@ import xml, xml.dom.minidom
 import argpext
 from argpext.prints import *
 
+
+XMLTAGS = argpext.KeyWords(['input'])
+
+INPUTATTR = argpext.KeyWords(['action','content','linenos','read','directory','flags'])
+
 CONTENT = argpext.KeyWords(['python','shell'])
-ACTIONS = argpext.KeyWords(['show','execute'])
-XMLKEYS = argpext.KeyWords(['input'])
+ACTIONS = argpext.KeyWords(['show','execute','test-execute'])
+FLAGS = argpext.KeyWords(['show_filename'])
+
 
 class Debug(object):
-    KEYS = argpext.KeyWords(['p','x','k'])
+    KEYS = argpext.KeyWords(['p','k','t'])
     def __init__(self,key=None):
         K = set([Debug.KEYS(k) for k in key]) if key is not None else set()
         self.show_position = 'p' in K
-        self.exit_on_error = 'x' in K
-        self.disable_save_as = 'k' in K
+        self.enable_test = 't' in K
+
+
+class Immerse(object):
+    def __init__(self,directory):
+        self.initdir = os.getcwd()
+        self.directory = os.path.abspath(directory)
+        self.PATH_INI = os.environ['PATH']
+        self.PYTHONPATH_INI = os.environ.get('PYTHONPATH')
+
+    def __enter__(self):
+        extra_paths = [os.getcwd()]
+        os.chdir(self.directory)
+        extra_paths += [os.getcwd()]
+        os.environ['PATH'] = os.path.pathsep.join(extra_paths+[self.PATH_INI])
+        os.environ['PYTHONPATH'] = os.path.pathsep.join(extra_paths+([] if self.PYTHONPATH_INI is None else [self.PYTHONPATH_INI]))
+
+
+    def __exit__(self,exc_type,exc_value,tp):
+        # Restore paths
+        os.environ['PATH'] = self.PATH_INI
+        if self.PYTHONPATH_INI is not None:
+            os.environ['PYTHONPATH'] = self.PYTHONPATH_INI
+        else:
+            del os.environ['PYTHONPATH']
+        os.chdir(self.initdir)
+        return False
+
 
 
 class __NoDefault: pass
@@ -66,7 +98,23 @@ def filter_out_tr(q):
 
 
 
-def process_shell(text):
+def process_show(text,node):
+
+    text = text.lstrip()
+
+    flags = set(filter(None,get_nodeattr(node,INPUTATTR('flags'),'').split(',')))
+    content = CONTENT(get_nodeattr(node,INPUTATTR('content')))
+
+    if 'show_filename' in flags:
+        comment = {'python' : '#','shell' : '::'}[content]+' File "%s"' % get_nodeattr(node,INPUTATTR('read'))
+        text = '\n'.join([comment,"",text ])
+
+
+    return dict(ierr=0,output=text)
+
+def process_shell(text,node):
+
+    text = text.lstrip()
 
     output_all = []
     for command in text.splitlines():
@@ -78,7 +126,7 @@ def process_shell(text):
         # When passing with shell=True, you do not need to split the command into list.
         proc = subprocess.Popen(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True )
         proc.wait()
-        ierr = proc.returncode
+        #ierr = proc.returncode
 
         L = []
 
@@ -87,9 +135,9 @@ def process_shell(text):
         q = proc.stdout.read().decode()
         if len(q):
             q = q.splitlines()
-            for q in q:
+            for i,q in enumerate(q):
                 q = q.replace('usage: ./','usage: ')
-                so += (q+os.linesep)
+                so += ('' if i == 0 else os.linesep)+q
 
         # Deal with stderr
         se = ''
@@ -98,101 +146,152 @@ def process_shell(text):
         for line in q.splitlines():
             se += (line+os.linesep)
 
+        outputs = so+se
 
-        prm = '$ '+command+os.linesep
+        output = '~$ '+command+('\n'+outputs if len(outputs) else '') 
 
-        output = prm+so+se
         output_all += [output]
 
 
-    return dict(ierr=ierr,output='\n'.join(output_all))
+    return dict(output='\n'.join(output_all))
 
 
 
-def process_python(text):
+def process_python(text,node):
 
-    R = []
-    def pnl(q):
-        if len(q): q += os.linesep
-        return q
+    def consinit():
+        cons = code.InteractiveConsole()
 
-    cons = code.InteractiveConsole()
-
-    start = [
-        "__name__ = '__main__'"
-        ,"import sys"
-        ,"sys.argv = ['excode.py']"
-        ,'del sys'
+        start = [
+            "__name__ = '__main__'"
+            ,"import sys"
+            ,"sys.argv = ['excode.py']"
+            ,'del sys'
         ]
-    for q in start:
-        cons.push(q)
+        for q in start:
+            cons.push(q)
+        return cons
 
 
+    class Console:
+        def __init__(self):
+            self.cons = consinit()
+            self.status = 0
+            self.R = []
+
+        def push(self,line):
+            #for line in text.rstrip('\n').splitlines()+['\n']:
+            #line = line.rstrip()
+            print('line:', line)
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+
+            with Reconnect(stdout=stdout,stderr=stderr):
+                print('pushing {%s}|size:%d' % (line,len(line)) ,file=sys.__stdout__)
+                try:
+                    self.status_next = self.cons.push(line)
+                except:
+                    print('[Python console is terminated at this point]\n')
+                    self.cons = consinit()
+            stdout.seek(0)
+            stderr.seek(0)
+
+            so_raw = str(stdout.read())
+            se_raw = str(stderr.read())
+
+            prompt = '... ' if self.status else '>>> '
+
+            prm = '%s%s' % ( prompt, line )+os.linesep
+
+            def pnl(q):
+                if len(q): q += os.linesep
+                return q
+
+            so = so_raw
+            se = pnl(filter_out_tr(se_raw))
+
+            output = '{prompt}{line}{nl}{so}{se}'.format(
+                prompt=prompt
+                ,line=line
+                ,nl=os.linesep
+
+                ,so=so
+                #,so='+'
+                ,se=se
+                #,se='*'
+                )
+
+            print('output: {%s}' % output, file=sys.__stdout__)
+            print(file=sys.__stdout__)
+
+            self.R += [output]
+            self.status = self.status_next
+            return self.status
+
+    text = text.lstrip()
+
+    C = Console()
+    status = False
     for line in text.splitlines():
+        status = C.push( line )
 
-        line = line.rstrip()
-
-        stdout = io.StringIO()
-        stderr = io.StringIO()
-
-        with Reconnect(stdout=stdout,stderr=stderr):
-            status = cons.push(line)
-        stdout.seek(0)
-        stderr.seek(0)
+    # Complete unfinished statements
+    i = 0
+    while status:
+        status = C.push("")
+        i += 1
+    C.push("")
 
 
-        prompt = '... ' if status else '>>> '
-
-        prm = '%s%s' % ( prompt, line )+os.linesep
-        so = pnl(str(stdout.read()))
-        se = pnl(filter_out_tr(str(stderr.read())))
-        output = prm+so+se
-        #print('[%s]' % output)
-        R += [output]
-
-    return dict(ierr=0,output=''.join(R))
+    return dict(output=''.join(C.R))
 
 
 def parse_node(node,debug):
-    content = CONTENT(get_nodeattr(node,'content'))
-    action = ACTIONS(get_nodeattr(node,'action'))
-
-    text = node.childNodes[0].data.strip()
-
-    def manage_save_as():
-        save_as = get_nodeattr(node,'save_as',None)
-        if save_as is not None:
-            if debug.disable_save_as: return
-            pri('writing file:', save_as)
-            with open(save_as,'w') as fho:
-                if content == 'python':
-                    fho.write('#!/usr/bin/env python\n\n')
-                fho.write( text )
-            os.chmod(save_as,stat.S_IXUSR|stat.S_IRUSR|stat.S_IWUSR)
-
-    manage_save_as()
+    content = CONTENT(get_nodeattr(node,INPUTATTR('content')))
+    action = ACTIONS(get_nodeattr(node,INPUTATTR('action')))
+    directory = get_nodeattr(node,INPUTATTR('directory'))
 
 
-    if action == "show":
-        pass
-    elif action == "execute":
-        q = {'shell' :  process_shell, 
-             'python' : process_python,
-             }[content](text)
+    def gettext():
+        if len(node.childNodes):
+            assert( len(node.childNodes) == 1 )
+            text = node.childNodes[0].data.lstrip()
+        else:
+            with open(os.path.join(directory,get_nodeattr(node,INPUTATTR('read')))) as fhi:
+                text = fhi.read()
+        return text
+
+    text = gettext()
+
+
+    with Immerse(directory):
+
+        if action == "show":
+            q = process_show(text,node=node)
+        elif action in set(["execute","test-execute"]):
+            if action == "test-execute" and not debug.enable_test:
+                q = {'output' : '',
+                     'skip' : True
+                }
+            else:
+                q = {'shell' :  process_shell, 
+                     'python' : process_python}
+                q = q[content](text,node=node)
+        else:
+            raise KeyError()
+
         text = q['output']
-        ierr = q['ierr']
 
-        if ierr and debug.exit_on_error:
-            pri(text,exit=0)
-
-
-    return text
+        return q
 
 
 
 def xmlgen(inputfile,outputfile,debug):
 
-    def process(iline,text,block_ident):
+    inputfile = os.path.abspath(inputfile)
+    outputfile = os.path.abspath(outputfile)
+
+    def process(iline,text,prior_ident):
         print('processing....')
         try:
             dom = xml.dom.minidom.parseString(text)
@@ -201,26 +300,37 @@ def xmlgen(inputfile,outputfile,debug):
             raise ValueError('XML not well-formed, see above')
 
         node = dom.childNodes[0]
+        content = CONTENT(get_nodeattr(node,INPUTATTR('content')))
+        linenos = {"false" : False, "true" : True}[get_nodeattr(node,INPUTATTR('linenos'),default="false")]
 
-        text = parse_node(node,debug)
+        q = parse_node(node,debug)
+        text = q['output']
+        skip = q.get('skip',False)
+
 
         def f(text):
             T = []
-            full_ident = block_ident+' '*2
-            T += [block_ident+'::']
-            T += [block_ident]
+            current_ident = prior_ident+' '*2
+            # Start the block
+            T += [prior_ident+('.. code-block:: {content}'.format(content=content))]
+            if linenos:
+                T += [current_ident+':linenos:']
+            T += [current_ident]
             for line in text.splitlines():
-                T += [full_ident+line]
+                T += [current_ident+line]
             if debug.show_position:
-                T += [full_ident]
-                T += [full_ident+'# File %s, line %d' % (os.path.basename(inputfile), iline)]
-            T += [block_ident+'..']
-            T += [block_ident]
+                T += [current_ident]
+                T += [current_ident+'# File %s, line %d' % (os.path.basename(inputfile), iline)]
+            #T += [prior_ident+'..']
+            T += [prior_ident]
             T = '\n'.join(T)
             return T
 
         text = f(text)
+        if skip: text = ''
+
         #pri(text,exit=2)
+
         return text
 
 
@@ -235,62 +345,42 @@ def xmlgen(inputfile,outputfile,debug):
 
             for iline,line in enumerate(open(inputfile),1):
                 line = line.rstrip('\r\n')
+
+
                 dump = None
                 textline = None
 
                 if len(chunk) == 0:
-                    q = line.find('<%s' % XMLKEYS('input'))
+                    q = line.find('<%s' % XMLTAGS('input'))
                     if q != -1:
-                        block_ident = ' '*q
+                        prior_ident = ' '*q
                         pri(q)
-                        pri('BI[%s]' % block_ident)
+                        pri('BI[%s]' % prior_ident)
                         chunk += [line]
+                        if line.endswith('/>') :
+                            dump = chunk
+                            chunk = []
                     else:
                         textline = line
                 else:
                     chunk += [line]
-                    if line.startswith('</%s>' % XMLKEYS('input') ):
-                        dump = '\n'.join(chunk)
+                    if line.startswith('</%s>' % XMLTAGS('input') ):
+                        dump = chunk
                         chunk = []
 
                 print('[%d %s]' % ( iline, line) )
 
                 if dump is not None:
-                    #pri(dump,exit=4)
-                    #pri('[%s]' % block_ident)
-                    q = process(iline,dump,block_ident)
+                    pri('[%s]' % prior_ident)
+                    q = process(iline,'\n'.join(dump),prior_ident)
                     write( q )
-                    del block_ident
+                    del prior_ident
 
                 if textline is not None:
                     write(line)
 
+    simple_parse()
 
-
-    PATH_INI = os.environ['PATH']
-    PYTHONPATH_INI = os.environ.get('PYTHONPATH')
-    SYS_PATH_INI = sys.argv
-
-    with argpext.ChDir('doc.tmp') as workdir:
-
-        extra_paths = [workdir.initdir,os.getcwd()]
-
-        os.environ['PYTHONPATH'] = os.path.pathsep.join(extra_paths+([] if PYTHONPATH_INI is None else [PYTHONPATH_INI]))
-        os.environ['PATH'] = os.path.pathsep.join(extra_paths+[PATH_INI])
-        sys.path = extra_paths+sys.path
-        
-
-        inputfile=os.path.join(workdir.initdir,inputfile)
-        outputfile=os.path.join(workdir.initdir,outputfile)
-        simple_parse()
-
-    # Restore paths
-    os.environ['PATH'] = PATH_INI
-
-    if PYTHONPATH_INI is not None:
-        os.environ['PYTHONPATH'] = PYTHONPATH_INI
-    else:
-        del os.environ['PYTHONPATH']
 
     
 
@@ -299,14 +389,14 @@ def xmlgen(inputfile,outputfile,debug):
 
 class Main(argpext.Task):
 
-    hook = argpext.make_hook(xmlgen)
+    hook = argpext.s2m(xmlgen)
 
     def populate(self,parser):
-        parser.add_argument('-d',dest='debug',type=Debug,default=Debug(),help="Debug mode")
-        parser.add_argument('-i',dest='inputfile',default='doc.rst',
+        parser.add_argument(dest='inputfile',default='doc.rst',
                             help='Input .rst file. The default is "%(default)s"')
-        parser.add_argument('-o',dest='outputfile',default='index.rst', 
+        parser.add_argument(dest='outputfile',default='index.rst', 
                             help='Output file. The default value is "%(default)s".')
+        parser.add_argument('-d',dest='debug',type=Debug,default=Debug(),help="Debug mode")
 
 
 

@@ -11,9 +11,9 @@ http://www.opencontent.org/openpub ).
 
 """
 
-import argpext
+from argpext import *
 
 if __name__ == '__main__':
-    argpext.Main().digest()
+    Main().tdigest()
 
 
