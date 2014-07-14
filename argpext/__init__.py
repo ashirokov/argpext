@@ -67,5 +67,7 @@ from . import rst
 
 
 class Main(Node):
-    SUBS = [('tasks', tasks.Main)]
+    SUBS = [('tasks', tasks.Main),
+            ('rst', rst.Main)
+            ]
 
