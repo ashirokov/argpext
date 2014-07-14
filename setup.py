@@ -36,8 +36,9 @@ internally relies on the argparse module.
 
 A limited documentation is currently available at link above.
 
-Release v1.1 - multiple new features. Detailed documentation is provided.
-Release v1.2.2 - substantial new features
+Release v1.1 - multiple new features. Tested on both Python 2 and Python 3.
+
+Release v1.2.2 - substantial new features.
 
 """
     , classifiers = [
@@ -51,7 +52,7 @@ Release v1.2.2 - substantial new features
         ,'Operating System :: Microsoft :: Windows'
         ,'Operating System :: POSIX'
         ,'Programming Language :: Python :: 3'
-        ,'Programming Language :: Python :: 2'
+        #,'Programming Language :: Python :: 2'
 
         ,'Topic :: Software Development :: User Interfaces'
         ,'Topic :: Software Development :: Interpreters'        
