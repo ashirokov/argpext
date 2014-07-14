@@ -9,7 +9,7 @@ setup(
     , author='Alexander Shirokov'
     , author_email='alexander.shirokov@gmail.com'
     , packages=['argpext']
-    , scripts = ['argpext.py']
+    #, scripts = ['argpext.py']
     , py_modules=['argpext']
     , license='OSI Approved'
     , long_description="""Argpext is a Python package that provides a collection of tools centred on
