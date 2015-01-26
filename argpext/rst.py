@@ -1,4 +1,16 @@
-#!/usr/bin/env python
+"""
+
+Argpext: Hierarchical argument processing based on argparse.
+
+Copyright (c) 2012,2015 by Alexander V. Shirokov. This material
+may be distributed only subject to the terms and conditions
+set forth in the Open Publication License, v1.0 or later
+(the latest version is presently available at
+http://www.opencontent.org/openpub ).
+
+
+"""
+
 
 import shlex
 import stat
@@ -156,6 +168,14 @@ def process_shell(text,node):
     return dict(output='\n'.join(output_all))
 
 
+class TextStream():
+    def __init__(self):
+        self.s = ''
+    def write(self,s):
+        self.s = self.s+s
+    def __str__(self):
+        return self.s
+
 
 def process_python(text,node):
 
@@ -178,26 +198,27 @@ def process_python(text,node):
             self.cons = consinit()
             self.status = 0
             self.R = []
+            self.i = 0
 
         def push(self,line):
             #for line in text.rstrip('\n').splitlines()+['\n']:
             #line = line.rstrip()
-            print('line:', line)
-            stdout = io.StringIO()
-            stderr = io.StringIO()
+            sys.stdout.write('line: %s\n' % line)
+
+            stdout = TextStream()
+            stderr = TextStream()
 
             with Reconnect(stdout=stdout,stderr=stderr):
-                print('pushing {%s}|size:%d' % (line,len(line)) ,file=sys.__stdout__)
+                self.i += 1
+                sys.__stdout__.write('pushing %d {%s}|size:%d\n' % ( self.i, line,len(line)) )
                 try:
                     self.status_next = self.cons.push(line)
                 except:
-                    print('[Python console is terminated at this point]\n')
+                    sys.stdout.write('[Python console is terminated at this point]\n')
                     self.cons = consinit()
-            stdout.seek(0)
-            stderr.seek(0)
 
-            so_raw = str(stdout.read())
-            se_raw = str(stderr.read())
+            so_raw = str(stdout)
+            se_raw = str(stderr)
 
             prompt = '... ' if self.status else '>>> '
 
@@ -221,9 +242,7 @@ def process_python(text,node):
                 #,se='*'
                 )
 
-            print('output: {%s}' % output, file=sys.__stdout__)
-            print(file=sys.__stdout__)
-
+            sys.__stdout__.write('output: {%s}\n\n' % output)
             self.R += [output]
             self.status = self.status_next
             return self.status
@@ -237,9 +256,11 @@ def process_python(text,node):
 
     # Complete unfinished statements
     i = 0
-    while status:
+    while 1:
+        if status: break
         status = C.push("")
         i += 1
+        if i == 2: break
     C.push("")
 
 
@@ -292,11 +313,11 @@ def xmlgen(inputfile,outputfile,debug):
     outputfile = os.path.abspath(outputfile)
 
     def process(iline,text,prior_ident):
-        print('processing....')
+        sys.stdout.write('processing....\n')
         try:
             dom = xml.dom.minidom.parseString(text)
         except:
-            print( text, file=sys.stderr )
+            sys.stderr.write(text+'\n')
             raise ValueError('XML not well-formed, see above')
 
         node = dom.childNodes[0]
@@ -341,7 +362,7 @@ def xmlgen(inputfile,outputfile,debug):
 
         with open(outputfile,'w') as fho:
 
-            write = (lambda x: print(x,file=fho))
+            write = (lambda x: fho.write(str(x)+'\n'))
 
             for iline,line in enumerate(open(inputfile),1):
                 line = line.rstrip('\r\n')
@@ -368,7 +389,7 @@ def xmlgen(inputfile,outputfile,debug):
                         dump = chunk
                         chunk = []
 
-                print('[%d %s]' % ( iline, line) )
+                sys.stdout.write('[%d %s]\n' % ( iline, line) )
 
                 if dump is not None:
                     pri('[%s]' % prior_ident)

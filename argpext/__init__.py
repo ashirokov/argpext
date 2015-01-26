@@ -4,7 +4,7 @@
 
 Argpext: Hierarchical argument processing based on argparse.
 
-Copyright (c) 2012,2014 by Alexander V. Shirokov. This material
+Copyright (c) 2012,2014,2015 by Alexander V. Shirokov. This material
 may be distributed only subject to the terms and conditions
 set forth in the Open Publication License, v1.0 or later
 (the latest version is presently available at
@@ -24,7 +24,7 @@ import functools
 import inspect
 import shlex
 
-VERSION = (1,3,0)
+VERSION = (1,3,1)
 
 from . import argparse
 
