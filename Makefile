@@ -1,6 +1,9 @@
 # Makefile for Sphinx documentation
 #
 
+
+PYTHON = python
+
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
@@ -49,10 +52,10 @@ clean:
 
 
 rst:
-	python -m argpext rst doc.rst index.rst
+	$(PYTHON) -m argpext rst doc.rst index.rst
 
 testrst:
-	python -m argpext rst doc.rst index.rst -d t
+	$(PYTHON) -m argpext rst doc.rst index.rst -d t
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html

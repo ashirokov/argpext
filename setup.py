@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='argpext'
-    , version='1.3.0' # Fix the version number at conf.py, and argparse/__init__.py too
+    , version='1.3.1' # Fix the version number at conf.py, and argparse/__init__.py too
     , description = 'Argpext: hierarchical extension of sub-commands in argparse.'
     , author='Alexander Shirokov'
     , author_email='alexander.shirokov@gmail.com'
@@ -28,8 +28,10 @@ actual execution of the task.
 
 Acknowledgements: Hierarchical subcommands feature internally relies on the argparse module.
 
-Release v1.3.0 - substantial new features.  This version is only compatible with 
-Python 3 only. Support for Python 2 is currently planned, for versions 1.3.XXX. 
+Release v1.3.0 - substantial new features.  
+
+Release v1.3.1 - Compatibility with Python 2 is established.
+
 """
     , classifiers = [
         'Development Status :: 4 - Beta'
@@ -41,8 +43,8 @@ Python 3 only. Support for Python 2 is currently planned, for versions 1.3.XXX.
         ,'Operating System :: MacOS :: MacOS X'
         ,'Operating System :: Microsoft :: Windows'
         ,'Operating System :: POSIX'
+        ,'Programming Language :: Python :: 2'
         ,'Programming Language :: Python :: 3'
-        #,'Programming Language :: Python :: 2'
 
         ,'Topic :: Software Development :: User Interfaces'
         ,'Topic :: Software Development :: Interpreters'        
