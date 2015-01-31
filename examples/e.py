@@ -4,7 +4,7 @@ from argpext import *
 def represent_as_string(x):
     return ','.join([str(q) for q in x])
 
-class C(Task):
+class T(Task):
 
     @customize(tostring=represent_as_string)
     def hook(self):
@@ -12,4 +12,4 @@ class C(Task):
         return [1,2,3]
 
 if __name__ == '__main__':
-    C().tdigest()
+    T().tdigest()

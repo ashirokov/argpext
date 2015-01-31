@@ -6,7 +6,7 @@ def g(m,n):
     for i in range(m,1+n):
         yield i
 
-class G(Task):
+class T(Task):
 
     hook = customize(tostring=str)(s2m( g ))
 
@@ -17,4 +17,4 @@ class G(Task):
 
 
 if __name__ == '__main__':
-    G().tdigest()
+    T().tdigest()
