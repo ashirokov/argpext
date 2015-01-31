@@ -1,10 +1,23 @@
+Argpext provides methods to quickly expose any required callable
+objects, such as function, or generator, to a 
+DOS/Linux command line hereby defining a task.
 
-Porting from 1.1 into 1.2
+Argpext provides method to organize multiple tasks conveniently into a tree structure.
 
-1) Introduced hook, the static HOOK is still supported, deprecated.
-2) Introduced KeyWords, Categoical is deprecated.
-3) Introduced display.
-4) Supporting generators.
-5) Introduced hook(), to attach a regular pythons function or generator
-6) Renamed Function into Task. Function still supported but deprecated.
+Each task of such tree can then be executed by passing the proper sequence
+of command line arguments that is necessary to identify the task to
+be executed; the remaining arguments, if any, specify the values of the arguments
+argument passed to the task (if any). 
+
+Help messages, which are mostly based on the docstrings, are
+automatically produced when the --help (or -h) flag is passed.
+
+The return values of the functions and the values yielded by the
+generators are treated differently.  Full-featured return value
+objects are available at the point of execution in
+Python. Customizable return value display option is available for
+execution under Linux/DOS command prompt.
+
+A thorough documentation (with numerous examples) is provided at http://pythonhosted.org//argpext/.
+
 

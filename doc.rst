@@ -2,36 +2,28 @@
 Argpext |release| --- Documentation
 ###################################
 
-.. package:: argpext
-
-:py:mod:`argpext` is a Python package, originally designed, developed and maintained by Alex Shirokov since 2012.
-
-Argpext provides hierarchical, or multilevel, subcommand
-implementation that allows one to quickly expose any required callable
-objects, such as functions, generators, to a DOS/Linux command line.
-
 
 ###################################
-Command line linking utilities
+Hierarchical command line interface
 ###################################
+
+Hierarchical command line interface utility of the ``argpext`` package
+aims to provide very efficient bindings between callable python
+objects, such as functions, or generators to the command
+line. Implementation proceeds through two primary components: the
+``Task`` and ``Node`` classes.
 
 .. _task:
 
-``Task`` class
+Linking a standalone function to command line
 ============================
-
-We start with two full-featured examples on how to link a standalone
-function or generator to the *SHELL* command line interface.
-
-Example: linking a standalone function to command line
-----------------------------
-
 
 In this example, a function *f(m,n)* takes integer arguments *m* and
 *n*.
 
 Our objective is to link this function to the command line
-interface. 
+interface, so we can execute it from DOS/Unix and Python
+command prompt.
 
 We require that using the command line alone we should be able to:
 
@@ -49,73 +41,80 @@ returned by function *f(m,n)* in Python.
 The above requirements are implemented in the code below.  
 
 
-.. note:: Code description: we wish to define command line interface
-  for the standalone function *f(m,n)*. To link function *f(m,n)* to
-  the command line, we define class *F*, an instance of ``Task``, as
-  follows. By defining its *hook* member, we establish the linkage
-  between class *F* and function *f*; by defining its *populate*
-  member we specify how to populate function's arguments based on the
-  command line inputs. This function requires the command line
-  *parser* as argument. The *parser* argument should be treated as
-  variable of the ``argparse.ArgumentParser`` type; as such, the
-  parser should be populated exactly as described documentation for
-  the standard Python's *argparse* module. In our case, it is
-  populated by a sequence of ``parser.add_argument( ... )`` calls: one
-  call for each argument.
+.. _a:
+<input directory="examples" read="a.py" content="python" action="show" flags="show_filename"/>
 
+To link function *f(m,n)* to the command line, we define class *T*, an
+instance of ``Task``, as follows. 
 
-.. _e3:
-<input directory="examples" read="e3.py" content="python" action="show" flags="show_filename"/>
+By defining its *hook* member, we establish the linkage between class
+*T* and function *f*. 
 
+The ``s2m`` function converts the standalone function *f* into the
+bound class method.
 
-Here, ``s2m`` is used to convert the standalone function *f* into the
-bound ``hook`` method, required any instance of the ``Task`` class.
+Expression ``customize(tostring=str)`` indicates that we wish to see
+string representation of the return value of function *f(m,n)* to
+appear within the command line output. Without this ``customize``
+call, the return value will not be displayed.
 
-Also, expression ``customize(tostring=str)`` is used to indicate our
-requirement that the default string representation of the return value
-of *f(m,n)* appears within the command line output.
+By defining its *populate* member we specify how to
+populate function's arguments based on the command line inputs. This
+function requires the command line *parser* as argument. The
+*parser* argument should be treated as variable of the
+``argparse.ArgumentParser`` type; as such, the parser should be
+populated exactly as described documentation for the standard
+Python's *argparse* module. In our case, it is populated by a
+sequence of ``parser.add_argument( ... )`` calls: one call for each
+argument.
 
-To suppress the appearance of the return value of *f(m,n)* in command
-line output, use ``hook = customize(tostring=None)(s2m( f ))``,
-alternatively use ``hook = customize()(s2m( f ))``, or simply ``hook =
-s2m( f )``; function *f(m,n)* will still be executed.
-
-To test the implementation, we execute from the *SHELL*:
+Help messages on usage are displayed by using the ``-h/--help`` flag
 
 <input directory="examples" content="shell" action="execute">
-python e3.py --help
-
-python e3.py 2
-
-python e3.py 2 -n 5
+python a.py --help
 </input>
 
-Equivalently, we execute in *Python*:
+Help messages are also available using the same flag, from the Python
+command line prompt:
 
 <input directory="examples" content="python" action="execute">
-import e3
-e3.F().sdigest('-h')
-
-a = e3.F().sdigest('2')
-print(a)
-
-a = e3.F().sdigest('2 -n 5')
-print(a)
+import a
+a.T().sdigest('-h')
 </input>
 
-Specifying argument items explicitly
+
+
+
+
+To test the implementation, we execute from the DOS/Unix command prompt:
+
+<input directory="examples" content="shell" action="execute">
+python a.py 2
+python a.py 2 -n 5
+</input>
+
+Equivalently, we execute in Python prompt:
 
 <input directory="examples" content="python" action="execute">
-import e3
-a = e3.F().sdigest(['2', '-n', '5'])
-print(a)
+import a
+a.T().sdigest('2')
+a.T().sdigest('2 -n 5')
+</input>
+
+It is possible to specify argument items explicitly by passing a list of items as argument
+
+<input directory="examples" content="python" action="execute">
+import a
+x = a.T().sdigest(['2', '-n', '5'])
+print( x )
 </input>
 
 
 
 
-Example: linking a standalone generator to command line
-----------------------------
+Linking a standalone generator to command line
+============================
+
 
 In this example, a standalone generator *g(m,n)* takes integer
 arguments *m* and *n*.
@@ -140,64 +139,62 @@ as they get provided.
 
 The above requirements are implemented as follows
 
-.. _e1:
-<input directory="examples" read="e1.py" content="python" action="show" flags="show_filename"/>
+.. _b:
+<input directory="examples" read="b.py" content="python" action="show" flags="show_filename"/>
 
 To test the implementation, we execute from the *SHELL*:
 
 <input directory="examples" content="shell" action="execute">
-python e1.py --help
+python b.py --help
 
-python e1.py 2
+python b.py 2
 
-python e1.py 2 -n 5
+python b.py 2 -n 5
 </input>
 
 We execute in *Python*:
 
 <input directory="examples" content="python" action="execute">
-import e1
-e1.G().sdigest('-h')
+import b
+b.T().sdigest('-h')
 
-for a in e1.G().sdigest('2'):
-    print(a)
+for x in b.T().sdigest('2'):
+    print( x )
 
-for a in e1.G().sdigest('2 -n 5'):
-    print(a)
+for x in b.T().sdigest('2 -n 5'):
+    print( x )
 </input>
 
 
 
+Linking a bound method to command line
+============================
 
-
-
-Creating ``hook`` as pure bound method
-----------------------------
 
 In order to link a code body to the command line it is not required to
 have it encapsulated within a standalone function. The following shows
-an example identical to the :ref:`example<e3>` shown above, except
+an example identical to the :ref:`example<a>` shown above, except
 that the body of the function *f(m,n)* is now embedded within the
 definition of the ``hook`` method, inside class *F* declaration,
 rather than being a standalone task method:
 
-<input directory="examples" read="e4.py" content="python" action="show" flags="show_filename"/>
+<input directory="examples" read="c.py" content="python" action="show" flags="show_filename"/>
 
 <input directory="examples" content="shell" action="test-execute">
-python e4.py --help
+python c.py --help
 
-python e4.py 2 -n 5
+python c.py 2 -n 5
 </input>
 
 <input directory="examples" content="python" action="test-execute">
-import e4
-b = e4.F().sdigest('2 -n 5')
-for a in b:
+import c
+gn = c.T().sdigest('2 -n 5')
+for x in gn:
     print(a)
 </input>
 
 Return value display: options and customization
-----------------------------
+============================
 
 Return value display can be disable, enabled or customized.
 
@@ -205,20 +202,20 @@ In order to disable the return value display, simply use
 ``@customize(tostring=None)``, or ``@customize()``, or avoid using the
 ``@customize`` decorator alltogether, as in the following example
 
-<input directory="examples" read="a1.py" content="python" action="show" flags="show_filename"/>
+<input directory="examples" read="d.py" content="python" action="show" flags="show_filename"/>
 
-<input directory="examples" read="a3.py" content="python" action="show" flags="show_filename"/>
+<input directory="examples" read="e.py" content="python" action="show" flags="show_filename"/>
 
 <input directory="examples" content="shell" action="test-execute">
-python a1.py --help
-python a1.py
+python d.py --help
+python d.py
 </input>
 
 <input directory="examples" content="python" action="test-execute">
-import a1
-b = a1.C().sdigest(display=True)
-for a in b:
-    print( a )
+import d
+gn = d.T().sdigest(display=True)
+for x in gn:
+    print( x )
 </input>
 
 
@@ -226,18 +223,13 @@ Customized display of function return value
 
 
 <input directory="examples" content="shell" action="execute">
-python a3.py
+python e.py
 </input>
-
-<input directory="examples" content="shell" action="execute">
-python a4.py
-</input>
-
 
 <input directory="examples" content="python" action="execute">
-import a3
-b = a3.C().sdigest(display=True)
-b
+import e
+x = e.T().sdigest(display=True)
+x
 </input>
 
 It is possible to redirect the output into a customized stream; for
@@ -247,61 +239,62 @@ example
 import io
 stream = io.StringIO()
 
-import a3
-b = a3.C().sdigest(stream=stream,display=True)
+import e
+x = e.T().sdigest(stream=stream,display=True)
 stream.getvalue()
-b
+x
 </input>
 
 
 Customized display of values provided by task generator
 
-<input directory="examples" read="a4.py" content="python" action="show" flags="show_filename"/>
+<input directory="examples" read="f.py" content="python" action="show" flags="show_filename"/>
+
+<input directory="examples" content="shell" action="execute">
+python f.py
+</input>
+
 
 <input directory="examples" content="python" action="execute">
-import a4
-b = a4.C().sdigest(display=True)
-for a in b:
-    print( a )
+import f
+gn = f.T().sdigest(display=True)
+for x in gn:
+    print( x )
 </input>
 
 
 
 
 
-*Node* class
+Building the first level of hierarchy
 ==================
 
-In :ref:`previous section<task>` we presented multiple examples of
-linking Python code to command line interface. As the number of tasks
-grows it becomes more and more difficult for the developer to keep
-track of them, especially if there is an implicit relation between
-the tasks.
+In previous sections we presented multiple examples of linking Python
+code to command line interface. As the number of tasks grows it
+becomes more and more difficult for the developer to keep track of
+them, especially if there is an implicit relation between the tasks.
 
 This section presents the *Node* class, -- a tool that allows you to
 integrate all the related tasks into a single *master* script, by
 organizing them elegantly into a *task tree* structure.
 
 
-Building the first level of hierarchy
-----------------------------
-
 For example, we can quickly organize all the tasks we have defined in
-:ref:`previous section<task>` within a single script *n1.py* as
+:ref:`previous section<task>` within a single script *n.py* as
 follows:
 
-<input directory="examples" read="n1.py" content="python" action="show" flags="show_filename"/>
+<input directory="examples" read="n.py" content="python" action="show" flags="show_filename"/>
 
 The *master* script, when executed with the ``--help/-h`` flag,
 produces the *master help message*, as follows:
 
 <input directory="examples" content="shell" action="execute">
-python n1.py -h
+python n.py -h
 </input>
 
 <input directory="examples" content="python" action="execute">
-import n1
-n1.Main().sdigest('-h')
+import n
+n.T().sdigest('-h')
 </input>
 
 The positional arguments shown above indicate the list of all tasks
@@ -311,19 +304,16 @@ selected for the execution. In this manner we can execute any of the
 available tasks.
 
 
-Example: executing sub-task e3
-^^^^^^^^^^^^^^^^^^^^
-
-For example, when selecting task *e3* for execution, we must populate
+For example, when selecting task *a* for execution, we must populate
 the arguments required by the task, which is done by first retrieving
 help message as follows:
 
 <input directory="examples" content="shell" action="execute">
-python n1.py e3 -h
+python n.py a -h
 </input>
 <input directory="examples" content="python" action="execute">
-import n1
-n1.Main().sdigest('e3 -h')
+import n
+n.T().sdigest('a -h')
 </input>
 
 
@@ -333,49 +323,45 @@ twice (once with *m=2,n=3*, and once with *m=3,n=5*) as follows
 
 
 <input directory="examples" content="shell" action="execute">
-python n1.py e3 2
-python n1.py e3 2 -n 5
+python n.py a 2
+python n.py a 2 -n 5
 </input>
 <input directory="examples" content="python" action="execute">
-import n1
-n1.Main().sdigest('e3 2')
-n1.Main().sdigest('e3 2 -n 5')
+import n
+n.T().sdigest('a 2')
+n.T().sdigest('a 2 -n 5')
 </input>
 
 
 
-Example: executing sub-task a4
-^^^^^^^^^^^^^^^^^^^^
-
-
-Similarly, we may choose to execute task *a4*. The help message for is
+Similarly, we may choose to execute task *f*. The help message for is
 generated as follows:
 
 <input directory="examples" content="shell" action="execute">
-python n1.py a4 -h
+python n.py f -h
 </input>
 
 <input directory="examples" content="python" action="execute">
-import n1
-n1.Main().sdigest('a4 -h')
+import n
+n.T().sdigest('f -h')
 </input>
 
 
 
 We recall from the :ref:`section<task>` describing the task class,
-that task *a4* structurally differs from task *e3* in that the former
+that task *f* structurally differs from task *e* in that the former
 starts an iterator, whereas the latter executes a serial task. Using
-the master script, task *a4* is executed as follows
+the master script, task *f* is executed as follows
 
 
 <input directory="examples" content="shell" action="execute">
-python n1.py a4
+python n.py f
 </input>
 
 <input directory="examples" content="python" action="execute">
-import n1
-for element in n1.Main().sdigest('a4',display=True):
-    print( element )
+import n
+for x in n.T().sdigest('f',display=True):
+    print('Also printing here:', x )
 </input>
 
 
@@ -384,6 +370,36 @@ with the examples above each task is accessible by passing command
 line arguments to the master script only.
 
 
+Extending the hierarchy beyond the first level
+==================
+
+Using class ``Node``, one can build as many levels of hierarchy as
+needed. In the following example, we build one additional hierarchy
+level. 
+
+The following script encapsuletes all the tasks considered above,
+in addition to one new task: todays date:
+
+<input directory="examples" read="m.py" content="python" action="show" flags="show_filename"/>
+
+Indeed, we execute from the shell, a few of the above considered examples:
+
+<input directory="examples" content="shell" action="execute">
+python m.py today
+python m.py n a 5 -n 10
+python m.py n f
+</input>
+
+Similarly, from the Python prompt:
+
+<input directory="examples" content="python" action="execute">
+import m
+
+m.T().sdigest('today')
+m.T().sdigest('n a 5 -n 10')
+for x in m.T().sdigest('n f',display=True):
+    print('Also, printing here:', x )
+</input>
 
 
 

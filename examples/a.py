@@ -4,7 +4,7 @@ def f(m,n):
     "Return list of integers m to n"
     return list(range(m,1+n))
 
-class F(Task):
+class T(Task):
 
     hook = customize(tostring=str)(s2m( f ))
 
@@ -14,4 +14,4 @@ class F(Task):
                             help="Specify the value of N; the default is %(default)s.")
 
 if __name__ == '__main__':
-    F().tdigest()
+    T().tdigest()

@@ -4,37 +4,39 @@ from distutils.core import setup
 
 setup(
     name='argpext'
-    , version='1.3.1' # Fix the version number at conf.py, and argparse/__init__.py too
-    , description = 'Argpext: hierarchical extension of sub-commands in argparse.'
+    , version='1.3.2' # Fix the version number at conf.py, and argparse/__init__.py too
+    , description = 'Argpext: multilevel command line interface.'
     , author='Alexander Shirokov'
     , author_email='alexander.shirokov@gmail.com'
     , packages=['argpext']
     #, scripts = ['argpext.py']
     , py_modules=['argpext']
     , license='OSI Approved'
-    , long_description="""Argpext provides hierarchical, or multilevel, subcommand
-implementation that allows one to quickly expose any required callable
-objects, such as functions, generators, to a DOS/Linux command line.
+    , long_description="""Argpext provides methods to quickly expose any required callable
+objects, such as function, or generator, to a 
+DOS/Linux command line hereby defining a task.
 
-Hierarchical sub-commands implementation: Class "Task" is used to
-define the interface between a specific callable object and the
-command line. When python module contains more than one "task", class
-"Node" may be used in order to populate all the required "tasks" onto
-a tree structure.  Any such task may then individually be executed from a UNIX/DOS
-command line prompt, by passing a script name followed a sequence of command line arguments, followed by the command line arguments used to specify the arguments of the
-task, if required.  Using the "--help" results in a help message. Passing the
-sequence of arguments complete with the task arguments results in the
-actual execution of the task.
+Argpext provides method to organize multiple tasks conveniently into a tree structure.
 
-Acknowledgements: Hierarchical subcommands feature internally relies on the argparse module.
+Each task of such tree can then be executed by passing the proper sequence
+of command line arguments that is necessary to identify the task to
+be executed; the remaining arguments, if any, specify the values of the arguments
+argument passed to the task (if any). 
 
-Release v1.3.0 - substantial new features.  
+Help messages, which are mostly based on the docstrings, are
+automatically produced when the --help (or -h) flag is passed.
 
-Release v1.3.1 - Compatibility with Python 2 is established.
+The return values of the functions and the values yielded by the
+generators are treated differently.  Full-featured return value
+objects are available at the point of execution in
+Python. Customizable return value display option is available for
+execution under Linux/DOS command prompt.
+
+A thorough documentation (with numerous examples) is provided at the link above.
 
 """
     , classifiers = [
-        'Development Status :: 4 - Beta'
+        'Development Status :: 5 - Production/Stable'
         ,'Environment :: Console'
         ,'Intended Audience :: Developers'
         ,'Intended Audience :: Information Technology'

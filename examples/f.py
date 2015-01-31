@@ -2,9 +2,9 @@ from argpext import *
 
 
 def represent_as_string(x):
-    return "[element: %s]" % x
+    return 'I am number "%s"' % x
 
-class C(Task):
+class T(Task):
 
     @customize(tostring=represent_as_string)
     def hook(self):
@@ -13,4 +13,4 @@ class C(Task):
             yield element
 
 if __name__ == '__main__':
-    C().tdigest()
+    T().tdigest()

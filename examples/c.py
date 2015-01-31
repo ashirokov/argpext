@@ -1,6 +1,6 @@
 from argpext import *
 
-class F(Task):
+class T(Task):
 
     @customize(tostring=str)
     def hook(self,m,n):
@@ -13,5 +13,5 @@ class F(Task):
                             help="Specify the value of N; the default is %(default)s.")
 
 if __name__ == '__main__':
-    F().tdigest()
+    T().tdigest()
 

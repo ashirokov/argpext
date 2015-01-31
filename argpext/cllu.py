@@ -286,7 +286,7 @@ class Node(BaseNode):
                 # Find: subtask, the class of the task.
                 subtask = type('_'+subtask.__name__.capitalize(), 
                                (Task,) , 
-                               {'hook' : customize_hook(display=True)(subtask)
+                               {'hook' : customize()( s2m(subtask) )
                             })
 
             nodes[name] = subtask
